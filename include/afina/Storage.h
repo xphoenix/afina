@@ -13,6 +13,9 @@ public:
     Storage() {}
     virtual ~Storage() {}
 
+    virtual void Start() {}
+    virtual void Stop() {}
+
     virtual const std::string &Put(const std::string &key, const std::string &value) = 0;
 
     virtual const std::string &PutIfAbsent(const std::string &key, const std::string &value) = 0;

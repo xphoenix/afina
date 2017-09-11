@@ -5,7 +5,10 @@
 #include <uv.h>
 #include <vector>
 
+#include "memcached/Parser.h"
+
 namespace Afina {
+class Storage;
 namespace Execute {
 class Command;
 }
@@ -18,26 +21,81 @@ namespace Network {
  */
 class Worker {
 public:
-    Worker() {}
+    Worker(std::shared_ptr<Afina::Storage> pStorage) : pStorage(pStorage) {}
     ~Worker() {}
+
+    Worker(const Worker &) = delete;
+    Worker &operator=(const Worker &) = delete;
 
     void Start(const struct sockaddr_storage &addr);
     void Stop();
 
 protected:
+    // Size of input buffer
+    const static size_t ConnectionInputBufferSize = 64 * 1024L;
+
+    // Size of output buffer
+    const static size_t ConnectionOutputBufferSize = 64 * 1024L;
+
+    /**
+     *
+     *
+     */
+    enum ConnectionState : uint8_t {
+        // Command header expected, i.e input stream must be read until header end
+        // marker found
+        sRecvHeader,
+
+        // Data block expected, i.e read until all neccessary bytes consumed
+        sRecvData,
+
+        // Connection is sending bytes now
+        sSend,
+
+        // Connection has been requested to shutdown. It still flys around as wasn't completely
+        // cleanup yet.
+        sClosed
+    };
+
     /**
      * Holds information about single connection from the client
      */
-    typedef struct {
+    typedef struct Connection {
         // Extend UV stream handler to use Connection instance inside
         // libuv lib
         uv_stream_t handler;
 
-        // Buffer for input
-        std::string input;
+        // Current connection state, defines how buffered data processed
+        ConnectionState state;
 
-        // How many bytes from the buffer is already parsed
-        size_t parsed;
+        // Buffer for input
+        char *input;
+
+        // HOw many bytes in input buffer if already used
+        size_t input_used;
+
+        // How many bytes from input has been parsed already
+        size_t input_parsed;
+
+        // Output to be send to client
+        char *output;
+
+        // How many bytes in output buffer if already used
+        size_t output_used;
+
+        // State of the header parser
+        Memcached::Parser parser;
+
+        Connection() : input(nullptr), output(nullptr), input_used(0), input_parsed(0), output_used(0) {
+            input = new char[ConnectionInputBufferSize];
+            output = new char[ConnectionOutputBufferSize];
+            parser.Reset();
+        }
+
+        ~Connection() {
+            delete[] input;
+            delete[] output;
+        }
     } Connection;
 
     /**
@@ -77,17 +135,9 @@ protected:
     void OnRead(uv_stream_t *, ssize_t nread, const uv_buf_t *buf);
 
     /**
-     * Parse given command. If more data needs to be read from the underlaying connection then method
-     * returns how many bytes need.If no additional data needs then method returns 0
-     *
-     * If buffer contains valid serialized command then it should be constructed and put into gicven pointer
-     */
-    size_t Parse(const std::string &str, Execute::Command *out);
-
-    /**
      * Execute last command readed from the connection.
      */
-    void Execute(Connection &pconn);
+    void Execute(Connection &pconn, std::unique_ptr<Execute::Command> cmd);
 
 private:
     /**
@@ -116,6 +166,11 @@ private:
      * due to running commands
      */
     std::vector<Connection *> alive;
+
+    /**
+     * Storage instance to execute commands on
+     */
+    std::shared_ptr<Afina::Storage> pStorage;
 };
 
 } // namespace Network

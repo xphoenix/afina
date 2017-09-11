@@ -1,7 +1,10 @@
 #ifndef AFINA_EXECUTE_APPEND_H
 #define AFINA_EXECUTE_APPEND_H
 
-#include "Command.h"
+#include <cstdint>
+#include <string>
+
+#include "InsertCommand.h"
 
 namespace Afina {
 namespace Execute {
@@ -10,10 +13,11 @@ namespace Execute {
  *
  *
  */
-class Append : public Command {
+class Append : public InsertCommand {
 public:
-    Append();
-    ~Append();
+    Append(const std::string &key, uint32_t flags, int32_t expire, uint32_t value_size)
+        : InsertCommand(key, flags, expire, value_size) {}
+    ~Append() {}
 
     bool Execute(Storage &storage) override;
 };

@@ -19,12 +19,12 @@ public:
     Server(std::shared_ptr<Afina::Storage> ps) : pStorage(ps) {}
     ~Server() {}
 
-    void Start(uint16_t workers = 1);
+    void Start(uint32_t port, uint16_t workers = 1);
     void Stop(bool await_termination = true);
 
 private:
     std::shared_ptr<Afina::Storage> pStorage;
-    std::vector<Worker> workers;
+    std::vector<Worker *> workers;
 };
 
 } // namespace Network
