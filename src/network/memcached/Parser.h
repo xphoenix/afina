@@ -23,7 +23,7 @@ class Parser {
 public:
     Parser() { Reset(); }
     /**
-     * Adds given string into parser input. Method returns true if it was a command parsed out
+     * Push given string into parser input. Method returns true if it was a command parsed out
      * from comulative input. In a such case method Build will return new command
      *
      * @param input sttring to be added to the parsed input
@@ -32,13 +32,22 @@ public:
      */
     bool Parse(const std::string &input, size_t &parsed) { return Parse(&input[0], input.size(), parsed); }
 
+    /**
+     * Push given string into parser input. Method returns true if it was a command parsed out
+     * from comulative input. In a such case method Build will return new command
+     *
+     * @param input string to be added to the parsed input
+     * @param size number of bytes in the input buffer that could be read
+     * @param parsed output parameter tells how many bytes was consumed from the string
+     * @return true if command has been parsed out
+     */
     bool Parse(const char *input, const size_t size, size_t &parsed);
 
     /**
      * Builds new command from parsed input. In case if it wasn't enough input to prse command out
      * method return nullptr
      */
-    std::unique_ptr<Execute::Command> Build() const;
+    std::unique_ptr<Execute::Command> Build(uint32_t &body_size) const;
 
     /**
      * Reset parse so that it could be used to parse out new command

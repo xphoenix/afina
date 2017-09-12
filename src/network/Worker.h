@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "memcached/Parser.h"
+#include <afina/execute/Command.h>
 
 namespace Afina {
 class Storage;
@@ -34,23 +35,24 @@ protected:
     // Size of input buffer
     const static size_t ConnectionInputBufferSize = 64 * 1024L;
 
-    // Size of output buffer
-    const static size_t ConnectionOutputBufferSize = 64 * 1024L;
-
-    /**
-     *
-     *
-     */
+    // Determinates how connection reacts on different async events, such as
+    // new input data or command execution complete
     enum ConnectionState : uint8_t {
         // Command header expected, i.e input stream must be read until header end
         // marker found
         sRecvHeader,
 
         // Data block expected, i.e read until all neccessary bytes consumed
-        sRecvData,
+        sRecvBody,
 
-        // Connection is sending bytes now
-        sSend,
+        // Data block received and \r trailer expected
+        sRecvTrailerCR,
+
+        // Data block received and \n trailer expected
+        sRecvTrailerLF,
+
+        // Command was parsed out, time to execute it
+        sExecute,
 
         // Connection has been requested to shutdown. It still flys around as wasn't completely
         // cleanup yet.
@@ -77,26 +79,51 @@ protected:
         // How many bytes from input has been parsed already
         size_t input_parsed;
 
-        // Output to be send to client
-        char *output;
-
-        // How many bytes in output buffer if already used
-        size_t output_used;
-
         // State of the header parser
         Memcached::Parser parser;
 
-        Connection() : input(nullptr), output(nullptr), input_used(0), input_parsed(0), output_used(0) {
+        // Command parsed out from the input
+        std::unique_ptr<Execute::Command> cmd;
+
+        // Number of bytes left to read to get command
+        uint32_t body_size;
+
+        // Argument for the command
+        std::string body;
+
+        Connection()
+            : state(ConnectionState::sRecvHeader), input(nullptr), input_used(0), input_parsed(0), cmd(nullptr),
+              body_size(0), body("") {
             input = new char[ConnectionInputBufferSize];
-            output = new char[ConnectionOutputBufferSize];
             parser.Reset();
         }
 
-        ~Connection() {
-            delete[] input;
-            delete[] output;
-        }
+        ~Connection() { delete[] input; }
     } Connection;
+
+    /**
+     * Work passed to the worker thread pool and back in order to execute
+     * some command
+     */
+    typedef struct ExecuteTask {
+        // Write handler, used to send this task through the libuv write pipeline
+        uv_write_t handler;
+
+        // Async signal to be called once task execution is complete
+        uv_async_t done;
+
+        // Connection that received command, used to write out response
+        Connection *connection;
+
+        // Command to execute
+        std::unique_ptr<Execute::Command> cmd;
+
+        // Argument for the command
+        std::string argument;
+
+        // Execution result
+        uv_buf_t result;
+    } ExecuteTask;
 
     /**
      * Called by thread once started, while this method is running Worker considered as alive
@@ -135,9 +162,21 @@ protected:
     void OnRead(uv_stream_t *, ssize_t nread, const uv_buf_t *buf);
 
     /**
-     * Execute last command readed from the connection.
+     * Execute last command readed from the connection. Once method return all fields in connection allocated for the
+     * command will be released, so implementation must take care to copy/move data somewhere else in case it needs
+     * for a time  longer then function execution
      */
-    void Execute(Connection &pconn, std::unique_ptr<Execute::Command> cmd);
+    void Execute(Connection &pconn);
+
+    /**
+     * Called once command execution is complete
+     */
+    void OnExecutionDone(uv_async_t *handle);
+
+    /**
+     * Called by libuv once ExecuteTask output buffer has been written to the output connection
+     */
+    void OnWriteDone(uv_write_t *req, int status);
 
 private:
     /**

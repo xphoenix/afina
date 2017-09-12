@@ -15,11 +15,10 @@ namespace Execute {
  */
 class Append : public InsertCommand {
 public:
-    Append(const std::string &key, uint32_t flags, int32_t expire, uint32_t value_size)
-        : InsertCommand(key, flags, expire, value_size) {}
+    Append(const std::string &key, uint32_t flags, int32_t expire) : InsertCommand(key, flags, expire) {}
     ~Append() {}
 
-    bool Execute(Storage &storage) override;
+    void Execute(Storage &storage, const std::string &args, std::string &out) override;
 };
 
 } // namespace Execute

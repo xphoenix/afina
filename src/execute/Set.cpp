@@ -5,9 +5,9 @@
 namespace Afina {
 namespace Execute {
 
-bool Set::Execute(Storage &storage) {
-    std::cout << "Set(" << _key << "): " << std::endl;
-    return false;
+void Set::Execute(Storage &storage, const std::string &args, std::string &out) {
+    std::cout << "Set(" << _key << "): " << args << std::endl;
+    out = "STORED";
 }
 
 } // namespace Execute

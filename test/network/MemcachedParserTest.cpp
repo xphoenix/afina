@@ -26,14 +26,15 @@ TEST(MemcachedParserTest, SimpleSet) {
     ASSERT_EQ(15, consumed);
     ASSERT_EQ("set", parser.Name());
 
-    std::unique_ptr<Execute::Command> cmd = parser.Build();
+    uint32_t value_size;
+    std::unique_ptr<Execute::Command> cmd = parser.Build(value_size);
     ASSERT_FALSE(cmd == nullptr);
 
     Execute::Set *tmp = reinterpret_cast<Execute::Set *>(cmd.get());
     ASSERT_EQ("foo", tmp->key());
     ASSERT_EQ(0, tmp->flags());
     ASSERT_EQ(0, tmp->expire());
-    ASSERT_EQ(6, tmp->valueSize());
+    ASSERT_EQ(6, value_size);
 }
 
 // Verify simple add command passed in a single string
@@ -46,14 +47,15 @@ TEST(MemcachedParserTest, SimpleAdd) {
     ASSERT_EQ(18, consumed);
     ASSERT_EQ("add", parser.Name());
 
-    std::unique_ptr<Execute::Command> cmd = parser.Build();
+    uint32_t value_size;
+    std::unique_ptr<Execute::Command> cmd = parser.Build(value_size);
     ASSERT_FALSE(cmd == nullptr);
 
     Execute::Add *tmp = reinterpret_cast<Execute::Add *>(cmd.get());
     ASSERT_EQ("bar", tmp->key());
     ASSERT_EQ(10, tmp->flags());
     ASSERT_EQ(-1, tmp->expire());
-    ASSERT_EQ(60, tmp->valueSize());
+    ASSERT_EQ(60, value_size);
 }
 
 // Verify simple get command passed in a single string
@@ -66,8 +68,10 @@ TEST(MemcachedParserTest, SimpleGet) {
     ASSERT_EQ(28, consumed);
     ASSERT_EQ("get", parser.Name());
 
-    std::unique_ptr<Execute::Command> cmd = parser.Build();
+    uint32_t value_size;
+    std::unique_ptr<Execute::Command> cmd = parser.Build(value_size);
     ASSERT_FALSE(cmd == nullptr);
+    ASSERT_EQ(0, value_size);
 
     Execute::Get *tmp = reinterpret_cast<Execute::Get *>(cmd.get());
     std::vector<std::string> keys = tmp->keys();

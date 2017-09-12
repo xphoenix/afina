@@ -15,7 +15,7 @@ public:
     Delete();
     ~Delete();
 
-    bool Execute(Storage &storage) override;
+    void Execute(Storage &storage, const std::string &args, std::string &out) override;
 };
 
 } // namespace Execute

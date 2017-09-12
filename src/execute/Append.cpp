@@ -3,7 +3,7 @@
 namespace Afina {
 namespace Execute {
 
-bool Append::Execute(Storage &storage) { return false; }
+void Append::Execute(Storage &storage, const std::string &args, std::string &out) {}
 
 } // namespace Execute
 } // namespace Afina

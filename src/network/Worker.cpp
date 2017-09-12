@@ -245,14 +245,137 @@ void Worker::OnRead(uv_stream_t *conn, ssize_t nread, const uv_buf_t *buf) {
     // Look for the command delimeters in the [parsed, input.size()). Note that buffer could contains
     // many commands, not only one
     pconn->input_used += nread;
-    if (pconn->parser.Parse(pconn->input, pconn->input_used, pconn->input_parsed)) {
-        std::unique_ptr<Execute::Command> cmd = pconn->parser.Build();
-        this->Execute(*pconn, std::move(cmd));
+    while (pconn->input_parsed < pconn->input_used) {
+        // Read header or body if needs
+        if (pconn->state == ConnectionState::sRecvHeader) {
+            // Try to parse command out
+            if (!pconn->parser.Parse(pconn->input, pconn->input_used, pconn->input_parsed)) {
+                continue;
+            }
+
+            // Command has been parsed form input
+            pconn->cmd = pconn->parser.Build(pconn->body_size);
+
+            // Command has argument that needs to be read from the network connection before execution could take place
+            if (pconn->body_size > 0) {
+                pconn->body.clear();
+                pconn->state = ConnectionState::sRecvBody;
+            } else {
+                pconn->state = ConnectionState::sExecute;
+            }
+        } else if (pconn->state == ConnectionState::sRecvBody) {
+            size_t for_copy = std::min(uint32_t(pconn->input_used - pconn->input_parsed), pconn->body_size);
+            pconn->body.append(pconn->input + pconn->input_parsed, for_copy);
+
+            pconn->body_size -= for_copy;
+            pconn->input_parsed += for_copy;
+
+            if (pconn->body_size == 0) {
+                pconn->state = ConnectionState::sRecvTrailerCR;
+            }
+        } else if (pconn->state == ConnectionState::sRecvTrailerCR) {
+            if (pconn->input[pconn->input_parsed] != '\r') {
+                throw std::runtime_error("Invalid chat, \\r expected");
+            }
+            pconn->input_parsed++;
+            pconn->state = ConnectionState::sRecvTrailerLF;
+        } else if (pconn->state == ConnectionState::sRecvTrailerLF) {
+            if (pconn->input[pconn->input_parsed] != '\n') {
+                throw std::runtime_error("Invalid chat, \\n expected");
+            }
+            pconn->input_parsed++;
+            pconn->state = ConnectionState::sExecute;
+        }
+
+        if (pconn->state == ConnectionState::sExecute) {
+            Execute(*pconn);
+
+            pconn->cmd.reset();
+            pconn->body.clear();
+            pconn->parser.Reset();
+            pconn->state = ConnectionState::sRecvHeader;
+        }
     }
 }
 
 // See Worker.h
-void Worker::Execute(Connection &pconn, std::unique_ptr<Execute::Command> cmd) { cmd->Execute(*pStorage); }
+void Worker::Execute(Connection &pconn) {
+    std::cout << "network debug:" << __PRETTY_FUNCTION__ << std::endl;
+
+    // Setup execution params
+    ExecuteTask *ptask = new ExecuteTask();
+    ptask->connection = &pconn;
+    ptask->cmd = std::move(pconn.cmd);
+    ptask->argument = std::move(pconn.body);
+
+    // Setup async signal to be called once task execution is complete
+    int rc = uv_async_init(&uvLoop, &ptask->done, delegate<Worker>::callback<&Worker::OnExecutionDone>);
+    if (rc != 0) {
+        throw std::runtime_error("Failed to call uv_async_init for the task");
+    }
+    ptask->done.data = this;
+
+    // TODO: That should be in another thread
+    {
+        std::string output;
+        try {
+            ptask->cmd->Execute(*pStorage, ptask->argument, output);
+        } catch (std::runtime_error &ex) {
+            std::cerr << "Failed to execute command: " << ex.what() << std::endl;
+
+            std::stringstream ss;
+            ss << "SERVER_ERROR " << ex.what();
+            output = ss.str();
+        }
+
+        // Prepare output
+        size_t size = output.size() + 2;
+        ptask->result.base = new char[size];
+        ptask->result.len = size;
+
+        std::memcpy(ptask->result.base, &output[0], size - 2);
+        ptask->result.base[size - 2] = '\r';
+        ptask->result.base[size - 1] = '\n';
+
+        // Notify event loop about task completition
+        uv_async_send(&ptask->done);
+    }
+}
+
+// See Worker.h
+void Worker::OnExecutionDone(uv_async_t *handle) {
+    std::cout << "network debug:" << __PRETTY_FUNCTION__ << std::endl;
+
+    assert(handle);
+    ExecuteTask *task = (ExecuteTask *)((uint8_t *)handle - offsetof(ExecuteTask, done));
+    assert(&task->done == handle);
+
+    // We don't need async anymore
+    uv_close((uv_handle_t *)&task->done, delegate<Worker>::callback<&Worker::OnHandleClosed>);
+
+    // Write command result to connection
+    if (task->connection->state == ConnectionState::sClosed) {
+        std::cerr << "Connection closed before command complete: ignore result" << std::endl;
+    } else {
+        // Send buffer to socket
+        int rc = uv_write(&task->handler, &task->connection->handler, &task->result, 1,
+                          delegate<Worker, int>::callback<&Worker::OnWriteDone>);
+        if (rc != 0) {
+            throw std::runtime_error("Failed to write request");
+        }
+    }
+}
+
+// See Worker.h
+void Worker::OnWriteDone(uv_write_t *req, int status) {
+    std::cout << "network debug:" << __PRETTY_FUNCTION__ << std::endl;
+    assert(req != nullptr);
+    ExecuteTask *task = (ExecuteTask *)req;
+    Connection *pconn = task->connection;
+
+    delete[] task->result.base;
+    delete task;
+}
 
 } // namespace Network
 } // namespace Afina

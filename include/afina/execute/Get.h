@@ -20,7 +20,7 @@ public:
 
     inline const std::vector<std::string> &keys() const { return _keys; }
 
-    bool Execute(Storage &storage) override;
+    void Execute(Storage &storage, const std::string &args, std::string &out) override;
 
 private:
     std::vector<std::string> _keys;

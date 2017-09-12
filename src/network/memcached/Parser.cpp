@@ -19,6 +19,7 @@ bool Parser::Parse(const char *input, const size_t size, size_t &parsed) {
     bool negative;
     std::string curKey;
 
+    bytes = 0;
     bool parse_complete = false;
     for (pos = 0; pos < size && !parse_complete; pos++) {
         char c = input[pos];
@@ -156,17 +157,18 @@ bool Parser::Parse(const char *input, const size_t size, size_t &parsed) {
 }
 
 // See Parse.h
-std::unique_ptr<Execute::Command> Parser::Build() const {
+std::unique_ptr<Execute::Command> Parser::Build(uint32_t &body_size) const {
     if (state != State::sLF) {
         return std::unique_ptr<Execute::Command>(nullptr);
     }
 
+    body_size = bytes;
     if (name == "set") {
-        return std::unique_ptr<Execute::Command>(new Execute::Set(keys[0], flags, exprtime, bytes));
+        return std::unique_ptr<Execute::Command>(new Execute::Set(keys[0], flags, exprtime));
     } else if (name == "add") {
-        return std::unique_ptr<Execute::Command>(new Execute::Add(keys[0], flags, exprtime, bytes));
+        return std::unique_ptr<Execute::Command>(new Execute::Add(keys[0], flags, exprtime));
     } else if (name == "append") {
-        return std::unique_ptr<Execute::Command>(new Execute::Append(keys[0], flags, exprtime, bytes));
+        return std::unique_ptr<Execute::Command>(new Execute::Append(keys[0], flags, exprtime));
     } else if (name == "get") {
         return std::unique_ptr<Execute::Command>(new Execute::Get(keys));
     } else {
@@ -180,8 +182,8 @@ void Parser::Reset() {
     name.clear();
     keys.clear();
     flags = 0;
-    exprtime = 0;
     bytes = 0;
+    exprtime = 0;
 }
 
 } // namespace Memcached

@@ -3,6 +3,8 @@
 #include <iostream>
 #include <sys/mman.h>
 
+#include <afina/Storage.h>
+
 namespace Afina {
 namespace Network {
 
