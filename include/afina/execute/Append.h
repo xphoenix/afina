@@ -15,7 +15,7 @@ public:
     Append();
     ~Append();
 
-    bool Execute(Storage &storage) override;
+    bool Execute(Storage &storage, std::ostream& out) override;
 };
 
 } // namespace Execute
