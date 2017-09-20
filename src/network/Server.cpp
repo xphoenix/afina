@@ -1,14 +1,15 @@
 #include "Server.h"
 
 #include <iostream>
-#include <sys/mman.h>
 #include <stdexcept>
+#include <sys/mman.h>
 
 #include <afina/Storage.h>
 
 namespace Afina {
 namespace Network {
 
+// See Server.h
 void Server::Start(uint32_t port, uint16_t n_workers) {
     struct sockaddr_storage address;
     int rc = uv_ip4_addr("0.0.0.0", port, (struct sockaddr_in *)&address);
@@ -24,7 +25,19 @@ void Server::Start(uint32_t port, uint16_t n_workers) {
     }
 }
 
-void Server::Stop(bool await_termination) {}
+// See Server.h
+void Server::Stop() {
+    for (auto worker : workers) {
+        worker->Stop();
+    }
+}
+
+// See Server.h
+void Server::Join() {
+    for (auto worker : workers) {
+        worker->Join();
+    }
+}
 
 } // namespace Network
 } // namespace Afina

@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 
     uv_signal_t sig;
     uv_signal_init(&loop, &sig);
-    uv_signal_start(&sig, signal_handler, SIGTERM);
+    uv_signal_start(&sig, signal_handler, SIGTERM | SIGKILL);
     sig.data = &app;
 
     uv_timer_t timer;
@@ -70,6 +70,7 @@ int main(int argc, char **argv) {
 
         // Stop services
         app.server->Stop();
+        app.server->Join();
         app.storage->Stop();
 
         std::cout << "Application stopped" << std::endl;

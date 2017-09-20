@@ -106,9 +106,12 @@ protected:
         // Argument for the command
         std::string body;
 
+        // Number of tasks that are running now
+        size_t runningTasks;
+
         Connection()
             : state(ConnectionState::sRecvHeader), input(nullptr), input_used(0), input_parsed(0), cmd(nullptr),
-              body_size(0), body("") {
+              body_size(0), body(""), runningTasks(0) {
             input = new char[ConnectionInputBufferSize];
             parser.Reset();
         }
@@ -200,26 +203,14 @@ protected:
     void OnWriteDone(uv_write_t *req, int status);
 
 private:
-    // State of worker, could transit only in one direction from left to right
-    enum class WorkerState : uint8_t { kInit, kRun, kStopping, kStopped };
-
-    /**
-     * Lock to be hold in order to wait the event loop to finish. Once event loop is done execution
-     * it will notify everyone holding this lock.
-     */
-    uv_mutex_t stateLock;
-
-    /**
-     * Condition variable used to notify threads awaiting for worker state changes. Condition notified
-     * each time worker changes state
-     */
-    uv_cond_t stateChanges;
-
-    /**
-     * State, defines what operations are allowed. Any access to this variable must be protected by stateLock,
-     * and every change must notify stateChanges variable
-     */
-    WorkerState state;
+    // // State of worker, could transit only in one direction from left to right
+    // enum class WorkerState : uint8_t { kInit, kRun, kStopping, kStopped };
+    //
+    // /**
+    //  * State, defines what operations are allowed. Any access to this variable must be protected by stateLock,
+    //  * and every change must notify stateChanges variable
+    //  */
+    // WorkerState state;
 
     /**
      * Thread running current worker

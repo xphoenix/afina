@@ -20,7 +20,8 @@ public:
     ~Server() {}
 
     void Start(uint32_t port, uint16_t workers = 1);
-    void Stop(bool await_termination = true);
+    void Stop();
+    void Join();
 
 private:
     std::shared_ptr<Afina::Storage> pStorage;
