@@ -1,6 +1,7 @@
 #include "Parser.h"
 
 #include <iostream>
+#include <stdexcept>
 
 #include <afina/execute/Add.h>
 #include <afina/execute/Append.h>
