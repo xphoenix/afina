@@ -252,7 +252,7 @@ void Worker::OnConnectionOpen(uv_stream_t *server, int status) {
     std::cout << "network debug:" << __PRETTY_FUNCTION__ << std::endl;
     // Allocate new connection from the memory pool
     Connection *pconn = new Connection;
-    alive.push_back(pconn);
+    alive.insert(pconn);
 
     // Init connection
     uv_tcp_init(&uvLoop, (uv_tcp_t *)pconn);
