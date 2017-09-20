@@ -1,6 +1,8 @@
 #ifndef AFINA_EXECUTE_COMMAND_H
 #define AFINA_EXECUTE_COMMAND_H
 
+#include <iostream>
+
 namespace Afina {
 
 class Storage;
@@ -16,7 +18,7 @@ public:
     Command() {}
     virtual ~Command() {}
 
-    virtual bool Execute(Storage &storage) = 0;
+    virtual bool Execute(Storage &storage, std::ostream& out) = 0;
 };
 
 } // namespace Execute
