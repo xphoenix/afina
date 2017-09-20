@@ -159,6 +159,7 @@ void Worker::Stop() {
     //
     // However perform notification from under state lock to avoid situation when notify non started
     // worker. Obviously it leads to errors as loop and async handler are non exists yet
+    // TODO: mutex/cond var might be not created yet!
     uv_mutex_lock(&stateLock);
     if (state == WorkerState::kRun) {
         uv_async_send(&uvStopAsync);
@@ -223,6 +224,17 @@ void Worker::OnStop(uv_async_t *async) {
     }
     uv_mutex_unlock(&stateLock);
 
+    // Stop accept new incomming connections
+    uv_close((uv_handle_t*)&uvNetwork, delegate<Worker>::callback<&Worker::OnHandleClosed>);
+
+    // Mark all connections as closed. It is seems to be possible to not Track
+    // connection close state separately in each connection, however that would
+    // require to access worker state on each read/write operation which puts
+    // too much load on mutex and slows down everything
+    for (auto conn : alive) {
+      conn->state = ConnectionState::sClosed;
+    }
+
     // Try to close event loop
     CloseEventLoppIfPossible();
 }
@@ -230,12 +242,22 @@ void Worker::OnStop(uv_async_t *async) {
 // Called when some handle has been closed, connection, write request and task handlers has special
 // callback, that one is used for async & server socket handler
 // See Worker.h
-void Worker::OnHandleClosed(uv_handle_t *) {
+void Worker::OnHandleClosed(uv_handle_t *h) {
     std::cout << "network debug:" << __PRETTY_FUNCTION__ << std::endl;
-    // TODO: Track all open handlers here to signal stop routine once shutdown is possible
-    // logger->info("Handler closed");
-    // openHandlersCount--;
-    // StoppedIfRequestedAndPossible();
+
+    // Check if connection gets closed. Note that even pointer could be casted
+    // it doesn't mean that argument is really connection. It is only if
+    // pointer found in connection set
+    Connection *pconn = reinterpret_cast<Connection *>(h);
+    if (alive.erase(pconn) != 0) {
+      std::cout << "network debug: connection closed" << std::endl;
+      delete pconn;
+    }
+
+    // After all connections are closed, we could really close worker
+    if (alive.empty()) {
+      uv_loop_close(&uvLoop);
+    }
 }
 
 // It is not possible to close the loop until there are connections. In order to close any connection
@@ -262,7 +284,7 @@ void Worker::OnConnectionOpen(uv_stream_t *server, int status) {
     int rc = uv_accept(server, (uv_stream_t *)pconn);
     if (rc != 0) {
         std::cerr << "Failed to call uv_accept: [" << uv_err_name(rc) << ", " << rc << "]: " << uv_strerror(rc);
-        uv_close((uv_handle_t *)(pconn), delegate<Worker>::callback<&Worker::OnConnectionClose>);
+        uv_close((uv_handle_t *)(pconn), delegate<Worker>::callback<&Worker::OnHandleClosed>);
         return;
     }
 
@@ -271,18 +293,9 @@ void Worker::OnConnectionOpen(uv_stream_t *server, int status) {
                        delegate<Worker, ssize_t, const uv_buf_t *>::callback<&Worker::OnRead>);
     if (rc != 0) {
         std::cerr << "Failed to call uv_read_start: [" << uv_err_name(rc) << ", " << rc << "]: " << uv_strerror(rc);
-        uv_close((uv_handle_t *)(pconn), delegate<Worker>::callback<&Worker::OnConnectionClose>);
+        uv_close((uv_handle_t *)(pconn), delegate<Worker>::callback<&Worker::OnHandleClosed>);
         return;
     }
-}
-
-// Called once underlaying socket closed, used to delete all resources associated with connection
-// See Worker.h
-void Worker::OnConnectionClose(uv_handle_t *conn) {
-    std::cout << "network debug:" << __PRETTY_FUNCTION__ << std::endl;
-    Connection *pconn = (Connection *)(conn);
-    // TODO: Connection closed, discard all queued commands, mark connection as closed to discard all
-    // running commands results and delete pointer once it has no commands
 }
 
 // Just before read, libuv calls that method to allocate some memory chunk where read copies socket data.
@@ -315,7 +328,7 @@ void Worker::OnRead(uv_stream_t *conn, ssize_t nread, const uv_buf_t *buf) {
 
     // negative nread indicates that socket has been closed
     if (nread < 0) {
-        uv_close((uv_handle_t *)(pconn), delegate<Worker>::callback<&Worker::OnConnectionClose>);
+        uv_close((uv_handle_t *)(pconn), delegate<Worker>::callback<&Worker::OnHandleClosed>);
         return;
     }
 
