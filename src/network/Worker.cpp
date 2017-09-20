@@ -64,6 +64,29 @@ void Worker::Start(const struct sockaddr_storage &address) {
     }
     uvLoop.data = this;
 
+    // Init stop infrastructure
+    rc = uv_async_init(&uvLoop, &uvStopAsync, delegate<Worker>::callback<&Worker::OnStop>);
+    if (rc != 0) {
+        std::stringstream ss;
+        ss << "Failed to call uv_async_init: [" << uv_err_name(rc) << ", " << rc << "]: " << uv_strerror(rc);
+        throw std::runtime_error(ss.str());
+    }
+    uvStopAsync.data = this;
+
+    rc = uv_mutex_init(&stateLock);
+    if (rc != 0) {
+        std::stringstream ss;
+        ss << "Failed to call uv_mutex_init: [" << uv_err_name(rc) << ", " << rc << "]: " << uv_strerror(rc);
+        throw std::runtime_error(ss.str());
+    }
+
+    rc = uv_cond_init(&stateChanges);
+    if (rc != 0) {
+        std::stringstream ss;
+        ss << "Failed to call uv_cond_init: [" << uv_err_name(rc) << ", " << rc << "]: " << uv_strerror(rc);
+        throw std::runtime_error(ss.str());
+    }
+
     // Init signals
     rc = uv_signal_init(&uvLoop, &uvSigPipe);
     if (rc != 0) {
@@ -130,17 +153,57 @@ void Worker::Start(const struct sockaddr_storage &address) {
 }
 
 // See Worker.h
-void Worker::Stop() {}
+void Worker::Stop() {
+    // Wake up event loop instead of work directly on worker state. That requires to start processing
+    // shutdown event immediately instead of waiting next event on the loop
+    //
+    // However perform notification from under state lock to avoid situation when notify non started
+    // worker. Obviously it leads to errors as loop and async handler are non exists yet
+    uv_mutex_lock(&stateLock);
+    if (state == WorkerState::kRun) {
+        uv_async_send(&uvStopAsync);
+    }
+    uv_mutex_unlock(&stateLock);
+}
+
+// See Worker.h
+void Worker::Join() {
+    // Wait until background thread moves to required state
+    uv_mutex_lock(&stateLock);
+    while (state > WorkerState::kInit && state < WorkerState::kStopped) {
+        uv_cond_wait(&stateChanges, &stateLock);
+    }
+    uv_mutex_unlock(&stateLock);
+}
 
 // Run method of the event loop thread, it must setup thread local resources, and launch event loop.
 // Once loop terminated, method cleans up all local resources
 // See Worker.h
 void Worker::OnRun() {
-    // Run network loop, that call won't return until event loop shuted down by libuv
-    // routines
+    // Change state under lock!
+    //
+    // Notes on condition variable:
+    // Generally it is bad idea to wakeup ALL thread which are awaiting on the variable,
+    // however in this particular case there are two observations making a such approach
+    // acceptable:
+    // - There aren't much threads which are awating for signal
+    // - Signal not happens frequently
+    // - It is really needs to let all awaiting threads to know that thread is stopped
+    uv_mutex_lock(&stateLock);
+    assert(state == WorkerState::kInit);
+    state = WorkerState::kRun;
+    uv_cond_broadcast(&stateChanges);
+    uv_mutex_unlock(&stateLock);
+
+    // Run network loop, that call won't return until event loop shuted down by libuv routines
     uv_run(&uvLoop, UV_RUN_DEFAULT);
 
-    // TODO: Here is cleanup logic
+    // Loop has been stoped, so change state
+    uv_mutex_lock(&stateLock);
+    assert(state == WorkerState::kRun);
+    state = WorkerState::kStopped;
+    uv_cond_broadcast(&stateChanges);
+    uv_mutex_unlock(&stateLock);
 }
 
 // Called once signal from outside world received that it is time to stop the network layer.
@@ -149,11 +212,19 @@ void Worker::OnRun() {
 // See Worker.h
 void Worker::OnStop(uv_async_t *async) {
     std::cout << "network debug:" << __PRETTY_FUNCTION__ << std::endl;
-    // Other calls to async has no meaning
-    // TODO: Shutdown
-    // if (uv_is_closing((uv_handle_t *)&uvStopAsync) == 0) {
-    //     uv_close((uv_handle_t *)&uvStopAsync, delegate<Worker>::callback<&Worker::OnHandleClosed>);
-    // }
+
+    // We are really don't know how many connections are out there and
+    // does each of it is read to be closed on no. Because of that set
+    // stopping state and wait until cleanup happens
+    uv_mutex_lock(&stateLock);
+    if (state == WorkerState::kRun) {
+        state = WorkerState::kStopping;
+        uv_cond_broadcast(&stateChanges);
+    }
+    uv_mutex_unlock(&stateLock);
+
+    // Try to close event loop
+    CloseEventLoppIfPossible();
 }
 
 // Called when some handle has been closed, connection, write request and task handlers has special
@@ -166,6 +237,12 @@ void Worker::OnHandleClosed(uv_handle_t *) {
     // openHandlersCount--;
     // StoppedIfRequestedAndPossible();
 }
+
+// It is not possible to close the loop until there are connections. In order to close any connection
+// all running commands must be complete, all write task finished and so on. Once all that things are
+// done it is possible to close event loop
+// See Worker.h
+void Worker::CloseEventLoppIfPossible() {}
 
 // New connection arrived in the server socket, here resources for connection get allocated and
 // reading begin. According to our protocol client just start sending new commands, so server is

@@ -2,6 +2,7 @@
 #define AFINA_NETWORK_WORKER_H
 
 #include <string>
+#include <unordered_set>
 #include <uv.h>
 #include <vector>
 
@@ -29,7 +30,21 @@ public:
     Worker &operator=(const Worker &) = delete;
 
     void Start(const struct sockaddr_storage &addr);
+
+    /**
+     * Signal worker that  it should stop. Method returns immediately, after that
+     * all new incomming connections will be rejected, currently readed commands complete
+     * and existing connections closed.
+     *
+     * Once all existing connections closed worker will stop
+     */
     void Stop();
+
+    /**
+     * Blocks calling thread until worker is stopped. If worker hasn't been started then
+     * method return immediately
+     */
+    void Join();
 
 protected:
     // Size of input buffer
@@ -141,6 +156,12 @@ protected:
     void OnHandleClosed(uv_handle_t *);
 
     /**
+     * Check that all async resources allocated for network are free and close
+     * event loop
+     */
+    void CloseEventLoppIfPossible();
+
+    /**
      * Called by UV once new connection arrived
      */
     void OnConnectionOpen(uv_stream_t *, int);
@@ -179,6 +200,27 @@ protected:
     void OnWriteDone(uv_write_t *req, int status);
 
 private:
+    // State of worker, could transit only in one direction from left to right
+    enum class WorkerState : uint8_t { kInit, kRun, kStopping, kStopped };
+
+    /**
+     * Lock to be hold in order to wait the event loop to finish. Once event loop is done execution
+     * it will notify everyone holding this lock.
+     */
+    uv_mutex_t stateLock;
+
+    /**
+     * Condition variable used to notify threads awaiting for worker state changes. Condition notified
+     * each time worker changes state
+     */
+    uv_cond_t stateChanges;
+
+    /**
+     * State, defines what operations are allowed. Any access to this variable must be protected by stateLock,
+     * and every change must notify stateChanges variable
+     */
+    WorkerState state;
+
     /**
      * Thread running current worker
      */
@@ -196,6 +238,11 @@ private:
     uv_signal_t uvSigPipe;
 
     /**
+     * Async used by stop routine in order to wake up event loop
+     */
+    uv_async_t uvStopAsync;
+
+    /**
      * TCP/IP socket used by server to listen for incomming connection
      */
     uv_tcp_t uvNetwork;
@@ -204,7 +251,7 @@ private:
      * List of all "alive" connections, some of it could be in closed state, but can't be removed yet
      * due to running commands
      */
-    std::vector<Connection *> alive;
+    std::unordered_set<Connection *> alive;
 
     /**
      * Storage instance to execute commands on
