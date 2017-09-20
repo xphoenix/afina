@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <sys/mman.h>
+#include <stdexcept>
 
 #include <afina/Storage.h>
 
