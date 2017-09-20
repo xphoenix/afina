@@ -5,6 +5,7 @@ set(SOURCE_FILES
     Append.cpp
     Get.cpp
     Set.cpp
+    Replace.cpp
 )
 
 add_library(Execute ${SOURCE_FILES})
