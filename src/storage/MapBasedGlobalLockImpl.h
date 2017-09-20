@@ -2,6 +2,7 @@
 #define AFINA_STORAGE_MAP_BASED_GLOBAL_LOCK_IMPL_H
 
 #include <map>
+#include <mutex>
 #include <string>
 
 #include <afina/Storage.h>
@@ -20,19 +21,27 @@ public:
     ~MapBasedGlobalLockImpl() {}
 
     // Implements Afina::Storage interface
-    const std::string &Put(const std::string &key, const std::string &value) override;
+    bool Put(const std::string &key, const std::string &value) override;
 
     // Implements Afina::Storage interface
-    const std::string &PutIfAbsent(const std::string &key, const std::string &value) override;
+    bool PutIfAbsent(const std::string &key, const std::string &value) override;
 
     // Implements Afina::Storage interface
-    bool Get(const std::string &key, std::string &value) override;
+    bool Set(const std::string &key, const std::string &value) override;
+
+    // Implements Afina::Storage interface
+    bool Delete(const std::string &key) override;
+
+    // Implements Afina::Storage interface
+    bool Get(const std::string &key, std::string &value) const override;
 
 private:
+    std::mutex _lock;
+
     std::map<std::string, std::string> _backend;
 };
 
-} // namespace Storage
+} // namespace Backend
 } // namespace Afina
 
 #endif // AFINA_STORAGE_MAP_BASED_GLOBAL_LOCK_IMPL_H
