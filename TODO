@@ -1,0 +1,8 @@
+- open desriptors tracking
+- connection close
+- stop/shutdown
+- read/write timeouts
+- memcached протокол использует для значений массивы байт. Как передавать в комманды:
+-- Сделать bufstream, который позволяет читать поток прямо из сокета. Тогда он должен быть запущен на отдельном
+   потоке от event_loop'а
+-- Вычитавать в память?

@@ -2,9 +2,12 @@
 
 #include <arpa/inet.h>
 #include <cassert>
+#include <cstring>
+#include <iostream>
 #include <sstream>
 #include <stdexcept>
 
+#include <afina/Storage.h>
 #include <afina/execute/Command.h>
 
 namespace Afina {
@@ -50,6 +53,7 @@ template <typename T, typename... Types> struct delegate {
 
 void noop(uv_signal_t *handle, int signum) {}
 
+// See Worker.h
 void Worker::Start(const struct sockaddr_storage &address) {
     // Init loop
     int rc = uv_loop_init(&uvLoop);
@@ -60,6 +64,15 @@ void Worker::Start(const struct sockaddr_storage &address) {
     }
     uvLoop.data = this;
 
+    // Init stop infrastructure
+    rc = uv_async_init(&uvLoop, &uvStopAsync, delegate<Worker>::callback<&Worker::OnStop>);
+    if (rc != 0) {
+        std::stringstream ss;
+        ss << "Failed to call uv_async_init: [" << uv_err_name(rc) << ", " << rc << "]: " << uv_strerror(rc);
+        throw std::runtime_error(ss.str());
+    }
+    uvStopAsync.data = this;
+
     // Init signals
     rc = uv_signal_init(&uvLoop, &uvSigPipe);
     if (rc != 0) {
@@ -67,6 +80,7 @@ void Worker::Start(const struct sockaddr_storage &address) {
         ss << "Failed to call uv_signal_init: [" << uv_err_name(rc) << ", " << rc << "]: " << uv_strerror(rc);
         throw std::runtime_error(ss.str());
     }
+    uvSigPipe.data = this;
     uv_signal_start(&uvSigPipe, noop, SIGPIPE);
 
     // Setup Network
@@ -125,114 +139,305 @@ void Worker::Start(const struct sockaddr_storage &address) {
     }
 }
 
-void Worker::Stop() {}
+// See Worker.h
+void Worker::Stop() { uv_async_send(&uvStopAsync); }
+
+// See Worker.h
+void Worker::Join() {
+    int rc = uv_thread_join(&thread);
+    if (rc != 0) {
+        throw std::runtime_error("Failed to join event loop thread");
+    }
+}
 
 // Run method of the event loop thread, it must setup thread local resources, and launch event loop.
 // Once loop terminated, method cleans up all local resources
+// See Worker.h
 void Worker::OnRun() {
-    // Run network loop, that call won't return until event loop shuted down by libuv
-    // routines
+    // Run network loop, that call won't return until event loop shuted down by libuv routines
     uv_run(&uvLoop, UV_RUN_DEFAULT);
-
-    // TODO: Here is cleanup logic
 }
 
 // Called once signal from outside world received that it is time to stop the network layer.
 // Method should perform graceful stop and wait until all existing connections/jobs are complete
 // before actually terminate the loop
+// See Worker.h
 void Worker::OnStop(uv_async_t *async) {
-    // Other calls to async has no meaning
-    // TODO: Shutdown
-    // if (uv_is_closing((uv_handle_t *)&uvStopAsync) == 0) {
-    //     uv_close((uv_handle_t *)&uvStopAsync, delegate<Worker>::callback<&Worker::OnHandleClosed>);
-    // }
+    std::cout << "network debug:" << __PRETTY_FUNCTION__ << std::endl;
+
+    // Stop accept new incomming connections
+    uv_close((uv_handle_t *)&uvStopAsync, delegate<Worker>::callback<&Worker::OnHandleClosed>);
+    uv_close((uv_handle_t *)&uvSigPipe, delegate<Worker>::callback<&Worker::OnHandleClosed>);
+    uv_close((uv_handle_t *)&uvNetwork, delegate<Worker>::callback<&Worker::OnHandleClosed>);
+
+    // Mark all connections as closed. It is seems possible to not Track
+    // connection close state separately in each connection
+    for (auto conn : alive) {
+        conn->state = ConnectionState::sClosed;
+        uv_read_stop((uv_stream_t *)conn);
+
+        // Try to close connections if possible
+        if (conn->runningTasks == 0) {
+            uv_close((uv_handle_t *)conn, delegate<Worker>::callback<&Worker::OnConnectionClosed>);
+        }
+    }
+
+    // Try to close event loop
+    CloseEventLoppIfPossible();
+}
+
+// See Worker.h
+void Worker::OnHandleClosed(uv_handle_t *h) {
+    std::cout << "network debug:" << __PRETTY_FUNCTION__ << std::endl;
+    CloseEventLoppIfPossible();
 }
 
 // Called when some handle has been closed, connection, write request and task handlers has special
 // callback, that one is used for async & server socket handler
-void Worker::OnHandleClosed(uv_handle_t *) {
-    // TODO: Track all open handlers here to signal stop routine once shutdown is possible
-    // logger->info("Handler closed");
-    // openHandlersCount--;
-    // StoppedIfRequestedAndPossible();
+// See Worker.h
+void Worker::OnConnectionClosed(uv_handle_t *h) {
+    std::cout << "network debug:" << __PRETTY_FUNCTION__ << std::endl;
+    Connection *pconn = reinterpret_cast<Connection *>(h);
+    assert(pconn->runningTasks == 0);
+
+    if (alive.erase(pconn) != 0) {
+        delete pconn;
+    }
+
+    // After all connections are closed, we could really close worker
+    CloseEventLoppIfPossible();
+}
+
+// It is not possible to close the loop until there are connections. In order to close any connection
+// all running commands must be complete, all write task finished and so on. Once all that things are
+// done it is possible to close event loop
+// See Worker.h
+void Worker::CloseEventLoppIfPossible() {
+    if (alive.empty()) {
+        // Loop can't be closed until at least one handler exists, so even code
+        // below executed each time last connection closed it wont leads to
+        // event loop close until there are onStopAsync,SigPipe and uvNetwork
+        // handlers remain active
+        uv_loop_close(&uvLoop);
+    }
 }
 
 // New connection arrived in the server socket, here resources for connection get allocated and
 // reading begin. According to our protocol client just start sending new commands, so server is
 // always reacts to what it gets
+// See Worker.h
 void Worker::OnConnectionOpen(uv_stream_t *server, int status) {
+    std::cout << "network debug:" << __PRETTY_FUNCTION__ << std::endl;
     // Allocate new connection from the memory pool
     Connection *pconn = new Connection;
+    alive.insert(pconn);
 
     // Init connection
     uv_tcp_init(&uvLoop, (uv_tcp_t *)pconn);
     pconn->handler.data = this;
-    pconn->parsed = 0;
 
     // Setup client socket
     int rc = uv_accept(server, (uv_stream_t *)pconn);
     if (rc != 0) {
-        std::stringstream ss;
-        ss << "Failed to call uv_thread_create: [" << uv_err_name(rc) << ", " << rc << "]: " << uv_strerror(rc);
-        throw std::runtime_error(ss.str());
+        std::cerr << "Failed to call uv_accept: [" << uv_err_name(rc) << ", " << rc << "]: " << uv_strerror(rc);
+        uv_close((uv_handle_t *)(pconn), delegate<Worker>::callback<&Worker::OnHandleClosed>);
+        return;
     }
 
-    // TODO: track open handler here
-}
-
-// Called once underlaying socket closed, used to delete all resources associated with connection
-void Worker::OnConnectionClose(uv_handle_t *conn) {
-    Connection *pconn = (Connection *)(conn);
-    // TODO: Connection closed, discard all queued commands, mark connection as closed to discard all
-    // running commands results and delete pointer once it has no commands
+    // Client driven protocol
+    rc = uv_read_start((uv_stream_t *)pconn, delegate<Worker, size_t, uv_buf_t *>::callback<&Worker::OnAllocate>,
+                       delegate<Worker, ssize_t, const uv_buf_t *>::callback<&Worker::OnRead>);
+    if (rc != 0) {
+        std::cerr << "Failed to call uv_read_start: [" << uv_err_name(rc) << ", " << rc << "]: " << uv_strerror(rc);
+        uv_close((uv_handle_t *)(pconn), delegate<Worker>::callback<&Worker::OnHandleClosed>);
+        return;
+    }
 }
 
 // Just before read, libuv calls that method to allocate some memory chunk where read copies socket data.
-// Connection shares one input buffer which is built on top of slab allocator, we are always allocate memory
-// there until all incoming data fits, parse it and deallocate buffer just after that.
+// We are always allocate memorythere until all incoming data fits, parse it and deallocate buffer just after that.
+// See Worker.h
 void Worker::OnAllocate(uv_handle_t *conn, size_t suggested_size, uv_buf_t *buf) {
     assert(conn);
-    Connection *pconn = (Connection *)(conn);
 
-    // Allocate buffer but do not increase write position as there is no guarantee
-    // how many bytes it will be possible to read from the socket
-    //
-    // ibuf takes care of defagmentation, so if in 16KB buffer only last few bytes
-    // are used, code below will copy that bytes to begin before allocate write chunk
-    //
-    // Because of that it is possible to use buffer just like large, continues area in
-    // memory between here and OnRead method
-    pconn->input.reserve(4 * 1024L);
-    size_t len = pconn->input.size();
-    buf->base = &pconn->input[len];
-    buf->len = 4 * 1024L;
+    Connection *pconn = (Connection *)(conn);
+    assert(pconn->input_parsed <= pconn->input_used);
+
+    size_t unparsed = pconn->input_used - pconn->input_parsed;
+    std::memmove(pconn->input, pconn->input + pconn->input_parsed, unparsed);
+
+    pconn->input_parsed = 0;
+    pconn->input_used = unparsed;
+
+    buf->base = &pconn->input[unparsed];
+    buf->len = ConnectionInputBufferSize - unparsed;
 }
 
 // Once soket is ready to give some bytes back to application libuv calls that method,
 // buf that we received points somewere inside connection input buffer, so once some
 // data read, pconn->in writer position must be updated
+// See Worker.h
 void Worker::OnRead(uv_stream_t *conn, ssize_t nread, const uv_buf_t *buf) {
-    assert(conn);
+    std::cout << "network debug:" << __PRETTY_FUNCTION__ << std::endl;
+    assert(conn != nullptr);
     Connection *pconn = (Connection *)(conn);
 
     // negative nread indicates that socket has been closed
     if (nread < 0) {
-        uv_close((uv_handle_t *)(pconn), delegate<Worker>::callback<&Worker::OnConnectionClose>);
+        uv_close((uv_handle_t *)(pconn), delegate<Worker>::callback<&Worker::OnConnectionClosed>);
+        return;
+    } else if (pconn->state == ConnectionState::sClosed) {
         return;
     }
 
-    // Update string state to reflect new arrived data
-    size_t len = pconn->input.size();
-    pconn->input.resize(len + nread);
-
     // Look for the command delimeters in the [parsed, input.size()). Note that buffer could contains
     // many commands, not only one
-    // TODO: Parse commands
+    pconn->input_used += nread;
+    while (pconn->input_parsed < pconn->input_used) {
+        // Read header or body if needs
+        if (pconn->state == ConnectionState::sRecvHeader) {
+            // Try to parse command out
+            if (!pconn->parser.Parse(pconn->input, pconn->input_used, pconn->input_parsed)) {
+                continue;
+            }
+
+            // Command has been parsed form input
+            pconn->cmd = pconn->parser.Build(pconn->body_size);
+
+            // Command has argument that needs to be read from the network connection before execution could take place
+            if (pconn->body_size > 0) {
+                pconn->body.clear();
+                pconn->state = ConnectionState::sRecvBody;
+            } else {
+                pconn->state = ConnectionState::sExecute;
+            }
+        } else if (pconn->state == ConnectionState::sRecvBody) {
+            size_t for_copy = std::min(uint32_t(pconn->input_used - pconn->input_parsed), pconn->body_size);
+            pconn->body.append(pconn->input + pconn->input_parsed, for_copy);
+
+            pconn->body_size -= for_copy;
+            pconn->input_parsed += for_copy;
+
+            if (pconn->body_size == 0) {
+                pconn->state = ConnectionState::sRecvTrailerCR;
+            }
+        } else if (pconn->state == ConnectionState::sRecvTrailerCR) {
+            if (pconn->input[pconn->input_parsed] != '\r') {
+                throw std::runtime_error("Invalid chat, \\r expected");
+            }
+            pconn->input_parsed++;
+            pconn->state = ConnectionState::sRecvTrailerLF;
+        } else if (pconn->state == ConnectionState::sRecvTrailerLF) {
+            if (pconn->input[pconn->input_parsed] != '\n') {
+                throw std::runtime_error("Invalid chat, \\n expected");
+            }
+            pconn->input_parsed++;
+            pconn->state = ConnectionState::sExecute;
+        }
+
+        if (pconn->state == ConnectionState::sExecute) {
+            Execute(*pconn);
+
+            pconn->cmd.reset();
+            pconn->body.clear();
+            pconn->parser.Reset();
+            pconn->state = ConnectionState::sRecvHeader;
+        }
+    }
 }
 
-size_t Worker::Parse(const std::string &str, Execute::Command *out) { return 0; }
+// See Worker.h
+void Worker::Execute(Connection &pconn) {
+    std::cout << "network debug:" << __PRETTY_FUNCTION__ << std::endl;
 
-void Worker::Execute(Connection &pconn) {}
+    // Setup execution params
+    ExecuteTask *ptask = new ExecuteTask();
+    ptask->connection = &pconn;
+    ptask->cmd = std::move(pconn.cmd);
+    ptask->argument = std::move(pconn.body);
+    pconn.runningTasks++;
+
+    // Setup async signal to be called once task execution is complete
+    int rc = uv_async_init(&uvLoop, &ptask->done, delegate<Worker>::callback<&Worker::OnExecutionDone>);
+    if (rc != 0) {
+        throw std::runtime_error("Failed to call uv_async_init for the task");
+    }
+    ptask->done.data = this;
+
+    // TODO: That should be in another thread
+    {
+        std::string output;
+        try {
+            ptask->cmd->Execute(*pStorage, ptask->argument, output);
+        } catch (std::runtime_error &ex) {
+            std::cerr << "Failed to execute command: " << ex.what() << std::endl;
+
+            std::stringstream ss;
+            ss << "SERVER_ERROR " << ex.what();
+            output = ss.str();
+        }
+
+        // Prepare output
+        size_t size = output.size() + 2;
+        ptask->result.base = new char[size];
+        ptask->result.len = size;
+
+        std::memcpy(ptask->result.base, &output[0], size - 2);
+        ptask->result.base[size - 2] = '\r';
+        ptask->result.base[size - 1] = '\n';
+
+        // Notify event loop about task completition
+        uv_async_send(&ptask->done);
+    }
+}
+
+// See Worker.h
+void Worker::OnExecutionDone(uv_async_t *handle) {
+    std::cout << "network debug:" << __PRETTY_FUNCTION__ << std::endl;
+
+    assert(handle);
+    ExecuteTask *task = (ExecuteTask *)((uint8_t *)handle - offsetof(ExecuteTask, done));
+    assert(&task->done == handle);
+
+    // We don't need async anymore
+    uv_close((uv_handle_t *)&task->done, delegate<Worker>::callback<&Worker::OnHandleClosed>);
+
+    // Write command result to connection
+    if (task->connection->state == ConnectionState::sClosed) {
+        std::cerr << "Connection closed before command complete: ignore result" << std::endl;
+
+        // Connection was trying to close but can't because of running commands,
+        // so in case if we where the last one trying to go ahead and finally
+        // close the connection
+        task->connection->runningTasks--;
+        if (task->connection->runningTasks == 0) {
+            uv_close((uv_handle_t *)(task->connection), delegate<Worker>::callback<&Worker::OnHandleClosed>);
+        }
+    } else {
+        // Send buffer to socket
+        int rc = uv_write(&task->handler, &task->connection->handler, &task->result, 1,
+                          delegate<Worker, int>::callback<&Worker::OnWriteDone>);
+        if (rc != 0) {
+            throw std::runtime_error("Failed to write request");
+        }
+    }
+}
+
+// See Worker.h
+void Worker::OnWriteDone(uv_write_t *req, int status) {
+    std::cout << "network debug:" << __PRETTY_FUNCTION__ << std::endl;
+    assert(req != nullptr);
+    ExecuteTask *task = (ExecuteTask *)req;
+    Connection *pconn = task->connection;
+
+    task->connection->runningTasks--;
+    if (task->connection->state == ConnectionState::sClosed && task->connection->runningTasks == 0) {
+        uv_close((uv_handle_t *)(task->connection), delegate<Worker>::callback<&Worker::OnHandleClosed>);
+    }
+
+    delete[] task->result.base;
+    delete task;
+}
 
 } // namespace Network
 } // namespace Afina
