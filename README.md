@@ -1,6 +1,11 @@
 # afina
 Simple caching server
 
+Проект создан для курса по многопоточному программированию в Техносфере
+
+# Telegram
+https://t.me/spheremt
+
 # Components
 Сервер состоит из компонент, каждый в виде отдельной статической библиотеки:
 - Allocator (include/afina/allocator/, src/allocator): менеджер памяти
