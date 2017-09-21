@@ -172,7 +172,7 @@ protected:
     /**
      * Called by UV when connection gets closed by some reason
      */
-    void OnConnectionClose(uv_handle_t *);
+    void OnConnectionClosed(uv_handle_t *);
 
     /**
      * LibUV used that method just before call OnRead to allocate temporary buffer

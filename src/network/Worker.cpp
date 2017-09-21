@@ -80,6 +80,7 @@ void Worker::Start(const struct sockaddr_storage &address) {
         ss << "Failed to call uv_signal_init: [" << uv_err_name(rc) << ", " << rc << "]: " << uv_strerror(rc);
         throw std::runtime_error(ss.str());
     }
+    uvSigPipe.data = this;
     uv_signal_start(&uvSigPipe, noop, SIGPIPE);
 
     // Setup Network
@@ -165,6 +166,8 @@ void Worker::OnStop(uv_async_t *async) {
     std::cout << "network debug:" << __PRETTY_FUNCTION__ << std::endl;
 
     // Stop accept new incomming connections
+    uv_close((uv_handle_t *)&uvStopAsync, delegate<Worker>::callback<&Worker::OnHandleClosed>);
+    uv_close((uv_handle_t *)&uvSigPipe, delegate<Worker>::callback<&Worker::OnHandleClosed>);
     uv_close((uv_handle_t *)&uvNetwork, delegate<Worker>::callback<&Worker::OnHandleClosed>);
 
     // Mark all connections as closed. It is seems possible to not Track
@@ -175,7 +178,7 @@ void Worker::OnStop(uv_async_t *async) {
 
         // Try to close connections if possible
         if (conn->runningTasks == 0) {
-            uv_close((uv_handle_t *)conn, delegate<Worker>::callback<&Worker::OnHandleClosed>);
+            uv_close((uv_handle_t *)conn, delegate<Worker>::callback<&Worker::OnConnectionClosed>);
         }
     }
 
@@ -183,18 +186,21 @@ void Worker::OnStop(uv_async_t *async) {
     CloseEventLoppIfPossible();
 }
 
-// Called when some handle has been closed, connection, write request and task handlers has special
-// callback, that one is used for async & server socket handler
 // See Worker.h
 void Worker::OnHandleClosed(uv_handle_t *h) {
     std::cout << "network debug:" << __PRETTY_FUNCTION__ << std::endl;
+    CloseEventLoppIfPossible();
+}
 
-    // Check if connection gets closed. Note that even pointer could be casted
-    // it doesn't mean that argument is really connection. It is only if
-    // pointer found in connection set
+// Called when some handle has been closed, connection, write request and task handlers has special
+// callback, that one is used for async & server socket handler
+// See Worker.h
+void Worker::OnConnectionClosed(uv_handle_t *h) {
+    std::cout << "network debug:" << __PRETTY_FUNCTION__ << std::endl;
     Connection *pconn = reinterpret_cast<Connection *>(h);
+    assert(pconn->runningTasks == 0);
+
     if (alive.erase(pconn) != 0) {
-        std::cout << "network debug: connection closed" << std::endl;
         delete pconn;
     }
 
@@ -208,6 +214,10 @@ void Worker::OnHandleClosed(uv_handle_t *h) {
 // See Worker.h
 void Worker::CloseEventLoppIfPossible() {
     if (alive.empty()) {
+        // Loop can't be closed until at least one handler exists, so even code
+        // below executed each time last connection closed it wont leads to
+        // event loop close until there are onStopAsync,SigPipe and uvNetwork
+        // handlers remain active
         uv_loop_close(&uvLoop);
     }
 }
@@ -269,12 +279,12 @@ void Worker::OnAllocate(uv_handle_t *conn, size_t suggested_size, uv_buf_t *buf)
 // See Worker.h
 void Worker::OnRead(uv_stream_t *conn, ssize_t nread, const uv_buf_t *buf) {
     std::cout << "network debug:" << __PRETTY_FUNCTION__ << std::endl;
-    assert(conn);
+    assert(conn != nullptr);
     Connection *pconn = (Connection *)(conn);
 
     // negative nread indicates that socket has been closed
     if (nread < 0) {
-        uv_close((uv_handle_t *)(pconn), delegate<Worker>::callback<&Worker::OnHandleClosed>);
+        uv_close((uv_handle_t *)(pconn), delegate<Worker>::callback<&Worker::OnConnectionClosed>);
         return;
     } else if (pconn->state == ConnectionState::sClosed) {
         return;
