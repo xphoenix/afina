@@ -1,14 +1,17 @@
+//Simple.h - интерфейс простого аллокатора
 #ifndef AFINA_ALLOCATOR_SIMPLE_H
 #define AFINA_ALLOCATOR_SIMPLE_H
 
 #include <string>
 #include <cstddef>
+#include <afina/allocator/Pointer.h>
+#include <cstring>
 
 namespace Afina {
 namespace Allocator {
-
 // Forward declaration. Do not include real class definition
 // to avoid expensive macros calculations and increase compile speed
+
 class Pointer;
 
 /**
@@ -24,38 +27,31 @@ class Simple {
 public:
     Simple(void *base, const size_t size);
 
-    /**
-     * TODO: semantics
-     * @param N size_t
-     */
-    Pointer alloc(size_t N);
 
-    /**
-     * TODO: semantics
-     * @param p Pointer
-     * @param N size_t
-     */
+    Pointer alloc(size_t N);
+    Pointer _alloc_root(size_t N);
+    Pointer _alloc_last_node(size_t N);
+    Pointer _alloc_find_free_place(size_t N);
+
+
+
+
+
     void realloc(Pointer &p, size_t N);
 
-    /**
-     * TODO: semantics
-     * @param p Pointer
-     */
+
     void free(Pointer &p);
 
-    /**
-     * TODO: semantics
-     */
+
     void defrag();
 
-    /**
-     * TODO: semantics
-     */
     std::string dump() const;
 
 private:
-    void *_base;
-    const size_t _base_len;
+    point *free_points;
+    point buff; // описание буфера first = 1 элемент, last = последний.
+    point *root; // указатель на конец буфера = начало списка
+    point *last_node; // указатель на последний элемент списка
 };
 
 } // namespace Allocator
