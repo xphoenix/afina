@@ -406,7 +406,3 @@ void Simple::defrag() {
 	curr_block=free_place;
 }
 
-std::string Simple::dump() const { return ""; }
-
-} // namespace Allocator
-} // namespace Afina

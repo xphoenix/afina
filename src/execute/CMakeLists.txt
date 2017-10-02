@@ -1,6 +1,11 @@
 # build service
 set(SOURCE_FILES
     Command.cpp
+    Add.cpp
+    Append.cpp
+    Get.cpp
+    Set.cpp
+    Replace.cpp
 )
 
 add_library(Execute ${SOURCE_FILES})

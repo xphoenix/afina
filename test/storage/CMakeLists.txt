@@ -1,5 +1,6 @@
 # build service
 set(SOURCE_FILES
+    StorageTest.cpp
 )
 
 add_executable(runStorageTests ${SOURCE_FILES} ${BACKWARD_ENABLE})
