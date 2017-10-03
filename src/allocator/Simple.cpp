@@ -5,7 +5,7 @@
 namespace Afina {
 namespace Allocator {
 
-Simple::Simple(void *base, size_t size) {}
+Simple::Simple(void *base, size_t size) : _base(base), _base_len(size) {}
 
 /**
  * TODO: semantics
