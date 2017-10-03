@@ -1,15 +1,17 @@
 #ifndef AFINA_STORAGE_H
 #define AFINA_STORAGE_H
-
+#include <map>
 #include <string>
+
 
 namespace Afina {
 
 /**
  *
  */
-class Storage {
+class Storage {	
 public:
+	//std::map<std::string,std::string> data;
     Storage() {}
     virtual ~Storage() {}
 
