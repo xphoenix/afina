@@ -44,6 +44,7 @@ echo -n -e "set foo 0 0 6\r\nfooval\r\n" | nc localhost 8080
 ```
 make runAllocatorTests && ./test/allocator/runAllocatorTests - собрать и запустить тесты аллокатора
 make runExecuteTests && ./test/execute/runExecuteTests - собрать и запустить тесты комманд
+make runProtocolTests && ./test/protocol/runProtocolTests - собрать и запустить тесты парсера memcached протокола
 make runNetworkTests && ./test/network/runNetworkTests - собрать и запустить тесты сетевой подсистемы
 make runStorageTests && ./test/storage/runStorageTests - собрать и запустить тесты хранилиза данных
 ```
