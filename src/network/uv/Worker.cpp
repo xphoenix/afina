@@ -12,7 +12,7 @@
 
 namespace Afina {
 namespace Network {
-
+namespace UV {
 /**
  * Template to generate various callback wrappers that translate c style callback into class
  * methods call
@@ -292,57 +292,84 @@ void Worker::OnRead(uv_stream_t *conn, ssize_t nread, const uv_buf_t *buf) {
 
     // Look for the command delimeters in the [parsed, input.size()). Note that buffer could contains
     // many commands, not only one
-    pconn->input_used += nread;
-    while (pconn->input_parsed < pconn->input_used) {
-        // Read header or body if needs
-        if (pconn->state == ConnectionState::sRecvHeader) {
-            // Try to parse command out
-            if (!pconn->parser.Parse(pconn->input, pconn->input_used, pconn->input_parsed)) {
-                continue;
-            }
+    try {
+        pconn->input_used += nread;
+        while (pconn->input_parsed < pconn->input_used) {
+            // Read header or body if needs
+            if (pconn->state == ConnectionState::sRecvHeader) {
+                // Try to parse command out
+                if (!pconn->parser.Parse(pconn->input, pconn->input_used, pconn->input_parsed)) {
+                    continue;
+                }
 
-            // Command has been parsed form input
-            pconn->cmd = pconn->parser.Build(pconn->body_size);
+                // Command has been parsed form input
+                pconn->cmd = pconn->parser.Build(pconn->body_size);
 
-            // Command has argument that needs to be read from the network connection before execution could take place
-            if (pconn->body_size > 0) {
-                pconn->body.clear();
-                pconn->state = ConnectionState::sRecvBody;
-            } else {
+                // Command has argument that needs to be read from the network connection before execution could take
+                // place
+                if (pconn->body_size > 0) {
+                    pconn->body.clear();
+                    pconn->state = ConnectionState::sRecvBody;
+                } else {
+                    pconn->state = ConnectionState::sExecute;
+                }
+            } else if (pconn->state == ConnectionState::sRecvBody) {
+                size_t for_copy = std::min(uint32_t(pconn->input_used - pconn->input_parsed), pconn->body_size);
+                pconn->body.append(pconn->input + pconn->input_parsed, for_copy);
+
+                pconn->body_size -= for_copy;
+                pconn->input_parsed += for_copy;
+
+                if (pconn->body_size == 0) {
+                    pconn->state = ConnectionState::sRecvTrailerCR;
+                }
+            } else if (pconn->state == ConnectionState::sRecvTrailerCR) {
+                if (pconn->input[pconn->input_parsed] != '\r') {
+                    throw std::runtime_error("Invalid chat, \\r expected");
+                }
+                pconn->input_parsed++;
+                pconn->state = ConnectionState::sRecvTrailerLF;
+            } else if (pconn->state == ConnectionState::sRecvTrailerLF) {
+                if (pconn->input[pconn->input_parsed] != '\n') {
+                    throw std::runtime_error("Invalid chat, \\n expected");
+                }
+                pconn->input_parsed++;
                 pconn->state = ConnectionState::sExecute;
             }
-        } else if (pconn->state == ConnectionState::sRecvBody) {
-            size_t for_copy = std::min(uint32_t(pconn->input_used - pconn->input_parsed), pconn->body_size);
-            pconn->body.append(pconn->input + pconn->input_parsed, for_copy);
 
-            pconn->body_size -= for_copy;
-            pconn->input_parsed += for_copy;
+            if (pconn->state == ConnectionState::sExecute) {
+                Execute(*pconn);
 
-            if (pconn->body_size == 0) {
-                pconn->state = ConnectionState::sRecvTrailerCR;
+                pconn->cmd.reset();
+                pconn->body.clear();
+                pconn->parser.Reset();
+                pconn->state = ConnectionState::sRecvHeader;
             }
-        } else if (pconn->state == ConnectionState::sRecvTrailerCR) {
-            if (pconn->input[pconn->input_parsed] != '\r') {
-                throw std::runtime_error("Invalid chat, \\r expected");
-            }
-            pconn->input_parsed++;
-            pconn->state = ConnectionState::sRecvTrailerLF;
-        } else if (pconn->state == ConnectionState::sRecvTrailerLF) {
-            if (pconn->input[pconn->input_parsed] != '\n') {
-                throw std::runtime_error("Invalid chat, \\n expected");
-            }
-            pconn->input_parsed++;
-            pconn->state = ConnectionState::sExecute;
         }
+    } catch (std::runtime_error &ex) {
+        // Parser throws exception in case if something goes wrong with input data format
+        // TODO: That code duplicates too much of OnExecutionDone - refactor
+        std::stringstream ss;
+        ss << "CLIENT_ERROR " << ex.what();
 
-        if (pconn->state == ConnectionState::sExecute) {
-            Execute(*pconn);
+        std::string output = ss.str();
 
-            pconn->cmd.reset();
-            pconn->body.clear();
-            pconn->parser.Reset();
-            pconn->state = ConnectionState::sRecvHeader;
-        }
+        ExecuteTask *ptask = new ExecuteTask();
+        ptask->connection = pconn;
+        uv_async_init(&uvLoop, &ptask->done, delegate<Worker>::callback<&Worker::OnExecutionDone>);
+        ptask->done.data = this;
+
+        size_t size = output.size() + 2;
+        ptask->result.base = new char[size];
+        ptask->result.len = size;
+
+        std::memcpy(ptask->result.base, &output[0], size - 2);
+        ptask->result.base[size - 2] = '\r';
+        ptask->result.base[size - 1] = '\n';
+
+        pconn->runningTasks++;
+        pconn->state = ConnectionState::sClosed;
+        OnExecutionDone(&ptask->done);
     }
 }
 
@@ -402,24 +429,12 @@ void Worker::OnExecutionDone(uv_async_t *handle) {
     // We don't need async anymore
     uv_close((uv_handle_t *)&task->done, delegate<Worker>::callback<&Worker::OnHandleClosed>);
 
-    // Write command result to connection
-    if (task->connection->state == ConnectionState::sClosed) {
-        std::cerr << "Connection closed before command complete: ignore result" << std::endl;
-
-        // Connection was trying to close but can't because of running commands,
-        // so in case if we where the last one trying to go ahead and finally
-        // close the connection
-        task->connection->runningTasks--;
-        if (task->connection->runningTasks == 0) {
-            uv_close((uv_handle_t *)(task->connection), delegate<Worker>::callback<&Worker::OnHandleClosed>);
-        }
-    } else {
-        // Send buffer to socket
-        int rc = uv_write(&task->handler, &task->connection->handler, &task->result, 1,
-                          delegate<Worker, int>::callback<&Worker::OnWriteDone>);
-        if (rc != 0) {
-            throw std::runtime_error("Failed to write request");
-        }
+    // Send buffer to socket. Even if connection is already closed we are still try to write data out,
+    // that would lead to possible write error which is ok and will be handled in the OnWriteDone
+    int rc = uv_write(&task->handler, &task->connection->handler, &task->result, 1,
+                      delegate<Worker, int>::callback<&Worker::OnWriteDone>);
+    if (rc != 0) {
+        throw std::runtime_error("Failed to write request");
     }
 }
 
@@ -432,12 +447,13 @@ void Worker::OnWriteDone(uv_write_t *req, int status) {
 
     task->connection->runningTasks--;
     if (task->connection->state == ConnectionState::sClosed && task->connection->runningTasks == 0) {
-        uv_close((uv_handle_t *)(task->connection), delegate<Worker>::callback<&Worker::OnHandleClosed>);
+        uv_close((uv_handle_t *)(task->connection), delegate<Worker>::callback<&Worker::OnConnectionClosed>);
     }
 
     delete[] task->result.base;
     delete task;
 }
 
+} // namespace UV
 } // namespace Network
 } // namespace Afina

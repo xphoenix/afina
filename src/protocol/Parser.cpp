@@ -1,6 +1,7 @@
 #include "Parser.h"
 
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 
 #include <afina/execute/Add.h>
@@ -11,8 +12,7 @@
 #include <afina/execute/Set.h>
 
 namespace Afina {
-namespace Network {
-namespace Memcached {
+namespace Protocol {
 
 // See Parse.h
 bool Parser::Parse(const char *input, const size_t size, size_t &parsed) {
@@ -59,7 +59,7 @@ bool Parser::Parse(const char *input, const size_t size, size_t &parsed) {
                 // std::cout << "parser debug: total '" << keys.size() << " keys" << std::endl;
 
                 if (keys.size() == 0) {
-                    throw std::runtime_error("Client provides no key for retrive");
+                    throw std::runtime_error("Client provides no key to retrive");
                 }
 
                 curKey.clear();
@@ -143,7 +143,9 @@ bool Parser::Parse(const char *input, const size_t size, size_t &parsed) {
             if (c == '\n') {
                 parse_complete = true;
             } else {
-                throw std::runtime_error("Invalid char");
+                std::stringstream err;
+                err << "Invalid char " << (int)c << " at position " << (parsed + pos) << ", \\n expected";
+                throw std::runtime_error(err.str());
             }
             break;
         }
@@ -187,6 +189,5 @@ void Parser::Reset() {
     exprtime = 0;
 }
 
-} // namespace Memcached
-} // namespace Network
+} // namespace Protocol
 } // namespace Afina

@@ -3,10 +3,14 @@
 #include <memory>
 #include <uv.h>
 
+#include <cxxopts.hpp>
+
 #include <afina/Storage.h>
 #include <afina/Version.h>
+#include <afina/network/Server.h>
 
-#include "network/Server.h"
+#include "network/blocking/ServerImpl.h"
+#include "network/uv/ServerImpl.h"
 #include "storage/MapBasedGlobalLockImpl.h"
 
 typedef struct {
@@ -29,19 +33,62 @@ void timer_handler(uv_timer_t *handle) {
 }
 
 int main(int argc, char **argv) {
-    std::cout << "Starting Afina " << Afina::Version_Major << "." << Afina::Version_Minor << "."
-              << Afina::Version_Patch;
+    // Build version
+    // TODO: move into Version.h as a function
+    std::stringstream app_string;
+    app_string << "Afina " << Afina::Version_Major << "." << Afina::Version_Minor << "." << Afina::Version_Patch;
     if (Afina::Version_SHA.size() > 0) {
-        std::cout << "-" << Afina::Version_SHA;
+        app_string << "-" << Afina::Version_SHA;
     }
-    std::cout << std::endl;
+
+    // Command line arguments parsing
+    cxxopts::Options options("afina", "Simple memory caching server");
+    try {
+        // TODO: use custom cxxopts::value to print options possible values in help message
+        // and simplify validation below
+        options.add_options()("s,storage", "Type of storage service to use", cxxopts::value<std::string>());
+        options.add_options()("n,network", "Type of network service to use", cxxopts::value<std::string>());
+        options.add_options()("h,help", "Print usage info");
+        options.parse(argc, argv);
+
+        if (options.count("help") > 0) {
+            std::cerr << options.help() << std::endl;
+            return 0;
+        }
+    } catch (cxxopts::OptionParseException &ex) {
+        std::cerr << "Error: " << ex.what() << std::endl;
+        return 1;
+    }
+
+    // Start boot sequence
+    Application app;
+    std::cout << "Starting " << app_string.str() << std::endl;
 
     // Build new storage instance
-    Application app;
-    app.storage = std::make_shared<Afina::Backend::MapBasedGlobalLockImpl>();
+    std::string storage_type = "map_global";
+    if (options.count("storage") > 0) {
+        storage_type = options["storage"].as<std::string>();
+    }
+
+    if (storage_type == "map_global") {
+        app.storage = std::make_shared<Afina::Backend::MapBasedGlobalLockImpl>();
+    } else {
+        throw std::runtime_error("Unknown storage type");
+    }
 
     // Build  & start network layer
-    app.server = std::make_shared<Afina::Network::Server>(app.storage);
+    std::string network_type = "uv";
+    if (options.count("network") > 0) {
+        network_type = options["network"].as<std::string>();
+    }
+
+    if (network_type == "uv") {
+        app.server = std::make_shared<Afina::Network::UV::ServerImpl>(app.storage);
+    } else if (network_type == "blocking") {
+        app.server = std::make_shared<Afina::Network::Blocking::ServerImpl>(app.storage);
+    } else {
+        throw std::runtime_error("Unknown network type");
+    }
 
     // Init local loop. It will react to signals and performs some metrics collections. Each
     // subsystem is able to push metrics actively, but some metrics could be collected only

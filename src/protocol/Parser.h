@@ -1,5 +1,5 @@
-#ifndef AFINA_NETWORK_MEMCACHED_H
-#define AFINA_NETWORK_MEMCACHED_H
+#ifndef AFINA_PROTOCOL_PARSER_H
+#define AFINA_PROTOCOL_PARSER_H
 
 #include <memory>
 #include <string>
@@ -12,8 +12,7 @@ namespace Afina {
 namespace Execute {
 class Command;
 } // namespace Execute
-namespace Network {
-namespace Memcached {
+namespace Protocol {
 
 /**
  * # Memcached protocol parser
@@ -63,7 +62,7 @@ private:
      * - sp: for PUT commands only
      * - sg: for GET commands only
      */
-    enum State : uint16_t { sRC, sLF, sName, spKey, spFlags, spExprTimeStart, spExprTime, spBytes, sgKey };
+    enum State : uint16_t { sCR, sLF, sName, spKey, spFlags, spExprTimeStart, spExprTime, spBytes, sgKey };
 
     // Current parser state
     State state;
@@ -90,8 +89,7 @@ private:
     uint32_t bytes;
 };
 
-} // namespace Memcached
-} // namespace Network
+} // namespace Protocol
 } // namespace Afina
 
-#endif // AFINA_NETWORK_MEMCACHED_H
+#endif // AFINA_MEMCACHED_PARSER_H

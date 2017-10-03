@@ -7,10 +7,9 @@
 #include <afina/execute/Get.h>
 #include <afina/execute/Set.h>
 
-#include "network/memcached/Parser.h"
+#include <protocol/Parser.h>
 
 using namespace Afina;
-using namespace Afina::Network;
 
 // TODO: Negative test on errors
 // TODO: Separate tests for integers overflow
@@ -18,7 +17,7 @@ using namespace Afina::Network;
 
 // Verify simple set command passed in a single string
 TEST(MemcachedParserTest, SimpleSet) {
-    Memcached::Parser parser;
+    Protocol::Parser parser;
 
     size_t consumed = 0;
     bool cmd_avail = parser.Parse("set foo 0 0 6\r\nfooval\r\n", consumed);
@@ -29,17 +28,17 @@ TEST(MemcachedParserTest, SimpleSet) {
     uint32_t value_size;
     std::unique_ptr<Execute::Command> cmd = parser.Build(value_size);
     ASSERT_FALSE(cmd == nullptr);
+    ASSERT_EQ(6, value_size);
 
     Execute::Set *tmp = reinterpret_cast<Execute::Set *>(cmd.get());
     ASSERT_EQ("foo", tmp->key());
     ASSERT_EQ(0, tmp->flags());
     ASSERT_EQ(0, tmp->expire());
-    ASSERT_EQ(6, value_size);
 }
 
 // Verify simple add command passed in a single string
 TEST(MemcachedParserTest, SimpleAdd) {
-    Memcached::Parser parser;
+    Protocol::Parser parser;
 
     size_t consumed = 0;
     bool cmd_avail = parser.Parse("add bar 10 -1 60\r\nbarval\r\n", consumed);
@@ -50,17 +49,17 @@ TEST(MemcachedParserTest, SimpleAdd) {
     uint32_t value_size;
     std::unique_ptr<Execute::Command> cmd = parser.Build(value_size);
     ASSERT_FALSE(cmd == nullptr);
+    ASSERT_EQ(60, value_size);
 
     Execute::Add *tmp = reinterpret_cast<Execute::Add *>(cmd.get());
     ASSERT_EQ("bar", tmp->key());
     ASSERT_EQ(10, tmp->flags());
     ASSERT_EQ(-1, tmp->expire());
-    ASSERT_EQ(60, value_size);
 }
 
 // Verify simple get command passed in a single string
 TEST(MemcachedParserTest, SimpleGet) {
-    Memcached::Parser parser;
+    Protocol::Parser parser;
 
     size_t consumed = 0;
     bool cmd_avail = parser.Parse("get ke key2 super_long_key\r\n", consumed);

@@ -1,13 +1,13 @@
-#ifndef AFINA_NETWORK_WORKER_H
-#define AFINA_NETWORK_WORKER_H
+#ifndef AFINA_NETWORK_UV_WORKER_H
+#define AFINA_NETWORK_UV_WORKER_H
 
 #include <string>
 #include <unordered_set>
 #include <uv.h>
 #include <vector>
 
-#include "memcached/Parser.h"
 #include <afina/execute/Command.h>
+#include <protocol/Parser.h>
 
 namespace Afina {
 class Storage;
@@ -15,6 +15,7 @@ namespace Execute {
 class Command;
 }
 namespace Network {
+namespace UV {
 
 /**
  * # Basic network data processor
@@ -95,7 +96,7 @@ protected:
         size_t input_parsed;
 
         // State of the header parser
-        Memcached::Parser parser;
+        Protocol::Parser parser;
 
         // Command parsed out from the input
         std::unique_ptr<Execute::Command> cmd;
@@ -250,7 +251,8 @@ private:
     std::shared_ptr<Afina::Storage> pStorage;
 };
 
+} // namespace UV
 } // namespace Network
 } // namespace Afina
 
-#endif // AFINA_NETWORK_WORKER_H
+#endif // AFINA_NETWORK_UV_WORKER_H
