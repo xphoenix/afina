@@ -2,7 +2,6 @@
 #define AFINA_ALLOCATOR_SIMPLE_H
 
 #include <string>
-#include <cstddef>
 
 namespace Afina {
 namespace Allocator {
@@ -14,48 +13,35 @@ class Pointer;
 /**
  * Wraps given memory area and provides defagmentation allocator interface on
  * the top of it.
- *
- * Allocator instance doesn't take ownership of wrapped memmory and do not delete it
- * on destruction. So caller must take care of resource cleaup after allocator stop
- * being needs
  */
 // TODO: Implements interface to allow usage as C++ allocators
 class Simple {
-public:
-    Simple(void *base, const size_t size);
-
-    /**
-     * TODO: semantics
-     * @param N size_t
-     */
-    Pointer alloc(size_t N);
-
-    /**
-     * TODO: semantics
-     * @param p Pointer
-     * @param N size_t
-     */
-    void realloc(Pointer &p, size_t N);
-
-    /**
-     * TODO: semantics
-     * @param p Pointer
-     */
-    void free(Pointer &p);
-
-    /**
-     * TODO: semantics
-     */
-    void defrag();
-
-    /**
-     * TODO: semantics
-     */
-    std::string dump() const;
-
 private:
-    void *_base;
-    const size_t _base_len;
+	int renew_empty_slot();
+	void * nearest_free_block(void* block);
+	void* give_pointer(void * block);
+	void* occupy_block(void* block);
+	void* slice_block(void* block,size_t N);
+	void shrink_block(void* block,size_t N);
+	void* find_to_alloc(size_t N);
+	void clean_block(void *block);
+	void create_free_block(void* block);
+	
+	
+public:
+	void *base;
+	size_t size;
+	int space;//how much space for data we actually have (service needs aside)
+	void* empty_slot;// empty slot in the storage of pointers
+	int pointers_reserved;//how much space we have for pointers storage
+	void* curr_block;//the block to start finding free blocks to suffice allocation from
+	void* start;//the beginning of memory used for allocation
+    Simple(void *base, size_t size);
+    Pointer alloc(size_t N);
+    void realloc(Pointer &p, size_t N);
+    void free(Pointer &p);
+    void defrag();
+    std::string dump() const;
 };
 
 } // namespace Allocator

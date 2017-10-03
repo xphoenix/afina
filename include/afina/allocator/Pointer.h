@@ -8,16 +8,26 @@ namespace Allocator {
 class Simple;
 
 class Pointer {
+
+private:
+	void* point;//point points to the place in the storage of pointers
 public:
-    Pointer();
-
-    Pointer(const Pointer &);
-    Pointer(Pointer &&);
-
-    Pointer &operator=(const Pointer &);
-    Pointer &operator=(Pointer &&);
-
-    void *get() const { return 0; }
+    Pointer(){
+    	point=nullptr;
+    }
+	Pointer(const Pointer &p);
+	Pointer(Pointer &&p);
+	Pointer &operator=(const Pointer &p);
+	Pointer &operator=(Pointer &&p);
+    void *get() const{
+    	if (point!=nullptr)
+    		return (*(void**)point);
+    	else
+    		return nullptr;
+    }
+    void set(void* p){
+    	point=p;
+    }
 };
 
 } // namespace Allocator
