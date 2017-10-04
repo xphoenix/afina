@@ -4,6 +4,7 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include <list>
 
 #include <afina/Storage.h>
 
@@ -40,6 +41,7 @@ private:
 
     size_t _max_size;
 
+    std::list<std::string> _order;
     std::map<std::string, std::string> _backend;
 };
 
