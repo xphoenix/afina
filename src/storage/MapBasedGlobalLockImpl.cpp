@@ -13,7 +13,7 @@ namespace Afina {
                     this->map.insert(std::make_pair(key, value));
 
                 } else {
-                    this->map.erase(this -> age[0]);
+                    this->map.erase(*age.begin());
                     this->age.erase(this -> age.begin());
                     this->map.insert(std::make_pair(key, value));
                 }
@@ -36,7 +36,7 @@ namespace Afina {
                     this->map.insert(std::make_pair(key, value));
                 } else {
 
-                    this->map.erase(this -> age[0]);
+                    this->map.erase(*age.begin());
                     this->age.erase(this -> age.begin());
                     this->map.insert(std::make_pair(key, value));
                 }

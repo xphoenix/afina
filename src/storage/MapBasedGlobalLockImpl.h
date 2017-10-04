@@ -6,7 +6,7 @@
 #include <string>
 #include <queue>
 #include <afina/Storage.h>
-#include <vector>
+#include <list>
 
 namespace Afina {
     namespace Backend {
@@ -41,7 +41,7 @@ namespace Afina {
 
             size_t _max_size;
 
-            std::vector <std::string> age;
+            std::list <std::string> age;
             std::map<std::string, std::string> map;
 
 
