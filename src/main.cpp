@@ -37,6 +37,7 @@ void timer_handler(uv_timer_t *handle) {
 
 int start_daemon(cxxopts::Options options);
 void pid_print(cxxopts::Options options);
+int pid_print_out(cxxopts::Options options);
 
 
 int main(int argc, char **argv) {
@@ -102,11 +103,7 @@ int main(int argc, char **argv) {
     if (start_daemon(options)==0) return 0;
     
     // Print PID
-    do
-    {
-        pid_print(options);
-        
-    }while(0);
+    pid_print_out(options);
     ///////////////////
 
     // Init local loop. It will react to signals and performs some metrics collections. Each
@@ -187,6 +184,26 @@ void pid_print(cxxopts::Options options){
         pid_file << ::getpid () <<"\n";
         pid_file.close();
     
+}
+
+int pid_print_out(cxxopts::Options options)
+{
+    std::string pidfilename;
+    if (options.count("pid") > 0) {
+        pidfilename = options["pid"].as<std::string>();
+    }
+    std::ofstream file(pidfilename);
+    
+    if (!file.is_open()) {
+        std::cout << __func__ << " Error open file, " << strerror(errno);
+        return 0;
+    }
+    
+    pid_t pid = getpid();
+    
+    file << pid;
+    file.close();
+    return 0;
 }
 
 
