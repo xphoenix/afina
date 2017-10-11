@@ -36,7 +36,6 @@ void timer_handler(uv_timer_t *handle) {
 }
 
 int start_daemon(cxxopts::Options options);
-void pid_print(cxxopts::Options options);
 int pid_print_out(cxxopts::Options options);
 
 
@@ -166,25 +165,9 @@ int start_daemon(cxxopts::Options options){
         close(STDOUT_FILENO);
         close(STDERR_FILENO);
     }
-    return 0;
+    return 1;
 }
 
-void pid_print(cxxopts::Options options){
-        std::string pid_filename;
-        if (options.count("pid") > 0) {
-            pid_filename = options["pid"].as<std::string>();
-        }
-        std::ofstream pid_file;
-        pid_file.open (pid_filename);
-        if (!pid_file.is_open ())
-        {
-            std::cout << "Can't open file \"" << pid_filename <<"\". Skipping -p flag.\n";
-            return;
-        }
-        pid_file << ::getpid () <<"\n";
-        pid_file.close();
-    
-}
 
 int pid_print_out(cxxopts::Options options)
 {
