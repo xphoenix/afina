@@ -1,0 +1,1121 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		3A863F8FFF194D8E861B99B1 /* RUN_TESTS */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = ABDD7AE0CFCF44B897B8ACC5 /* Build configuration list for PBXAggregateTarget "RUN_TESTS" */;
+			buildPhases = (
+				858AC40A73484C8E80740BAD /* CMake PostBuild Rules */,
+			);
+			dependencies = (
+			);
+			name = RUN_TESTS;
+			productName = RUN_TESTS;
+		};
+		4187DA5EC5C04298BBD613F0 /* ZERO_CHECK */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 414A50A571F34795B07D21B6 /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */;
+			buildPhases = (
+				99AEAF2E57F04E5384A82EA3 /* CMake Rules */,
+			);
+			dependencies = (
+			);
+			name = ZERO_CHECK;
+			productName = ZERO_CHECK;
+		};
+		74809F41CCE54680B16DB690 /* ALL_BUILD */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 3AAB7CF0167C496FADBE7CFC /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */;
+			buildPhases = (
+				25B373055AE0435E958CAFDD /* CMake Rules */,
+			);
+			dependencies = (
+				CEAD76630388437AAD272E6E /* PBXTargetDependency */,
+				74F39C47D3E54DFD89493484 /* PBXTargetDependency */,
+				F57768BA8972446796D8786E /* PBXTargetDependency */,
+			);
+			name = ALL_BUILD;
+			productName = ALL_BUILD;
+		};
+		7A9A4759F4CF4E53AEC4DDCB /* install */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = BE10A61F948742D6BFB67B63 /* Build configuration list for PBXAggregateTarget "install" */;
+			buildPhases = (
+				D0EC6D120CE7424E9DE031A7 /* CMake PostBuild Rules */,
+			);
+			dependencies = (
+				9F2B4DD34421416BA6C68B3D /* PBXTargetDependency */,
+			);
+			name = install;
+			productName = install;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		3AEC7402F93F4C33A22EF7B3 /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/CMakeLists.txt */ = {isa = PBXBuildFile; fileRef = BF098C4762DF4C3F8DED87AF /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/CMakeLists.txt */; };
+		59CB9123B16D40D8B2FCE8E5 /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/backward.cpp */ = {isa = PBXBuildFile; fileRef = 554A921FA41A4EB4B2AA1040 /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/backward.cpp */; };
+		64A546D6D83D4E4E894C7621 /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/CMakeLists.txt */ = {isa = PBXBuildFile; fileRef = 310F14427DAD4DDD8D09932F /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/CMakeLists.txt */; };
+		D89441BFE56042ACA320F27B /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/backward.cpp */ = {isa = PBXBuildFile; fileRef = 28F7332E1ABA4F16A1EFFEA3 /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/backward.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXBuildStyle section */
+		011B9EBD518F4C5EA0D7CD21 /* Release */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Release;
+		};
+		1DCE143A479E4166BAF25501 /* MinSizeRel */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = MinSizeRel;
+		};
+		749F2F4B79C94354895D3970 /* Debug */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Debug;
+		};
+		D0C9C5FC601445F38B3DD234 /* RelWithDebInfo */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = RelWithDebInfo;
+		};
+/* End PBXBuildStyle section */
+
+/* Begin PBXContainerItemProxy section */
+		217DA907F6F249A2AAD00679 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3F5242B0330F40588AA353FA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 78F25AA239434B75B343BCB0;
+			remoteInfo = backward;
+		};
+		3E39FBB5166A4EA0A1755715 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3F5242B0330F40588AA353FA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 74809F41CCE54680B16DB690;
+			remoteInfo = ALL_BUILD;
+		};
+		58A6B45391864951AEE81C75 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3F5242B0330F40588AA353FA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4187DA5EC5C04298BBD613F0;
+			remoteInfo = ZERO_CHECK;
+		};
+		6378B6F5A08E4ABEA1C708CB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3F5242B0330F40588AA353FA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4187DA5EC5C04298BBD613F0;
+			remoteInfo = ZERO_CHECK;
+		};
+		64709EE6A4F74BFABB0F87AD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3F5242B0330F40588AA353FA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4187DA5EC5C04298BBD613F0;
+			remoteInfo = ZERO_CHECK;
+		};
+		7B5A6C73186C4331B8FA59E5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3F5242B0330F40588AA353FA /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 66BAFE7D55B74BC8AB11068C;
+			remoteInfo = backward_object;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		27671DB26A8D44C99B561E30 /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		28F7332E1ABA4F16A1EFFEA3 /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/backward.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = backward.cpp; path = backward.cpp; sourceTree = SOURCE_ROOT; };
+		310F14427DAD4DDD8D09932F /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		554A921FA41A4EB4B2AA1040 /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/backward.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = backward.cpp; path = backward.cpp; sourceTree = SOURCE_ROOT; };
+		9FAAC56CBE4E49DCB727545A /* backward */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libbackward.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		A44588CA30FE46B8AACCB2EE /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		BF098C4762DF4C3F8DED87AF /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		D9B6EAD7E9824308BC18AA1C /* backward_object */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libbackward_object.a; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		120746164EEE4E04BF741B9A /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		1CDC451DB5B44A098D57E65D /* backward_object */ = {
+			isa = PBXGroup;
+			children = (
+				F02C0029F8874B1BB63E480E /* Source Files */,
+				BF098C4762DF4C3F8DED87AF /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/CMakeLists.txt */,
+			);
+			name = backward_object;
+			sourceTree = "<group>";
+		};
+		268D3E71845649B587599649 /* ZERO_CHECK */ = {
+			isa = PBXGroup;
+			children = (
+				F7D9D08CB80443AB8634532B /* CMake Rules */,
+				A44588CA30FE46B8AACCB2EE /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/CMakeLists.txt */,
+			);
+			name = ZERO_CHECK;
+			sourceTree = "<group>";
+		};
+		4579370DBE3642798DEA3194 /* ALL_BUILD */ = {
+			isa = PBXGroup;
+			children = (
+				120746164EEE4E04BF741B9A /* CMake Rules */,
+				27671DB26A8D44C99B561E30 /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/CMakeLists.txt */,
+			);
+			name = ALL_BUILD;
+			sourceTree = "<group>";
+		};
+		820FBFE33F5A4784BE3E8261 = {
+			isa = PBXGroup;
+			children = (
+				C104C0CF26214246B12E597D /* backward */,
+				1CDC451DB5B44A098D57E65D /* backward_object */,
+				4579370DBE3642798DEA3194 /* ALL_BUILD */,
+				268D3E71845649B587599649 /* ZERO_CHECK */,
+				E8336F55B61D4B08AF13B70E /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C104C0CF26214246B12E597D /* backward */ = {
+			isa = PBXGroup;
+			children = (
+				CB741BD0727F4A9E83A72140 /* Source Files */,
+				310F14427DAD4DDD8D09932F /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/CMakeLists.txt */,
+			);
+			name = backward;
+			sourceTree = "<group>";
+		};
+		CB741BD0727F4A9E83A72140 /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				28F7332E1ABA4F16A1EFFEA3 /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/backward.cpp */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		E8336F55B61D4B08AF13B70E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				9FAAC56CBE4E49DCB727545A /* backward */,
+				D9B6EAD7E9824308BC18AA1C /* backward_object */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F02C0029F8874B1BB63E480E /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				554A921FA41A4EB4B2AA1040 /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/backward.cpp */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		F7D9D08CB80443AB8634532B /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		66BAFE7D55B74BC8AB11068C /* backward_object */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C91A14BCDAD74BA98D15FB73 /* Build configuration list for PBXNativeTarget "backward_object" */;
+			buildPhases = (
+				EF76DB8B4F9E44618AA9F282 /* Sources */,
+				DB5B2EB65705495B8EEBDA79 /* CMake PostBuild Rules */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A687C3446190499797E056B1 /* PBXTargetDependency */,
+			);
+			name = backward_object;
+			productName = backward_object;
+			productReference = D9B6EAD7E9824308BC18AA1C /* backward_object */;
+			productType = "com.apple.product-type.library.static";
+		};
+		78F25AA239434B75B343BCB0 /* backward */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4E9E86CDB8804638B6A0FD65 /* Build configuration list for PBXNativeTarget "backward" */;
+			buildPhases = (
+				39462FBEF07748E49676E2AD /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				132A441EBF15496F8B97457A /* PBXTargetDependency */,
+			);
+			name = backward;
+			productName = backward;
+			productReference = 9FAAC56CBE4E49DCB727545A /* backward */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3F5242B0330F40588AA353FA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 0900;
+			};
+			buildConfigurationList = 93994DAA8E3D4172B63944BE /* Build configuration list for PBXProject "backward" */;
+			buildSettings = {
+			};
+			buildStyles = (
+				749F2F4B79C94354895D3970 /* Debug */,
+				011B9EBD518F4C5EA0D7CD21 /* Release */,
+				1DCE143A479E4166BAF25501 /* MinSizeRel */,
+				D0C9C5FC601445F38B3DD234 /* RelWithDebInfo */,
+			);
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 0;
+			mainGroup = 820FBFE33F5A4784BE3E8261;
+			projectDirPath = "../../../third-party/backward-cpp";
+			projectRoot = "";
+			targets = (
+				74809F41CCE54680B16DB690 /* ALL_BUILD */,
+				3A863F8FFF194D8E861B99B1 /* RUN_TESTS */,
+				4187DA5EC5C04298BBD613F0 /* ZERO_CHECK */,
+				78F25AA239434B75B343BCB0 /* backward */,
+				66BAFE7D55B74BC8AB11068C /* backward_object */,
+				7A9A4759F4CF4E53AEC4DDCB /* install */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		1B6E0CAF315C414C9062E2AC = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		25B373055AE0435E958CAFDD /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp -f /Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/CMakeScripts/ALL_BUILD_cmakeRulesBuildPhase.make$CONFIGURATION all";
+			showEnvVarsInLog = 0;
+		};
+		4232CD203BBB4DE889BB1E6C = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		858AC40A73484C8E80740BAD /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp -f /Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/CMakeScripts/RUN_TESTS_postBuildPhase.make$CONFIGURATION all";
+			showEnvVarsInLog = 0;
+		};
+		99AEAF2E57F04E5384A82EA3 /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp -f /Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/CMakeScripts/ZERO_CHECK_cmakeRulesBuildPhase.make$CONFIGURATION all";
+			showEnvVarsInLog = 0;
+		};
+		D048A798A34F4C52B94C52FB = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		D0EC6D120CE7424E9DE031A7 /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp -f /Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/CMakeScripts/install_postBuildPhase.make$CONFIGURATION all";
+			showEnvVarsInLog = 0;
+		};
+		DB5B2EB65705495B8EEBDA79 /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp -f /Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/CMakeScripts/backward_object_postBuildPhase.make$CONFIGURATION all";
+			showEnvVarsInLog = 0;
+		};
+		DE12731688AD4DFF94441104 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		39462FBEF07748E49676E2AD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D89441BFE56042ACA320F27B /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/backward.cpp */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EF76DB8B4F9E44618AA9F282 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				59CB9123B16D40D8B2FCE8E5 /* /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/backward.cpp */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		132A441EBF15496F8B97457A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4187DA5EC5C04298BBD613F0 /* ZERO_CHECK */;
+			targetProxy = 58A6B45391864951AEE81C75 /* PBXContainerItemProxy */;
+		};
+		74F39C47D3E54DFD89493484 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 66BAFE7D55B74BC8AB11068C /* backward_object */;
+			targetProxy = 7B5A6C73186C4331B8FA59E5 /* PBXContainerItemProxy */;
+		};
+		9F2B4DD34421416BA6C68B3D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 74809F41CCE54680B16DB690 /* ALL_BUILD */;
+			targetProxy = 3E39FBB5166A4EA0A1755715 /* PBXContainerItemProxy */;
+		};
+		A687C3446190499797E056B1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4187DA5EC5C04298BBD613F0 /* ZERO_CHECK */;
+			targetProxy = 64709EE6A4F74BFABB0F87AD /* PBXContainerItemProxy */;
+		};
+		CEAD76630388437AAD272E6E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 78F25AA239434B75B343BCB0 /* backward */;
+			targetProxy = 217DA907F6F249A2AAD00679 /* PBXContainerItemProxy */;
+		};
+		F57768BA8972446796D8786E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4187DA5EC5C04298BBD613F0 /* ZERO_CHECK */;
+			targetProxy = 6378B6F5A08E4ABEA1C708CB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		01A5D10FD1704618AC28A7D0 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		0A7E7495381147C2B427D674 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","'BACKWARD_HAS_UNWIND=1'","'BACKWARD_HAS_BACKTRACE=0'","'BACKWARD_HAS_BACKTRACE_SYMBOL=1'","'BACKWARD_HAS_DW=0'","'BACKWARD_HAS_BFD=0'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/backward-cpp");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CPLUSPLUSFLAGS = " -std=c++11 -march=native -Wall -Wextra -pedantic-errors           -DNDEBUG '-std=gnu++11'  ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = backward;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		0F9D696D53664E3583ADAB1D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		18FB4B99AF9E4D2BB9A34FB9 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		244BFBE0D01A4E87AD44A92A /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		287EE95F9E82435DACAE53C5 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		2DF0EC14FADA48838014915C /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		441A521211B046549BDB2763 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		4B65D72A6F3F4FE195C8E8AE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk;
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/build";
+			};
+			name = Release;
+		};
+		4E11F6E1AC4449F3A135E091 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		4EE46A194E4043B8AD625DD5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","'BACKWARD_HAS_UNWIND=1'","'BACKWARD_HAS_BACKTRACE=0'","'BACKWARD_HAS_BACKTRACE_SYMBOL=1'","'BACKWARD_HAS_DW=0'","'BACKWARD_HAS_BFD=0'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/backward-cpp");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CPLUSPLUSFLAGS = " -std=c++11 -march=native -Wall -Wextra -pedantic-errors       '-std=gnu++11'  ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = backward;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		4FED582831A24A93B6FEB256 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		54B564CEF9514B4AA7C91839 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/backward.build/RelWithDebInfo/backward_object.build/Objects-normal/";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","'BACKWARD_HAS_UNWIND=1'","'BACKWARD_HAS_BACKTRACE=0'","'BACKWARD_HAS_BACKTRACE_SYMBOL=1'","'BACKWARD_HAS_DW=0'","'BACKWARD_HAS_BFD=0'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/backward-cpp");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CPLUSPLUSFLAGS = " -std=c++11 -march=native -Wall -Wextra -pedantic-errors           -DNDEBUG '-std=gnu++11'  ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = backward_object;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		5A8991545A96444C958219D8 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk;
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/build";
+			};
+			name = MinSizeRel;
+		};
+		5BEF4D02A799465C8D58645A /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk;
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/build";
+			};
+			name = RelWithDebInfo;
+		};
+		5C5A95BFA8D24E489A79EA0C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		9153423D7F934F058D1D8A04 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/backward.build/Release/backward_object.build/Objects-normal/";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","'BACKWARD_HAS_UNWIND=1'","'BACKWARD_HAS_BACKTRACE=0'","'BACKWARD_HAS_BACKTRACE_SYMBOL=1'","'BACKWARD_HAS_DW=0'","'BACKWARD_HAS_BFD=0'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/backward-cpp");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CPLUSPLUSFLAGS = " -std=c++11 -march=native -Wall -Wextra -pedantic-errors        -DNDEBUG '-std=gnu++11'  ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = backward_object;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		970CA1E09E46451F894E356C /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/backward.build/MinSizeRel/backward_object.build/Objects-normal/";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","'BACKWARD_HAS_UNWIND=1'","'BACKWARD_HAS_BACKTRACE=0'","'BACKWARD_HAS_BACKTRACE_SYMBOL=1'","'BACKWARD_HAS_DW=0'","'BACKWARD_HAS_BFD=0'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/backward-cpp");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CPLUSPLUSFLAGS = " -std=c++11 -march=native -Wall -Wextra -pedantic-errors        -DNDEBUG '-std=gnu++11'  ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = backward_object;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		9CC9B93449214929A2C2C0C4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		A5E4FB0C79B04A28BDE71C9C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		ABE9F9592FF04D8A88D63E74 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		B1A9A76F3E974F73B1ABD712 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","'BACKWARD_HAS_UNWIND=1'","'BACKWARD_HAS_BACKTRACE=0'","'BACKWARD_HAS_BACKTRACE_SYMBOL=1'","'BACKWARD_HAS_DW=0'","'BACKWARD_HAS_BFD=0'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/backward-cpp");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CPLUSPLUSFLAGS = " -std=c++11 -march=native -Wall -Wextra -pedantic-errors        -DNDEBUG '-std=gnu++11'  ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = backward;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		BA91C5C694354ADAA9FFE1AB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		DBBB53A3763447ABB5B1AFCE /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		E3432C25950F477089A6D1D6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/backward.build/Debug/backward_object.build/Objects-normal/";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","'BACKWARD_HAS_UNWIND=1'","'BACKWARD_HAS_BACKTRACE=0'","'BACKWARD_HAS_BACKTRACE_SYMBOL=1'","'BACKWARD_HAS_DW=0'","'BACKWARD_HAS_BFD=0'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/backward-cpp");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CPLUSPLUSFLAGS = " -std=c++11 -march=native -Wall -Wextra -pedantic-errors       '-std=gnu++11'  ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = backward_object;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		F5E5A1FA60114D2893865D99 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk;
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/build";
+			};
+			name = Debug;
+		};
+		F8660D9470714B079859D97D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		FAEF6E2984304639B232DE99 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'","'BACKWARD_HAS_UNWIND=1'","'BACKWARD_HAS_BACKTRACE=0'","'BACKWARD_HAS_BACKTRACE_SYMBOL=1'","'BACKWARD_HAS_DW=0'","'BACKWARD_HAS_BFD=0'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/backward-cpp");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CPLUSPLUSFLAGS = " -std=c++11 -march=native -Wall -Wextra -pedantic-errors        -DNDEBUG '-std=gnu++11'  ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = backward;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3AAB7CF0167C496FADBE7CFC /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F8660D9470714B079859D97D /* Debug */,
+				BA91C5C694354ADAA9FFE1AB /* Release */,
+				ABE9F9592FF04D8A88D63E74 /* MinSizeRel */,
+				287EE95F9E82435DACAE53C5 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		414A50A571F34795B07D21B6 /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9CC9B93449214929A2C2C0C4 /* Debug */,
+				4E11F6E1AC4449F3A135E091 /* Release */,
+				441A521211B046549BDB2763 /* MinSizeRel */,
+				DBBB53A3763447ABB5B1AFCE /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		4E9E86CDB8804638B6A0FD65 /* Build configuration list for PBXNativeTarget "backward" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4EE46A194E4043B8AD625DD5 /* Debug */,
+				B1A9A76F3E974F73B1ABD712 /* Release */,
+				FAEF6E2984304639B232DE99 /* MinSizeRel */,
+				0A7E7495381147C2B427D674 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		93994DAA8E3D4172B63944BE /* Build configuration list for PBXProject "backward" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F5E5A1FA60114D2893865D99 /* Debug */,
+				4B65D72A6F3F4FE195C8E8AE /* Release */,
+				5A8991545A96444C958219D8 /* MinSizeRel */,
+				5BEF4D02A799465C8D58645A /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		ABDD7AE0CFCF44B897B8ACC5 /* Build configuration list for PBXAggregateTarget "RUN_TESTS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A5E4FB0C79B04A28BDE71C9C /* Debug */,
+				0F9D696D53664E3583ADAB1D /* Release */,
+				244BFBE0D01A4E87AD44A92A /* MinSizeRel */,
+				2DF0EC14FADA48838014915C /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		BE10A61F948742D6BFB67B63 /* Build configuration list for PBXAggregateTarget "install" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5C5A95BFA8D24E489A79EA0C /* Debug */,
+				4FED582831A24A93B6FEB256 /* Release */,
+				18FB4B99AF9E4D2BB9A34FB9 /* MinSizeRel */,
+				01A5D10FD1704618AC28A7D0 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C91A14BCDAD74BA98D15FB73 /* Build configuration list for PBXNativeTarget "backward_object" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E3432C25950F477089A6D1D6 /* Debug */,
+				9153423D7F934F058D1D8A04 /* Release */,
+				970CA1E09E46451F894E356C /* MinSizeRel */,
+				54B564CEF9514B4AA7C91839 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 3F5242B0330F40588AA353FA /* Project object */;
+}

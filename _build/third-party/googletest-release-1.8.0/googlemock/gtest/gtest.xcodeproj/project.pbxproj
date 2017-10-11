@@ -1,0 +1,1142 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		3A863F8FFF194D8E861B99B1 /* RUN_TESTS */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = F20643696AB34919970B1B66 /* Build configuration list for PBXAggregateTarget "RUN_TESTS" */;
+			buildPhases = (
+				A18029207EE74E98A350EC4A /* CMake PostBuild Rules */,
+			);
+			dependencies = (
+			);
+			name = RUN_TESTS;
+			productName = RUN_TESTS;
+		};
+		4187DA5EC5C04298BBD613F0 /* ZERO_CHECK */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = DBC17F3A2BB84A5399F33629 /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */;
+			buildPhases = (
+				5E4338CE0F6549E5A63BC480 /* CMake Rules */,
+			);
+			dependencies = (
+			);
+			name = ZERO_CHECK;
+			productName = ZERO_CHECK;
+		};
+		74809F41CCE54680B16DB690 /* ALL_BUILD */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = 377C1C77C6704072BF46E634 /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */;
+			buildPhases = (
+				8F7B4016BBFB413089B41644 /* CMake Rules */,
+			);
+			dependencies = (
+				ED9894E8EE48497B9EAFB60D /* PBXTargetDependency */,
+				2F66A95D2DBC45F3B4FB2D60 /* PBXTargetDependency */,
+				9EEACDF262E944ADA4BC9558 /* PBXTargetDependency */,
+			);
+			name = ALL_BUILD;
+			productName = ALL_BUILD;
+		};
+		7A9A4759F4CF4E53AEC4DDCB /* install */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = A07DB62325C64E64B7CA4338 /* Build configuration list for PBXAggregateTarget "install" */;
+			buildPhases = (
+				65A488250F20451CA81D88F2 /* CMake PostBuild Rules */,
+			);
+			dependencies = (
+				87E3A38309824CFC91AB8B26 /* PBXTargetDependency */,
+			);
+			name = install;
+			productName = install;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		127C97DB16FA4ED2B38D8F78 /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/CMakeLists.txt */ = {isa = PBXBuildFile; fileRef = 380877B0515F448EB32AFC48 /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/CMakeLists.txt */; };
+		24248BE7C41748D0B5313ACA /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/src/gtest-all.cc */ = {isa = PBXBuildFile; fileRef = 0FC96FEBCA5F4077A36E5754 /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/src/gtest-all.cc */; };
+		2FEDE8EC672E416EB18B63D9 /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/src/gtest_main.cc */ = {isa = PBXBuildFile; fileRef = E3F13FB92AE44C0D844BB5DA /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/src/gtest_main.cc */; };
+		F27020908F2844F9A05E1C31 /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/CMakeLists.txt */ = {isa = PBXBuildFile; fileRef = 0A309C359D5846C2BF2D2DB2 /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/CMakeLists.txt */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXBuildStyle section */
+		2D1C9C9664E54E7CB3A26F85 /* RelWithDebInfo */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = RelWithDebInfo;
+		};
+		2F1B8D048D274B3BA28B9F5F /* MinSizeRel */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = MinSizeRel;
+		};
+		BAF8C7E38F344B6AB8BCE3C2 /* Release */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Release;
+		};
+		D02A1E3521E848F18E2E1677 /* Debug */ = {
+			isa = PBXBuildStyle;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+			};
+			name = Debug;
+		};
+/* End PBXBuildStyle section */
+
+/* Begin PBXContainerItemProxy section */
+		11070E6F22B64C19B362948E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C2C59678784B48EA9571B6E3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 74809F41CCE54680B16DB690;
+			remoteInfo = ALL_BUILD;
+		};
+		35F9F36F50DF480C97BC0AE1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C2C59678784B48EA9571B6E3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6C2A100738C5446DB8BF7485;
+			remoteInfo = gtest_main;
+		};
+		616FD7E8CCAA47B5B30B16B7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C2C59678784B48EA9571B6E3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C9C1388053B04D738197E9BB;
+			remoteInfo = gtest;
+		};
+		8E3B4F86A0ED463E9D8469E4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C2C59678784B48EA9571B6E3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4187DA5EC5C04298BBD613F0;
+			remoteInfo = ZERO_CHECK;
+		};
+		92C27967EF0C40B49D4F8046 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C2C59678784B48EA9571B6E3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4187DA5EC5C04298BBD613F0;
+			remoteInfo = ZERO_CHECK;
+		};
+		B7EAEB5258D14B448F55E1D7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C2C59678784B48EA9571B6E3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4187DA5EC5C04298BBD613F0;
+			remoteInfo = ZERO_CHECK;
+		};
+		CE38230346CC40E9AB671626 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C2C59678784B48EA9571B6E3 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C9C1388053B04D738197E9BB;
+			remoteInfo = gtest;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0A309C359D5846C2BF2D2DB2 /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		0FC96FEBCA5F4077A36E5754 /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/src/gtest-all.cc */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = "gtest-all.cc"; path = "src/gtest-all.cc"; sourceTree = SOURCE_ROOT; };
+		380877B0515F448EB32AFC48 /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		A4D2F83823F94B4792C00F20 /* gtest_main */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libgtest_main.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		B8F24D9C5D8E4A1D8EE20018 /* gtest */ = {isa = PBXFileReference; explicitFileType = archive.ar; path = libgtest.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E144CBBC7C5E4FADA2FD10D2 /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+		E3F13FB92AE44C0D844BB5DA /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/src/gtest_main.cc */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = gtest_main.cc; path = src/gtest_main.cc; sourceTree = SOURCE_ROOT; };
+		EDE0163577174B3D881E5A7A /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/CMakeLists.txt */ = {isa = PBXFileReference; explicitFileType = sourcecode.text; fileEncoding = 4; name = CMakeLists.txt; path = CMakeLists.txt; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0DD34FB1D9FC4D64A6ECA14A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B8F24D9C5D8E4A1D8EE20018 /* gtest */,
+				A4D2F83823F94B4792C00F20 /* gtest_main */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		12922DEFB9A949C8ADA35B42 /* ALL_BUILD */ = {
+			isa = PBXGroup;
+			children = (
+				B3F96BB374554CF88395DF6C /* CMake Rules */,
+				EDE0163577174B3D881E5A7A /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/CMakeLists.txt */,
+			);
+			name = ALL_BUILD;
+			sourceTree = "<group>";
+		};
+		4EDAE043DF87479BB996A0D0 /* ZERO_CHECK */ = {
+			isa = PBXGroup;
+			children = (
+				7415DDE7576B457BBCCB63CF /* CMake Rules */,
+				E144CBBC7C5E4FADA2FD10D2 /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/CMakeLists.txt */,
+			);
+			name = ZERO_CHECK;
+			sourceTree = "<group>";
+		};
+		6472ED43A1F34500BEACF01A /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				E3F13FB92AE44C0D844BB5DA /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/src/gtest_main.cc */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		7415DDE7576B457BBCCB63CF /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		87F58DAA3D474892A8B1124F /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+				0FC96FEBCA5F4077A36E5754 /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/src/gtest-all.cc */,
+			);
+			name = "Source Files";
+			sourceTree = "<group>";
+		};
+		AAABCA9BF4E44C20B17B280F /* gtest_main */ = {
+			isa = PBXGroup;
+			children = (
+				6472ED43A1F34500BEACF01A /* Source Files */,
+				0A309C359D5846C2BF2D2DB2 /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/CMakeLists.txt */,
+			);
+			name = gtest_main;
+			sourceTree = "<group>";
+		};
+		B3F96BB374554CF88395DF6C /* CMake Rules */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "CMake Rules";
+			sourceTree = "<group>";
+		};
+		E2DD28AC4C9246068FC51ADC /* gtest */ = {
+			isa = PBXGroup;
+			children = (
+				87F58DAA3D474892A8B1124F /* Source Files */,
+				380877B0515F448EB32AFC48 /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/CMakeLists.txt */,
+			);
+			name = gtest;
+			sourceTree = "<group>";
+		};
+		FF88FA3B8BC344F284A408B7 = {
+			isa = PBXGroup;
+			children = (
+				AAABCA9BF4E44C20B17B280F /* gtest_main */,
+				E2DD28AC4C9246068FC51ADC /* gtest */,
+				12922DEFB9A949C8ADA35B42 /* ALL_BUILD */,
+				4EDAE043DF87479BB996A0D0 /* ZERO_CHECK */,
+				0DD34FB1D9FC4D64A6ECA14A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		6C2A100738C5446DB8BF7485 /* gtest_main */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 294893C220D14DF6B8F33B5C /* Build configuration list for PBXNativeTarget "gtest_main" */;
+			buildPhases = (
+				3D975744E17A456884D5A561 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				56223ADBA86D4B03A11B7ABB /* PBXTargetDependency */,
+				4EC65416A3E749578C48D8B9 /* PBXTargetDependency */,
+			);
+			name = gtest_main;
+			productName = gtest_main;
+			productReference = A4D2F83823F94B4792C00F20 /* gtest_main */;
+			productType = "com.apple.product-type.library.static";
+		};
+		C9C1388053B04D738197E9BB /* gtest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2CD904A2F0094FA681B59EEC /* Build configuration list for PBXNativeTarget "gtest" */;
+			buildPhases = (
+				71F2B2A1CDD241CA8BE1A95C /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				96C2F016B0CF4AB5B8FE415D /* PBXTargetDependency */,
+			);
+			name = gtest;
+			productName = gtest;
+			productReference = B8F24D9C5D8E4A1D8EE20018 /* gtest */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C2C59678784B48EA9571B6E3 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 0900;
+			};
+			buildConfigurationList = 105596909BF948CE9C0FDBFE /* Build configuration list for PBXProject "gtest" */;
+			buildSettings = {
+			};
+			buildStyles = (
+				D02A1E3521E848F18E2E1677 /* Debug */,
+				BAF8C7E38F344B6AB8BCE3C2 /* Release */,
+				2F1B8D048D274B3BA28B9F5F /* MinSizeRel */,
+				2D1C9C9664E54E7CB3A26F85 /* RelWithDebInfo */,
+			);
+			compatibilityVersion = "Xcode 3.2";
+			hasScannedForEncodings = 0;
+			mainGroup = FF88FA3B8BC344F284A408B7;
+			projectDirPath = "../../../../../third-party/googletest-release-1.8.0/googletest";
+			projectRoot = "";
+			targets = (
+				74809F41CCE54680B16DB690 /* ALL_BUILD */,
+				3A863F8FFF194D8E861B99B1 /* RUN_TESTS */,
+				4187DA5EC5C04298BBD613F0 /* ZERO_CHECK */,
+				C9C1388053B04D738197E9BB /* gtest */,
+				6C2A100738C5446DB8BF7485 /* gtest_main */,
+				7A9A4759F4CF4E53AEC4DDCB /* install */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		363501D5279742CE97A07C86 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		39335F4F262F451C926BE6C3 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		5E4338CE0F6549E5A63BC480 /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest -f /Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest/CMakeScripts/ZERO_CHECK_cmakeRulesBuildPhase.make$CONFIGURATION all";
+			showEnvVarsInLog = 0;
+		};
+		65A488250F20451CA81D88F2 /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest -f /Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest/CMakeScripts/install_postBuildPhase.make$CONFIGURATION all";
+			showEnvVarsInLog = 0;
+		};
+		8F7B4016BBFB413089B41644 /* CMake Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest -f /Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest/CMakeScripts/ALL_BUILD_cmakeRulesBuildPhase.make$CONFIGURATION all";
+			showEnvVarsInLog = 0;
+		};
+		A18029207EE74E98A350EC4A /* CMake PostBuild Rules */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			name = "CMake PostBuild Rules";
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "make -C /Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest -f /Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest/CMakeScripts/RUN_TESTS_postBuildPhase.make$CONFIGURATION all";
+			showEnvVarsInLog = 0;
+		};
+		E71C1E62DEDF4BBEB31D8115 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+		F47D283E7724477DA415A372 = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# shell script goes here
+exit 0";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3D975744E17A456884D5A561 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2FEDE8EC672E416EB18B63D9 /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/src/gtest_main.cc */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		71F2B2A1CDD241CA8BE1A95C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				24248BE7C41748D0B5313ACA /* /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/src/gtest-all.cc */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		2F66A95D2DBC45F3B4FB2D60 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6C2A100738C5446DB8BF7485 /* gtest_main */;
+			targetProxy = 35F9F36F50DF480C97BC0AE1 /* PBXContainerItemProxy */;
+		};
+		4EC65416A3E749578C48D8B9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C9C1388053B04D738197E9BB /* gtest */;
+			targetProxy = 616FD7E8CCAA47B5B30B16B7 /* PBXContainerItemProxy */;
+		};
+		56223ADBA86D4B03A11B7ABB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4187DA5EC5C04298BBD613F0 /* ZERO_CHECK */;
+			targetProxy = 8E3B4F86A0ED463E9D8469E4 /* PBXContainerItemProxy */;
+		};
+		87E3A38309824CFC91AB8B26 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 74809F41CCE54680B16DB690 /* ALL_BUILD */;
+			targetProxy = 11070E6F22B64C19B362948E /* PBXContainerItemProxy */;
+		};
+		96C2F016B0CF4AB5B8FE415D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4187DA5EC5C04298BBD613F0 /* ZERO_CHECK */;
+			targetProxy = 92C27967EF0C40B49D4F8046 /* PBXContainerItemProxy */;
+		};
+		9EEACDF262E944ADA4BC9558 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C9C1388053B04D738197E9BB /* gtest */;
+			targetProxy = CE38230346CC40E9AB671626 /* PBXContainerItemProxy */;
+		};
+		ED9894E8EE48497B9EAFB60D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4187DA5EC5C04298BBD613F0 /* ZERO_CHECK */;
+			targetProxy = B7EAEB5258D14B448F55E1D7 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		09AC03ADE75448949FFB2E11 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CPLUSPLUSFLAGS = " -std=c++11 -march=native     -DNDEBUG  -std=c++11 -march=native  -DGTEST_HAS_PTHREAD=1    ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = gtest;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		1D9A2177528C494DB213C1AC /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		379C8B97FABD40FE8038D7A6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CPLUSPLUSFLAGS = " -std=c++11 -march=native     -std=c++11 -march=native  -DGTEST_HAS_PTHREAD=1    ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = gtest_main;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		3AD5B55989F04477BF8B63BC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		4E54D924F2CD4876A39743F6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CPLUSPLUSFLAGS = " -std=c++11 -march=native     -DNDEBUG  -std=c++11 -march=native  -DGTEST_HAS_PTHREAD=1    ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = gtest_main;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		53BF3DE3E14243E7A5252DEB /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		5423FE261BD64FA98F3D3E29 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		5BAECCE7F6AA4B1E9BCF518D /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		5CEBBEB788DF4B34B38DDE20 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		6B0BC07E7BBD4C6F86C4259D /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CPLUSPLUSFLAGS = " -std=c++11 -march=native        -DNDEBUG  -std=c++11 -march=native  -DGTEST_HAS_PTHREAD=1    ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = gtest;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		6E6DE9EE1C814FB4A31C614F /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CPLUSPLUSFLAGS = " -std=c++11 -march=native     -DNDEBUG  -std=c++11 -march=native  -DGTEST_HAS_PTHREAD=1    ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = gtest_main;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		726CD7381EBA41AFA7EAC44A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		7F2D90CD5F5D4D9F8F5F977A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		82A43980A03D4F3BBE28CFE8 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk;
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest/build";
+			};
+			name = MinSizeRel;
+		};
+		86FA1E3008214137B47105B5 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		97BB4DABFDD94A11A277FF13 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CPLUSPLUSFLAGS = " -std=c++11 -march=native        -DNDEBUG  -std=c++11 -march=native  -DGTEST_HAS_PTHREAD=1    ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = gtest_main;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		9E125A66E06C442489F820A4 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = RelWithDebInfo;
+		};
+		A02976D868E043E9814D78CE /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		A4DF5EFC00D64DECA0619C51 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		A7D88D4274C3418A819804C2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk;
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest/build";
+			};
+			name = Release;
+		};
+		AA819D6BEB5047BDB878B7DD /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = RUN_TESTS;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		C6B1C867D9724051A2830A76 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk;
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest/build";
+			};
+			name = RelWithDebInfo;
+		};
+		C6EA307A666047208260507D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CPLUSPLUSFLAGS = " -std=c++11 -march=native     -std=c++11 -march=native  -DGTEST_HAS_PTHREAD=1    ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = gtest;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		D732BB405E91499FAE0B6391 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ZERO_CHECK;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		E654A8F5DBA44B37AFF59943 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = ALL_BUILD;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = MinSizeRel;
+		};
+		F220A31969B2422CAF7F455B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				OTHER_LDFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = install;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Debug;
+		};
+		F8CC3D8C60A44D218D290563 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				EXECUTABLE_PREFIX = lib;
+				EXECUTABLE_SUFFIX = .a;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = ("'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'");
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = ("/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/include","/Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest");
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = STATIC;
+				OTHER_CPLUSPLUSFLAGS = " -std=c++11 -march=native     -DNDEBUG  -std=c++11 -march=native  -DGTEST_HAS_PTHREAD=1    ";
+				OTHER_LIBTOOLFLAGS = " ";
+				OTHER_REZFLAGS = "";
+				PRODUCT_NAME = gtest;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = ("-Wmost","-Wno-four-char-constants","-Wno-unknown-pragmas","$(inherited)");
+			};
+			name = Release;
+		};
+		FE37614545B949C38B10C22F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk;
+				SYMROOT = "/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/gtest/build";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		105596909BF948CE9C0FDBFE /* Build configuration list for PBXProject "gtest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FE37614545B949C38B10C22F /* Debug */,
+				A7D88D4274C3418A819804C2 /* Release */,
+				82A43980A03D4F3BBE28CFE8 /* MinSizeRel */,
+				C6B1C867D9724051A2830A76 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		294893C220D14DF6B8F33B5C /* Build configuration list for PBXNativeTarget "gtest_main" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				379C8B97FABD40FE8038D7A6 /* Debug */,
+				4E54D924F2CD4876A39743F6 /* Release */,
+				6E6DE9EE1C814FB4A31C614F /* MinSizeRel */,
+				97BB4DABFDD94A11A277FF13 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		2CD904A2F0094FA681B59EEC /* Build configuration list for PBXNativeTarget "gtest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C6EA307A666047208260507D /* Debug */,
+				F8CC3D8C60A44D218D290563 /* Release */,
+				09AC03ADE75448949FFB2E11 /* MinSizeRel */,
+				6B0BC07E7BBD4C6F86C4259D /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		377C1C77C6704072BF46E634 /* Build configuration list for PBXAggregateTarget "ALL_BUILD" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5CEBBEB788DF4B34B38DDE20 /* Debug */,
+				7F2D90CD5F5D4D9F8F5F977A /* Release */,
+				E654A8F5DBA44B37AFF59943 /* MinSizeRel */,
+				5BAECCE7F6AA4B1E9BCF518D /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A07DB62325C64E64B7CA4338 /* Build configuration list for PBXAggregateTarget "install" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F220A31969B2422CAF7F455B /* Debug */,
+				5423FE261BD64FA98F3D3E29 /* Release */,
+				86FA1E3008214137B47105B5 /* MinSizeRel */,
+				53BF3DE3E14243E7A5252DEB /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		DBC17F3A2BB84A5399F33629 /* Build configuration list for PBXAggregateTarget "ZERO_CHECK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D732BB405E91499FAE0B6391 /* Debug */,
+				726CD7381EBA41AFA7EAC44A /* Release */,
+				A02976D868E043E9814D78CE /* MinSizeRel */,
+				1D9A2177528C494DB213C1AC /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F20643696AB34919970B1B66 /* Build configuration list for PBXAggregateTarget "RUN_TESTS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A4DF5EFC00D64DECA0619C51 /* Debug */,
+				3AD5B55989F04477BF8B63BC /* Release */,
+				AA819D6BEB5047BDB878B7DD /* MinSizeRel */,
+				9E125A66E06C442489F820A4 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = C2C59678784B48EA9571B6E3 /* Project object */;
+}

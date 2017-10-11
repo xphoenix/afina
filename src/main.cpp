@@ -2,6 +2,9 @@
 #include <iostream>
 #include <memory>
 #include <uv.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <fstream>
 
 #include <cxxopts.hpp>
 
@@ -32,6 +35,10 @@ void timer_handler(uv_timer_t *handle) {
     std::cout << "Start passive metrics collection" << std::endl;
 }
 
+int start_daemon(cxxopts::Options options);
+void pid_print(cxxopts::Options options);
+
+
 int main(int argc, char **argv) {
     // Build version
     // TODO: move into Version.h as a function
@@ -49,6 +56,8 @@ int main(int argc, char **argv) {
         options.add_options()("s,storage", "Type of storage service to use", cxxopts::value<std::string>());
         options.add_options()("n,network", "Type of network service to use", cxxopts::value<std::string>());
         options.add_options()("h,help", "Print usage info");
+        options.add_options()("p,pid", "Print PID to file specified by filename", cxxopts::value<std::string>());
+        options.add_options()("d,daemon", "Run application as daemon");
         options.parse(argc, argv);
 
         if (options.count("help") > 0) {
@@ -89,6 +98,16 @@ int main(int argc, char **argv) {
     } else {
         throw std::runtime_error("Unknown network type");
     }
+    ////////////////////
+    if (start_daemon(options)==0) return 0;
+    
+    // Print PID
+    do
+    {
+        pid_print(options);
+        
+    }while(0);
+    ///////////////////
 
     // Init local loop. It will react to signals and performs some metrics collections. Each
     // subsystem is able to push metrics actively, but some metrics could be collected only
@@ -127,3 +146,47 @@ int main(int argc, char **argv) {
 
     return 0;
 }
+
+int start_daemon(cxxopts::Options options){
+    if (options.count("daemon") > 0)
+    {
+        std::cout << "Disowning process.\n";
+        auto f_ret = fork ();
+        if (f_ret > 0)
+            return 0;
+        else if (f_ret < 0)
+        {
+            std::cout<< "Something went wrong. Can't start as daemon. Exiting.\n";
+            return 0;
+        }
+        // here can be only child process
+        if (::setsid () < 0)
+        {
+            std::cout<< "Something went wrong. Can't start as daemon. Exiting.\n";
+            return 0;
+        }
+        close(STDIN_FILENO);
+        close(STDOUT_FILENO);
+        close(STDERR_FILENO);
+    }
+    return 0;
+}
+
+void pid_print(cxxopts::Options options){
+        std::string pid_filename;
+        if (options.count("pid") > 0) {
+            pid_filename = options["pid"].as<std::string>();
+        }
+        std::ofstream pid_file;
+        pid_file.open (pid_filename);
+        if (!pid_file.is_open ())
+        {
+            std::cout << "Can't open file \"" << pid_filename <<"\". Skipping -p flag.\n";
+            return;
+        }
+        pid_file << ::getpid () <<"\n";
+        pid_file.close();
+    
+}
+
+

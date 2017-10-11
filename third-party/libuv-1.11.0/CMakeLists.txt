@@ -50,6 +50,7 @@ else()
       src/unix/darwin.c
       src/unix/darwin-proctitle.c
       src/unix/fsevents.c
+      src/unix/pthread-barrier.c
       src/unix/kqueue.c
       src/unix/proctitle.c)
   elseif(${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
