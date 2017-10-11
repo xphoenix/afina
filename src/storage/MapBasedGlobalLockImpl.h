@@ -7,10 +7,12 @@
 #include <queue>
 #include <afina/Storage.h>
 #include <list>
+#include <algorithm>
+
 
 namespace Afina {
     namespace Backend {
-
+	using std::find;
 /**
  * # Map based implementation with global lock
  *
