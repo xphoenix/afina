@@ -49,7 +49,7 @@ unset(_expectedTargets)
 add_library(cxxopts::cxxopts INTERFACE IMPORTED)
 
 set_target_properties(cxxopts::cxxopts PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES "/Users/romandegtyarev/Desktop/afina/third-party/cxxopts-1.4.3/include"
+  INTERFACE_INCLUDE_DIRECTORIES "/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/third-party/cxxopts-1.4.3/include"
 )
 
 # This file does not depend on other imported targets which have

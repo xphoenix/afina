@@ -4,13 +4,13 @@ empty:=
 space:= $(empty) $(empty)
 spaceplus:= $(empty)\ $(empty)
 
-TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/romandegtyarev/Desktop/afina/third-party/cxxopts-1.4.3/CMakeLists.txt))
-TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/romandegtyarev/Desktop/afina/third-party/cxxopts-1.4.3/cxxopts-config.cmake.in))
-TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/romandegtyarev/Desktop/afina/third-party/cxxopts-1.4.3/src/CMakeLists.txt))
-TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/romandegtyarev/Desktop/afina/third-party/cxxopts-1.4.3/test/CMakeLists.txt))
+TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/romandegtyarev/start_here_now/technosphere/cplus/afina/third-party/cxxopts-1.4.3/CMakeLists.txt))
+TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/romandegtyarev/start_here_now/technosphere/cplus/afina/third-party/cxxopts-1.4.3/cxxopts-config.cmake.in))
+TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/romandegtyarev/start_here_now/technosphere/cplus/afina/third-party/cxxopts-1.4.3/src/CMakeLists.txt))
+TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/romandegtyarev/start_here_now/technosphere/cplus/afina/third-party/cxxopts-1.4.3/test/CMakeLists.txt))
 TARGETS += $(subst $(space),$(spaceplus),$(wildcard /usr/local/share/cmake-3.9/Modules/BasicConfigVersion-AnyNewerVersion.cmake.in))
 TARGETS += $(subst $(space),$(spaceplus),$(wildcard /usr/local/share/cmake-3.9/Modules/CMakePackageConfigHelpers.cmake))
 TARGETS += $(subst $(space),$(spaceplus),$(wildcard /usr/local/share/cmake-3.9/Modules/WriteBasicConfigVersionFile.cmake))
 
-/Users/romandegtyarev/Desktop/afina/_build/CMakeFiles/cmake.check_cache: $(TARGETS)
-	/usr/local/bin/cmake -H/Users/romandegtyarev/Desktop/afina -B/Users/romandegtyarev/Desktop/afina/_build
+/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/CMakeFiles/cmake.check_cache: $(TARGETS)
+	/usr/local/bin/cmake -H/Users/romandegtyarev/start_here_now/technosphere/cplus/afina -B/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build

@@ -1,4 +1,4 @@
-# Install script for directory: /Users/romandegtyarev/Desktop/afina/third-party/cxxopts-1.4.3
+# Install script for directory: /Users/romandegtyarev/start_here_now/technosphere/cplus/afina/third-party/cxxopts-1.4.3
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -34,8 +34,8 @@ endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/cxxopts" TYPE FILE FILES
-    "/Users/romandegtyarev/Desktop/afina/_build/third-party/cxxopts-1.4.3/cxxopts-config.cmake"
-    "/Users/romandegtyarev/Desktop/afina/_build/third-party/cxxopts-1.4.3/cxxopts-config-version.cmake"
+    "/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/cxxopts-1.4.3/cxxopts-config.cmake"
+    "/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/cxxopts-1.4.3/cxxopts-config-version.cmake"
     )
 endif()
 
@@ -43,7 +43,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/cxxopts/cxxopts-targets.cmake")
     file(DIFFERENT EXPORT_FILE_CHANGED FILES
          "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/cxxopts/cxxopts-targets.cmake"
-         "/Users/romandegtyarev/Desktop/afina/_build/third-party/cxxopts-1.4.3/CMakeFiles/Export/lib/cmake/cxxopts/cxxopts-targets.cmake")
+         "/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/cxxopts-1.4.3/CMakeFiles/Export/lib/cmake/cxxopts/cxxopts-targets.cmake")
     if(EXPORT_FILE_CHANGED)
       file(GLOB OLD_CONFIG_FILES "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/cxxopts/cxxopts-targets-*.cmake")
       if(OLD_CONFIG_FILES)
@@ -52,17 +52,17 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
       endif()
     endif()
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/cxxopts" TYPE FILE FILES "/Users/romandegtyarev/Desktop/afina/_build/third-party/cxxopts-1.4.3/CMakeFiles/Export/lib/cmake/cxxopts/cxxopts-targets.cmake")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/cxxopts" TYPE FILE FILES "/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/cxxopts-1.4.3/CMakeFiles/Export/lib/cmake/cxxopts/cxxopts-targets.cmake")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE FILE FILES "/Users/romandegtyarev/Desktop/afina/third-party/cxxopts-1.4.3/include/cxxopts.hpp")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE FILE FILES "/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/third-party/cxxopts-1.4.3/include/cxxopts.hpp")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/Users/romandegtyarev/Desktop/afina/_build/third-party/cxxopts-1.4.3/src/cmake_install.cmake")
-  include("/Users/romandegtyarev/Desktop/afina/_build/third-party/cxxopts-1.4.3/test/cmake_install.cmake")
+  include("/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/cxxopts-1.4.3/src/cmake_install.cmake")
+  include("/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/cxxopts-1.4.3/test/cmake_install.cmake")
 
 endif()
 

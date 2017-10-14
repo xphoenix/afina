@@ -1,4 +1,4 @@
-# Install script for directory: /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0
+# Install script for directory: /Users/romandegtyarev/start_here_now/technosphere/cplus/afina/third-party/googletest-release-1.8.0
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -34,7 +34,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/cmake_install.cmake")
+  include("/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/googletest-release-1.8.0/googlemock/cmake_install.cmake")
 
 endif()
 

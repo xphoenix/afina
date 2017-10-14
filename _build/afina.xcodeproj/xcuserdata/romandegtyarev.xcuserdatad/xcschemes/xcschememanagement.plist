@@ -32,7 +32,7 @@
 		<key>RUN_TESTS.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>2</integer>
+			<integer>1</integer>
 		</dict>
 		<key>Storage.xcscheme</key>
 		<dict>
@@ -42,7 +42,7 @@
 		<key>ZERO_CHECK.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>3</integer>
+			<integer>2</integer>
 		</dict>
 		<key>afina.xcscheme</key>
 		<dict>
@@ -82,7 +82,7 @@
 		<key>install.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>1</integer>
+			<integer>3</integer>
 		</dict>
 		<key>runAllocatorTests.xcscheme</key>
 		<dict>
@@ -92,7 +92,7 @@
 		<key>runExecuteTests.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>19</integer>
+			<integer>18</integer>
 		</dict>
 		<key>runNetworkTests.xcscheme</key>
 		<dict>
@@ -102,7 +102,7 @@
 		<key>runProtocolTests.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>18</integer>
+			<integer>19</integer>
 		</dict>
 		<key>runStorageTests.xcscheme</key>
 		<dict>

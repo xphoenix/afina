@@ -8,6 +8,6 @@ const std::string Version_Major = "0";
 const std::string Version_Minor = "0";
 const std::string Version_Patch = "1";
 const std::string Version_Release = "";
-const std::string Version_SHA =  "g0d05";
+const std::string Version_SHA =  "g70ba";
 
 } // namespace Afina

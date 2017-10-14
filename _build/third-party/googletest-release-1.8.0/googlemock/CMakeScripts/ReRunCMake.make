@@ -4,12 +4,12 @@ empty:=
 space:= $(empty) $(empty)
 spaceplus:= $(empty)\ $(empty)
 
-TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googlemock/CMakeLists.txt))
-TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/CMakeLists.txt))
-TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/romandegtyarev/Desktop/afina/third-party/googletest-release-1.8.0/googletest/cmake/internal_utils.cmake))
+TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/romandegtyarev/start_here_now/technosphere/cplus/afina/third-party/googletest-release-1.8.0/googlemock/CMakeLists.txt))
+TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/romandegtyarev/start_here_now/technosphere/cplus/afina/third-party/googletest-release-1.8.0/googletest/CMakeLists.txt))
+TARGETS += $(subst $(space),$(spaceplus),$(wildcard /Users/romandegtyarev/start_here_now/technosphere/cplus/afina/third-party/googletest-release-1.8.0/googletest/cmake/internal_utils.cmake))
 TARGETS += $(subst $(space),$(spaceplus),$(wildcard /usr/local/share/cmake-3.9/Modules/FindPackageHandleStandardArgs.cmake))
 TARGETS += $(subst $(space),$(spaceplus),$(wildcard /usr/local/share/cmake-3.9/Modules/FindPackageMessage.cmake))
 TARGETS += $(subst $(space),$(spaceplus),$(wildcard /usr/local/share/cmake-3.9/Modules/FindPythonInterp.cmake))
 
-/Users/romandegtyarev/Desktop/afina/_build/CMakeFiles/cmake.check_cache: $(TARGETS)
-	/usr/local/bin/cmake -H/Users/romandegtyarev/Desktop/afina -B/Users/romandegtyarev/Desktop/afina/_build
+/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/CMakeFiles/cmake.check_cache: $(TARGETS)
+	/usr/local/bin/cmake -H/Users/romandegtyarev/start_here_now/technosphere/cplus/afina -B/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build

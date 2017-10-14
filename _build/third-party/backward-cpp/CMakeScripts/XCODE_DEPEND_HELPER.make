@@ -8,26 +8,26 @@ default:
 # link.  This forces Xcode to relink the targets from scratch.  It
 # does not seem to check these dependencies itself.
 PostBuild.backward.Debug:
-/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/Debug/libbackward.a:
-	/bin/rm -f /Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/Debug/libbackward.a
+/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/backward-cpp/Debug/libbackward.a:
+	/bin/rm -f /Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/backward-cpp/Debug/libbackward.a
 
 
 PostBuild.backward_object.Debug:
 PostBuild.backward.Release:
-/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/Release/libbackward.a:
-	/bin/rm -f /Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/Release/libbackward.a
+/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/backward-cpp/Release/libbackward.a:
+	/bin/rm -f /Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/backward-cpp/Release/libbackward.a
 
 
 PostBuild.backward_object.Release:
 PostBuild.backward.MinSizeRel:
-/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/MinSizeRel/libbackward.a:
-	/bin/rm -f /Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/MinSizeRel/libbackward.a
+/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/backward-cpp/MinSizeRel/libbackward.a:
+	/bin/rm -f /Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/backward-cpp/MinSizeRel/libbackward.a
 
 
 PostBuild.backward_object.MinSizeRel:
 PostBuild.backward.RelWithDebInfo:
-/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/RelWithDebInfo/libbackward.a:
-	/bin/rm -f /Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/RelWithDebInfo/libbackward.a
+/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/backward-cpp/RelWithDebInfo/libbackward.a:
+	/bin/rm -f /Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/backward-cpp/RelWithDebInfo/libbackward.a
 
 
 PostBuild.backward_object.RelWithDebInfo:

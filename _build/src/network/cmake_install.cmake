@@ -1,4 +1,4 @@
-# Install script for directory: /Users/romandegtyarev/Desktop/afina/src/network
+# Install script for directory: /Users/romandegtyarev/start_here_now/technosphere/cplus/afina/src/network
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

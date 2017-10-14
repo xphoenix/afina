@@ -1,4 +1,4 @@
-# Install script for directory: /Users/romandegtyarev/Desktop/afina/test
+# Install script for directory: /Users/romandegtyarev/start_here_now/technosphere/cplus/afina/test
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -34,11 +34,11 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/Users/romandegtyarev/Desktop/afina/_build/test/allocator/cmake_install.cmake")
-  include("/Users/romandegtyarev/Desktop/afina/_build/test/execute/cmake_install.cmake")
-  include("/Users/romandegtyarev/Desktop/afina/_build/test/protocol/cmake_install.cmake")
-  include("/Users/romandegtyarev/Desktop/afina/_build/test/network/cmake_install.cmake")
-  include("/Users/romandegtyarev/Desktop/afina/_build/test/storage/cmake_install.cmake")
+  include("/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/test/allocator/cmake_install.cmake")
+  include("/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/test/execute/cmake_install.cmake")
+  include("/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/test/protocol/cmake_install.cmake")
+  include("/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/test/network/cmake_install.cmake")
+  include("/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/test/storage/cmake_install.cmake")
 
 endif()
 

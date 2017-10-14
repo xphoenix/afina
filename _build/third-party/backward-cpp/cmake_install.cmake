@@ -1,4 +1,4 @@
-# Install script for directory: /Users/romandegtyarev/Desktop/afina/third-party/backward-cpp
+# Install script for directory: /Users/romandegtyarev/start_here_now/technosphere/cplus/afina/third-party/backward-cpp
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -41,7 +41,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
   if(CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   endif()
-file(INSTALL DESTINATION "/usr/local/include" TYPE FILE FILES "/Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/backward.hpp")
+file(INSTALL DESTINATION "/usr/local/include" TYPE FILE FILES "/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/third-party/backward-cpp/backward.hpp")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
@@ -53,6 +53,6 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
   if(CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   endif()
-file(INSTALL DESTINATION "/usr/local/lib/backward" TYPE FILE FILES "/Users/romandegtyarev/Desktop/afina/third-party/backward-cpp/BackwardConfig.cmake")
+file(INSTALL DESTINATION "/usr/local/lib/backward" TYPE FILE FILES "/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/third-party/backward-cpp/BackwardConfig.cmake")
 endif()
 

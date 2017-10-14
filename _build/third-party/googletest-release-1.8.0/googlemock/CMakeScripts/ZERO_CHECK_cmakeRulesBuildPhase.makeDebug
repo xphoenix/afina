@@ -2,9 +2,9 @@
 # Custom rules for ZERO_CHECK
 .SUFFIXES: 
 all: \
-	/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/CMakeFiles/ZERO_CHECK
+	/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/googletest-release-1.8.0/googlemock/CMakeFiles/ZERO_CHECK
 
 
-/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/CMakeFiles/ZERO_CHECK: 
+/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/googletest-release-1.8.0/googlemock/CMakeFiles/ZERO_CHECK: 
 	echo ""
-	make -f /Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/googlemock/CMakeScripts/ReRunCMake.make
+	make -f /Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/googletest-release-1.8.0/googlemock/CMakeScripts/ReRunCMake.make

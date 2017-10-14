@@ -1,4 +1,4 @@
-# Install script for directory: /Users/romandegtyarev/Desktop/afina/third-party/libuv-1.11.0
+# Install script for directory: /Users/romandegtyarev/start_here_now/technosphere/cplus/afina/third-party/libuv-1.11.0
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

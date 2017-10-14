@@ -1,4 +1,4 @@
-# Install script for directory: /Users/romandegtyarev/Desktop/afina
+# Install script for directory: /Users/romandegtyarev/start_here_now/technosphere/cplus/afina
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -34,12 +34,12 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/Users/romandegtyarev/Desktop/afina/_build/third-party/googletest-release-1.8.0/cmake_install.cmake")
-  include("/Users/romandegtyarev/Desktop/afina/_build/third-party/libuv-1.11.0/cmake_install.cmake")
-  include("/Users/romandegtyarev/Desktop/afina/_build/third-party/backward-cpp/cmake_install.cmake")
-  include("/Users/romandegtyarev/Desktop/afina/_build/third-party/cxxopts-1.4.3/cmake_install.cmake")
-  include("/Users/romandegtyarev/Desktop/afina/_build/src/cmake_install.cmake")
-  include("/Users/romandegtyarev/Desktop/afina/_build/test/cmake_install.cmake")
+  include("/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/googletest-release-1.8.0/cmake_install.cmake")
+  include("/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/libuv-1.11.0/cmake_install.cmake")
+  include("/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/backward-cpp/cmake_install.cmake")
+  include("/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/third-party/cxxopts-1.4.3/cmake_install.cmake")
+  include("/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/src/cmake_install.cmake")
+  include("/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/test/cmake_install.cmake")
 
 endif()
 
@@ -51,5 +51,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/Users/romandegtyarev/Desktop/afina/_build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/Users/romandegtyarev/start_here_now/technosphere/cplus/afina/_build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

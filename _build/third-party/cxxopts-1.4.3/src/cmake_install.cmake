@@ -1,4 +1,4 @@
-# Install script for directory: /Users/romandegtyarev/Desktop/afina/third-party/cxxopts-1.4.3/src
+# Install script for directory: /Users/romandegtyarev/start_here_now/technosphere/cplus/afina/third-party/cxxopts-1.4.3/src
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
