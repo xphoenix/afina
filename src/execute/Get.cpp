@@ -35,7 +35,7 @@ void Get::Execute(Storage &storage, const std::string &args, std::string &out) {
         outStream << "VALUE " << key << " 0 " << value.size() << "\r\n";
         outStream << value << "\r\n";
     }
-    outStream << "END\r\n";
+    outStream << "END"; // networking layer should add the last \r\n
 
     out = outStream.str();
 }
