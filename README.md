@@ -22,6 +22,11 @@ https://t.me/spheremt
 [user@domain build] make
 ```
 
+# How to build Xcode
+```
+cmake -G Xcode -H. -B_build
+```
+
 # Сервер:
 ```
 [user@domain build] ./src/afina
