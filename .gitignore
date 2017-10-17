@@ -10,3 +10,7 @@ config/_local.conf
 
 # my files 
 .DS_Store
+
+#build_folders
+build
+_build

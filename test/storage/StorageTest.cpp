@@ -13,6 +13,8 @@
 using namespace Afina::Backend;
 using namespace Afina::Execute;
 using namespace std;
+#include <iostream>
+
 
 TEST(StorageTest, PutGet) {
     MapBasedGlobalLockImpl storage;
@@ -20,8 +22,10 @@ TEST(StorageTest, PutGet) {
     storage.Put("KEY1", "val1");
     storage.Put("KEY2", "val2");
 
+
     std::string value;
     EXPECT_TRUE(storage.Get("KEY1", value));
+    cout<<value;
     EXPECT_TRUE(value == "val1");
 
     EXPECT_TRUE(storage.Get("KEY2", value));
