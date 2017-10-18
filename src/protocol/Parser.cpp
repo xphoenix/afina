@@ -175,7 +175,7 @@ std::unique_ptr<Execute::Command> Parser::Build(uint32_t &body_size) const {
     } else if (name == "get") {
         return std::unique_ptr<Execute::Command>(new Execute::Get(keys));
     } else {
-        throw new std::runtime_error("Unsupported command");
+        throw std::runtime_error("Unsupported command");
     }
 }
 
