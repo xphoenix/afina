@@ -154,19 +154,13 @@ TODO: {
 }
 
 afina_test(
-	"blablabla\r\n",
+	"blablabla 0 0 0\r\n",
 	qr/ERROR/,
 	"Must report unknown command error to user"
 );
 
 afina_test(
-	"get\r\n",
-	qr/ERROR/,
-	"Must report no 'get' keys error to user"
-);
-
-afina_test(
-	"get\r\r",
+	"get var\r\r",
 	qr/ERROR/,
 	"Must report desync errors to user"
 );
