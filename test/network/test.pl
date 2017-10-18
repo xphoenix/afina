@@ -11,7 +11,7 @@ use Getopt::Long;
 
 my $backend = "blocking";
 my $silent = 0;
-my $afina = glob "$Bin/../../*/src/afina";
+my $afina = glob "$Bin/../../*/src/afina" or die "Couldn't find afina executable, please pass -a <path>\n";
 
 GetOptions(
 	"backend=s" => \$backend,
