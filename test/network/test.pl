@@ -73,7 +73,7 @@ sub afina_request { # 3 tests
 
 sub afina_test { # 4 tests
 	my ($request, $response, $desc) = @_;
-	ref $response ? like(afina_request($request), $response, $desc);
+	ref $response ? like(afina_request($request), $response, $desc)
 		: is(afina_request($request), $response, $desc);
 }
 
@@ -153,7 +153,23 @@ TODO: {
 	);
 }
 
-afina_test
+afina_test(
+	"blablabla\r\n",
+	qr/ERROR/,
+	"Must report unknown command error to user"
+);
+
+afina_test(
+	"get\r\n",
+	qr/ERROR/,
+	"Must report no 'get' keys error to user"
+);
+
+afina_test(
+	"get\r\r",
+	qr/ERROR/,
+	"Must report desync errors to user"
+);
 
 # Blocking backend is especially tricky to make terminate right, so we're taking no chances
 # hint: man 2 select
