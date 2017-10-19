@@ -40,7 +40,7 @@ alarm(5);
 }
 
 ok(close($stdin), "Putting Afina to background");
-(threads::->create(sub { my $fh = $_[0]; while(<$fh>) { $silent || diag "afina: $_" } }, $stdout))->detach();
+(threads::->create(sub { my $fh = $_[0]; while(<$fh>) { $silent || note "afina: $_" } }, $stdout))->detach();
 
 alarm(10);
 
@@ -65,11 +65,11 @@ sub afina_request { # 3 tests
 	);
 	ok($socket, "Connected to Afina");
 	ok(print($socket $request), "Sent request");
-	diag $request =~ s/^/-> /mrg;
+	note $request =~ s/^/-> /mrg;
 	ok(shutdown($socket, SHUT_WR()), "Closed writing end of connection");
 	my $received;
 	$received .= $_ while (<$socket>);
-	diag $received =~ s/^/<- /mrg;
+	note $received =~ s/^/<- /mrg;
 	$received;
 }
 
@@ -85,9 +85,9 @@ afina_test("get foo\r\nget foo\r\n", "VALUE foo 0 6\r\nfoobar\r\nEND\r\nVALUE fo
 
 my %par_responses;
 $par_responses{$_}++ for (map { $_->join } map { threads::->create(\&afina_request_silent, $_) } map { sprintf "set bar 0 0 3\r\n%03d\r\n", $_ } 1..100);
-diag "Parallel test responses:";
+note "Parallel test responses:";
 for (sort { $par_responses{$a} <=> $par_responses{$b} } keys %par_responses) {
-	diag "$par_responses{$_} ".($_=~s/([\r\n])/{"\r"=>'\r',"\n"=>'\n'}->{$1}/megr)."\n"
+	note "$par_responses{$_} ".($_=~s/([\r\n])/{"\r"=>'\r',"\n"=>'\n'}->{$1}/megr)."\n"
 }
 ok($par_responses{"STORED\r\n"}, "Afina replied with 'STORED' at least once");
 
