@@ -9,9 +9,9 @@ use Test::More tests => 61;
 use IO::Socket::INET;
 use Getopt::Long;
 
-my $backend = "blocking";
+my $backend = $ENV{NETWORK_BACKEND} // "blocking";
 my $silent = 0;
-my $afina = glob "$Bin/../*/src/afina";
+my $afina = $ENV{AFINA_PATH} // glob "$Bin/../*/src/afina";
 
 GetOptions(
 	"backend=s" => \$backend,
@@ -65,11 +65,11 @@ sub afina_request { # 3 tests
 	);
 	ok($socket, "Connected to Afina");
 	ok(print($socket $request), "Sent request");
-	note $request =~ s/^/-> /mrg;
+	$silent or note $request =~ s/^/-> /mrg;
 	ok(shutdown($socket, SHUT_WR()), "Closed writing end of connection");
 	my $received;
 	$received .= $_ while (<$socket>);
-	note $received =~ s/^/<- /mrg;
+	$silent or note $received =~ s/^/<- /mrg;
 	$received;
 }
 
