@@ -11,7 +11,7 @@ use Getopt::Long;
 
 my $backend = "blocking";
 my $silent = 0;
-my $afina = glob "$Bin/../../*/src/afina";
+my $afina = glob "$Bin/../*/src/afina";
 
 GetOptions(
 	"backend=s" => \$backend,
