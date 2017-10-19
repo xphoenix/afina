@@ -12,13 +12,14 @@ use Getopt::Long;
 my $backend = "blocking";
 my $silent = 0;
 my $afina = glob "$Bin/../../*/src/afina";
-defined($afina) or die "Couldn't find afina executable, please pass -a <path>\n";
 
 GetOptions(
 	"backend=s" => \$backend,
 	"silent" => \$silent,
 	"afina=s" => \$afina,
 ) or die "Usage: $0 [--backend=backend] [--silent] [--afina=path/to/src/afina]\n";
+
+(defined($afina) and -x $afina) or die "Couldn't find afina executable, please pass -a <path>\n";
 
 my $pid = open3(my $stdin, my $stdout, 0, $afina, "-n", $backend);
 ok $pid, "Started afina with PID=$pid and $backend backend";
