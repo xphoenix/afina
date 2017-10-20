@@ -46,7 +46,7 @@ public:
      * Builds new command from parsed input. In case if it wasn't enough input to prse command out
      * method return nullptr
      */
-    std::unique_ptr<Execute::Command> Build(uint32_t &body_size) const;
+    std::shared_ptr<Execute::Command> Build(uint32_t &body_size) const;
 
     /**
      * Reset parse so that it could be used to parse out new command

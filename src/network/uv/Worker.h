@@ -99,7 +99,7 @@ protected:
         Protocol::Parser parser;
 
         // Command parsed out from the input
-        std::unique_ptr<Execute::Command> cmd;
+        std::shared_ptr<Execute::Command> cmd;
 
         // Number of bytes left to read to get command
         uint32_t body_size;
@@ -135,7 +135,7 @@ protected:
         Connection *connection;
 
         // Command to execute
-        std::unique_ptr<Execute::Command> cmd;
+        std::shared_ptr<Execute::Command> cmd;
 
         // Argument for the command
         std::string argument;

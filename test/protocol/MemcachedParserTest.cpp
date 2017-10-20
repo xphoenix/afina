@@ -26,7 +26,7 @@ TEST(MemcachedParserTest, SimpleSet) {
     ASSERT_EQ("set", parser.Name());
 
     uint32_t value_size;
-    std::unique_ptr<Execute::Command> cmd = parser.Build(value_size);
+    std::shared_ptr<Execute::Command> cmd = parser.Build(value_size);
     ASSERT_FALSE(cmd == nullptr);
     ASSERT_EQ(6, value_size);
 
@@ -47,7 +47,7 @@ TEST(MemcachedParserTest, SimpleAdd) {
     ASSERT_EQ("add", parser.Name());
 
     uint32_t value_size;
-    std::unique_ptr<Execute::Command> cmd = parser.Build(value_size);
+    std::shared_ptr<Execute::Command> cmd = parser.Build(value_size);
     ASSERT_FALSE(cmd == nullptr);
     ASSERT_EQ(60, value_size);
 
@@ -68,7 +68,7 @@ TEST(MemcachedParserTest, SimpleGet) {
     ASSERT_EQ("get", parser.Name());
 
     uint32_t value_size;
-    std::unique_ptr<Execute::Command> cmd = parser.Build(value_size);
+    std::shared_ptr<Execute::Command> cmd = parser.Build(value_size);
     ASSERT_FALSE(cmd == nullptr);
     ASSERT_EQ(0, value_size);
 
