@@ -4,6 +4,8 @@
 #include <map>
 #include <mutex>
 #include <string>
+#include <list>
+#include <iterator>
 
 #include <afina/Storage.h>
 
@@ -36,11 +38,11 @@ public:
     bool Get(const std::string &key, std::string &value) const override;
 
 private:
+    std::map<std::string,std::string> _elements;
     std::mutex _lock;
 
     size_t _max_size;
 
-    std::map<std::string, std::string> _backend;
 };
 
 } // namespace Backend
