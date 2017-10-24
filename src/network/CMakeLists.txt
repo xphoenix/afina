@@ -4,6 +4,10 @@ set(SOURCE_FILES
     uv/Worker.cpp
 
     blocking/ServerImpl.cpp
+
+    nonblocking/ServerImpl.cpp
+    nonblocking/Worker.cpp
+    nonblocking/Utils.cpp
 )
 
 add_library(Network ${SOURCE_FILES})
