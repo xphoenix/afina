@@ -184,10 +184,43 @@ void ServerImpl::RunAcceptor() {
 
     // Cleanup on exit...
     close(server_socket);
+
+    // Wait until for all connections to be complete
+    std::unique_lock<std::mutex> __lock(connections_mutex);
+    while (!connections.empty()) {
+        connections_cv.wait(__lock);
+    }
 }
 
 // See Server.h
-void ServerImpl::RunConnection() { std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl; }
+void ServerImpl::RunConnection() {
+    std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl;
+    pthread_t self = pthread_self();
+
+    // Thread just spawn, register itself as a connection
+    {
+        std::unique_lock<std::mutex> __lock(connections_mutex);
+        connections.insert(self);
+    }
+
+    // TODO: All connection work is here
+
+    // Thread is about to stop, remove self from list of connections
+    // and it was the very last one, notify main thread
+    {
+        std::unique_lock<std::mutex> __lock(connections_mutex);
+        auto pos = connections.find(self);
+
+        assert(pos != connections.end());
+        connections.erase(pos);
+
+        if (connections.empty()) {
+            // We are pretty sure that only ONE thread is waiting for connections
+            // queue to be empty - main thread
+            connections_cv.notify_one();
+        }
+    }
+}
 
 } // namespace Blocking
 } // namespace Network
