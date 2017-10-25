@@ -215,6 +215,10 @@ void ServerImpl::RunConnection() {
         connections.erase(pos);
 
         if (connections.empty()) {
+            // Better to unlock before notify in order to let notified thread
+            // hold the mutex. Otherwise notification might be skipped
+            __lock.unlock();
+
             // We are pretty sure that only ONE thread is waiting for connections
             // queue to be empty - main thread
             connections_cv.notify_one();
