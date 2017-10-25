@@ -40,6 +40,9 @@ public:
 private:
     std::map<std::string,std::string> _elements;
     std::mutex _lock;
+    
+    std::list<std::string> _order;
+    std::map<std::string, std::string> _backend;
 
     size_t _max_size;
 
