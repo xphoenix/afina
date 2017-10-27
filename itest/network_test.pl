@@ -5,13 +5,17 @@ use threads;
 use threads::shared;
 use FindBin '$Bin';
 use IPC::Open3;
-use Test::More tests => 61;
+use Test::More tests => 65;
 use IO::Socket::INET;
 use Getopt::Long;
+use List::Util 'first';
+# horrible gut digging to persuade `explain` to print source code
+no warnings 'once';
+$Data::Dumper::Deparse = 1;
 
 my $backend = $ENV{NETWORK_BACKEND} // "blocking";
 my $silent = 0;
-my $afina = $ENV{AFINA_PATH} // glob "$Bin/../*/src/afina";
+my $afina = $ENV{AFINA_PATH} // first { -f $_ and -x $_ } "afina", "src/afina", glob("*/src/afina"), glob("$Bin/../*/src/afina");
 
 GetOptions(
 	"backend=s" => \$backend,
@@ -19,7 +23,7 @@ GetOptions(
 	"afina=s" => \$afina,
 ) or die "Usage: $0 [--backend=backend] [--silent] [--afina=path/to/src/afina]\n";
 
-(defined($afina) and -x $afina) or die "Couldn't find afina executable, please pass -a <path>\n";
+(defined($afina) and -f $afina and -x $afina) or die "Couldn't find afina executable, please pass valid -a <path>\n";
 
 my $pid = open3(my $stdin, my $stdout, 0, $afina, "-n", $backend);
 ok $pid, "Started afina with PID=$pid and $backend backend";
@@ -64,8 +68,12 @@ sub afina_request { # 3 tests
 		Proto => "tcp"
 	);
 	ok($socket, "Connected to Afina");
-	ok(print($socket $request), "Sent request");
-	$silent or note $request =~ s/^/-> /mrg;
+	ok(
+		ref $request ? $request->($socket)
+			: print($socket $request),
+		"Sent request"
+	);
+	$silent or note ref $request ? explain $request : $request =~ s/^/-> /mrg;
 	ok(shutdown($socket, SHUT_WR()), "Closed writing end of connection");
 	my $received;
 	$received .= $_ while (<$socket>);
@@ -165,6 +173,21 @@ afina_test(
 	"get var\r\r",
 	qr/ERROR/,
 	"Must report desync errors to user"
+);
+
+afina_test(
+	sub {
+		my $socket = shift;
+		# make sure everything we write ends up before afina's eyes as we want it
+		$socket->autoflush(1);
+		print $socket "set foo 0 ";
+		sleep 1;
+		print $socket "0 3\r";
+		sleep 1;
+		print $socket "\nwtf\r\n";
+	},
+	"STORED\r\n",
+	"Must correctly handle partial writes"
 );
 
 # Blocking backend is especially tricky to make terminate right, so we're taking no chances
