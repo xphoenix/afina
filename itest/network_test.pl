@@ -10,8 +10,8 @@ use Getopt::Long;
 no warnings 'once';
 $Data::Dumper::Deparse = 1;
 
-my $server = "127.0.0.1";
-my $port = "8080";
+my $server = $ENV{AFINA_SERVER} // "127.0.0.1";
+my $port = $ENV{AFINA_PORT} // "8080";
 my $silent = 0;
 
 GetOptions(
