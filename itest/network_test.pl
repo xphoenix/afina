@@ -2,7 +2,7 @@
 use 5.016;
 use warnings;
 use threads;
-use Test::More tests => 61;
+use Test::More tests => 65;
 use IO::Socket::INET;
 use Getopt::Long;
 
@@ -126,6 +126,16 @@ TODO: {
 		"get test\r\n",
 		"VALUE test 0 3\r\nzzz\r\nEND\r\n",
 		"Verify replace"
+	);
+}
+
+TODO: {
+	local $TODO = "Delete command isn't yet implemented";
+
+	afina_test(
+		"delete test\r\n",
+		"DELETED\r\n",
+		"Delete a key"
 	);
 }
 
