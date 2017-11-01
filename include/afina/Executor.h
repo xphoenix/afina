@@ -110,6 +110,35 @@ private:
      */
     State state;
 };
+void perform(Executor *executor) {
+        while (true) {
+                std::function<void()> task;
+        
+                {
+                        std::unique_lock<std::mutex> lock(executor->mutex);
+                       executor->empty_condition.wait(lock, [&executor] {
+                                return executor->state == Executor::State::kStopping || !executor->tasks.empty();
+                            });
+            
+                        if (executor->state == Executor::State::kStopping && executor->tasks.empty())
+                                return;
+            
+                       task = std::move(executor->tasks.front());
+                        executor->tasks.pop_front();
+                    }
+        
+                task();
+            }
+    }
+
+Executor::Executor(std::string name, int size) {
+        for (int i = 0; i < size; i++) {
+                threads.emplace_back([&]() { perform(this); });
+            }
+        name = "New pool";
+        state = State::kRun;
+    }
+
 
 } // namespace Afina
 
