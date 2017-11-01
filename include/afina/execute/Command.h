@@ -1,4 +1,4 @@
-#ifndef AFINA_EXECUTE_COMMAND_H
+ #ifndef AFINA_EXECUTE_COMMAND_H
 #define AFINA_EXECUTE_COMMAND_H
 
 #include <string>

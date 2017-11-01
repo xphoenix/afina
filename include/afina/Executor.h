@@ -15,6 +15,7 @@ namespace Afina {
  * # Thread pool
  */
 class Executor {
+public:
     enum class State {
         // Threadpool is fully operational, tasks could be added and get executed
         kRun,
@@ -28,7 +29,7 @@ class Executor {
     };
 
     Executor(std::string name, int size);
-    ~Executor();
+    ~Executor(){stop(true);}
 
     /**
      * Signal thread pool to stop, it will stop accepting new jobs and close threads just after each become
@@ -36,7 +37,19 @@ class Executor {
      *
      * In case if await flag is true, call won't return until all background jobs are done and all threads are stopped
      */
-    void Stop(bool await = false);
+    void Stop(bool await = false){
+            if(state == State::Kstopped)
+                return;
+            {
+                std::unique_lock<std::mutex> lock(mutex);
+                state = State::kStopping;
+            }
+            empty_condition.notify_all();
+             if (await)
+                 for (std::thread &thread : threads)
+                     thread.join();
+            state = State::kStopped;
+        }
 
     /**
      * Add function to be executed on the threadpool. Method returns true in case if task has been placed
@@ -62,10 +75,10 @@ class Executor {
 
 private:
     // No copy/move/assign allowed
-    Executor(const Executor &);            // = delete;
-    Executor(Executor &&);                 // = delete;
-    Executor &operator=(const Executor &); // = delete;
-    Executor &operator=(Executor &&);      // = delete;
+    Executor(const Executor &) = delete;
+    Executor(Executor &&) = delete;
+    Executor &operator=(const Executor &) = delete;
+    Executor &operator=(Executor &&) = delete;
 
     /**
      * Main function that all pool threads are running. It polls internal task queue and execute tasks
