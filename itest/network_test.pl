@@ -2,7 +2,7 @@
 use 5.016;
 use warnings;
 use threads;
-use Test::More tests => 65;
+use Test::More tests => 85;
 use IO::Socket::INET;
 use Getopt::Long;
 
@@ -14,43 +14,52 @@ my $server = $ENV{AFINA_SERVER} // "127.0.0.1";
 my $port = $ENV{AFINA_PORT} // "8080";
 my $silent = 0;
 
+my ($rfifo, $wfifo);
+
 GetOptions(
 	"address=s" => \$server,
 	"port=i" => \$port,
 	"silent" => \$silent,
+	"rfifo=s" => \$rfifo,
+	"wfifo=s" => \$wfifo,
 ) or die "Usage: $0 [-a server] [-p port]\n";
 
-alarm(20);
-
-sub afina_request_silent { # 0 tests
-	my ($request) = @_;
-	my $socket = IO::Socket::INET::->new(
-		PeerAddr => "$server:$port",
-		Proto => "tcp"
-	) or die "socket: $!";
-	print($socket $request) or die "print: $!";
-	shutdown($socket, SHUT_WR()) or die "shutdown: $!";
-	my $received;
-	$received .= $_ while (<$socket>);
-	$received;
+sub make_afina_socket {
+	if (defined $rfifo and defined $wfifo) {
+		open my $wf, ">", $rfifo; # afina reads from there; we write
+		open my $rf, "<", $wfifo; # afina writes there; we read
+		return ($wf, $rf);
+	} else {
+		my $socket = IO::Socket::INET::->new(
+			PeerAddr => "$server:$port",
+			Proto => "tcp"
+		);
+		return ($socket, $socket);
+	}
 }
 
-sub afina_request { # 3 tests
+sub afina_request { # 5 tests
 	my ($request) = @_;
-	my $socket = IO::Socket::INET::->new(
-		PeerAddr => "$server:$port",
-		Proto => "tcp"
-	);
-	ok($socket, "Connected to Afina");
+	my ($wf, $rf) = make_afina_socket;
+	ok($wf, "Connected to Afina for writing");
+	ok($rf, "Connected to Afina for reading");
 	ok(
-		ref $request ? $request->($socket)
-			: print($socket $request),
+		ref $request ? $request->($wf)
+			: print($wf $request),
 		"Sent request"
 	);
 	$silent or note ref $request ? explain $request : $request =~ s/^/-> /mrg;
-	ok(shutdown($socket, SHUT_WR()), "Closed writing end of connection");
+	if ($wf->isa("IO::Socket::INET")) {
+		ok(shutdown($wf, SHUT_WR()), "Closed writing end of connection");
+	} else {
+		ok(close($wf), "Closed writing end of connection");
+	}
 	my $received;
-	$received .= $_ while (<$socket>);
+	if ($rf->isa("IO::Socket::INET")) {
+		$received .= $_ while (<$rf>); # networked Afina must properly close socket when client is done
+	} else {
+		sysread($rf, $received, 65536); # do a single read, don't expect Afina to close fd
+	}
 	$silent or note $received =~ s/^/<- /mrg;
 	$received;
 }
@@ -166,10 +175,8 @@ afina_test(
 	"Must correctly handle partial writes"
 );
 
-my %par_responses;
-$par_responses{$_}++ for (map { $_->join } map { threads::->create(\&afina_request_silent, $_) } map { sprintf "set bar 0 0 3\r\n%03d\r\n", $_ } 1..100);
-note "Parallel test responses:";
-for (sort { $par_responses{$a} <=> $par_responses{$b} } keys %par_responses) {
-	note "$par_responses{$_} ".($_=~s/([\r\n])/{"\r"=>'\r',"\n"=>'\n'}->{$1}/megr)."\n"
-}
-ok($par_responses{"STORED\r\n"}, "Afina replied with 'STORED' at least once");
+afina_test(
+	"get foo\r\n",
+	"VALUE foo 0 3\r\nwtf\r\nEND\r\n",
+	"Correct result of partially written command"
+);
