@@ -17,16 +17,14 @@ namespace Protocol {
 // See Parse.h
 bool Parser::Parse(const char *input, const size_t size, size_t &parsed) {
     size_t pos;
-    bool negative;
-    std::string curKey;
+    parsed = 0;
 
-    bytes = 0;
-    bool parse_complete = false;
     for (pos = 0; pos < size && !parse_complete; pos++) {
         char c = input[pos];
 
         switch (state) {
         case State::sName: {
+            parsed = 0;
             if (c == ' ') {
                 // std::cout << "parser debug: name='" << name << "'" << std::endl;
                 if (name == "set" || name == "add" || name == "append" || name == "prepend") {
@@ -156,7 +154,7 @@ bool Parser::Parse(const char *input, const size_t size, size_t &parsed) {
     }
 
     parsed += pos;
-    return state == State::sLF;
+    return parse_complete;
 }
 
 // See Parse.h
@@ -184,6 +182,8 @@ void Parser::Reset() {
     state = State::sName;
     name.clear();
     keys.clear();
+    curKey.clear();
+    parse_complete = false;
     flags = 0;
     bytes = 0;
     exprtime = 0;
