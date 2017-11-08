@@ -14,7 +14,7 @@ my $server = $ENV{AFINA_SERVER} // "127.0.0.1";
 my $port = $ENV{AFINA_PORT} // "8080";
 my $silent = 0;
 
-my ($rfifo, $wfifo);
+my ($rfifo, $wfifo) = @ENV{"AFINA_RFIFO", "AFINA_WFIFO"};
 
 GetOptions(
 	"address=s" => \$server,
