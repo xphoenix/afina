@@ -24,7 +24,6 @@ bool Parser::Parse(const char *input, const size_t size, size_t &parsed) {
 
         switch (state) {
         case State::sName: {
-            parsed = 0;
             if (c == ' ') {
                 // std::cout << "parser debug: name='" << name << "'" << std::endl;
                 if (name == "set" || name == "add" || name == "append" || name == "prepend") {
