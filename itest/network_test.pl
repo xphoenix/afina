@@ -77,7 +77,8 @@ sub afina_test {
 	my $reply = afina_request($request, $wr);
 	if ($wr and defined($rfifo) and !defined($wfifo)) {
 		# this Afina only reads FIFO and this is a FIFO command, no reply to check
-		pass($desc)
+		pass($desc);
+		select(undef, undef, undef, .1); # allow for the command handling to happen
 	} else {
 		ref $response ? like($reply, $response, $desc)
 			: is($reply, $response, $desc);
@@ -85,8 +86,8 @@ sub afina_test {
 }
 
 afina_test("set foo 0 0 6\r\nfoobar\r\n", "STORED\r\n", "Set command", 1);
+
 afina_test("get foo\r\n", "VALUE foo 0 6\r\nfoobar\r\nEND\r\n", "Get the value we just set", 0);
-afina_test("get foo\r\nget foo\r\n", "VALUE foo 0 6\r\nfoobar\r\nEND\r\nVALUE foo 0 6\r\nfoobar\r\nEND\r\n", "Multiple commands", 0);
 
 afina_test(
 	"set foo 0 0 3\r\nwtf\r\n"
@@ -99,6 +100,14 @@ afina_test(
 	."END\r\n",
 	"Multiple commands with body",
 	1
+);
+
+afina_test(
+	"get bar\r\nget foo\r\n",
+	"VALUE bar 0 3\r\nzzz\r\nEND\r\n"
+	."VALUE foo 0 3\r\nwtf\r\nEND\r\n",
+	"Multiple read commands",
+	0
 );
 
 afina_test(
