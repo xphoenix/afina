@@ -42,8 +42,11 @@ sub run_benchmark {
 		'>&', \$out
 	or die "memcachetest returned error code $?:\n$out";
 	
-	my ($throughput) = $out =~ /Throughput: ([0-9.]+) s\^-1/;
-	die "failed to parse throughput:\n$out" unless $throughput;
+	my %throughput;
+	while ($out =~ /(\w+) throughput: ([0-9.]+) s\^-1/g) {
+		$throughput{$1} = $2;
+	}
+	die "failed to parse throughput:\n$out" unless keys %throughput;
 	my %latency95p;
 	my $kind;
 	for (split /\n/, $out) {
@@ -53,8 +56,8 @@ sub run_benchmark {
 			undef $kind;
 		}
 	}
-	die "failed to parse latency:\n$out" if !keys %latency95p;
-	return ($throughput, \%latency95p);
+	die "failed to parse latency:\n$out" unless keys %latency95p;
+	return (\%throughput, \%latency95p);
 }
 
 open my $tsv, ">", "$cpu_model $num_cores.txt";
@@ -63,7 +66,9 @@ select $tsv;
 print "probability";
 for my $net (@network) {
 	for my $st (@storage) {
-		print "\t${net}_${st}_Throughput\t${net}_${st}_Get\t${net}_${st}_Set";
+		for my $val (qw(Throughput Latency)) {
+			print "\t${net}_${st}_Get_${val}\t${net}_${st}_Set_${val}";
+		}
 	}
 }
 print "\n";
@@ -80,7 +85,7 @@ for my $sp (@set_proba) {
 			$h->finish;
 			die "\nERROR: $sp $net $st\n$err" if $err;
 
-			print "\t", $throughput, "\t", $latency->{Get}//"NaN", "\t", $latency->{Set}//"NaN";
+			print "\t", $throughput->{Get}//"NaN", "\t", $throughput->{Set}//"NaN", "\t", $latency->{Get}//"NaN", "\t", $latency->{Set}//"NaN";
 		}
 	}
 	print "\n";
