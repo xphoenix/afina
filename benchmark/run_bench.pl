@@ -6,7 +6,7 @@ use FindBin '$Bin';
 use IPC::Run qw(run start finish);
 
 # memcachetest doesn't like it when Blocking::ServerImpl closes the connection at populating phase
-my @network = qw(blocking epoll uv);
+my @network = qw(blocking nonblocking uv);
 my @storage = qw(map_global map_rwlock map_striped);
 my @set_proba = qw(0 5 10 15 20 25 30 35 40 45 100);
 my $storage_size = 1024;
