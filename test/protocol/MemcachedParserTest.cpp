@@ -6,6 +6,7 @@
 #include <afina/execute/Add.h>
 #include <afina/execute/Get.h>
 #include <afina/execute/Set.h>
+#include <afina/execute/Stats.h>
 
 #include <protocol/Parser.h>
 
@@ -78,4 +79,22 @@ TEST(MemcachedParserTest, SimpleGet) {
     ASSERT_EQ("ke", keys[0]);
     ASSERT_EQ("key2", keys[1]);
     ASSERT_EQ("super_long_key", keys[2]);
+}
+
+TEST(MemcachedParserTest, Stats) {
+    Protocol::Parser parser;
+
+    size_t consumed = 0;
+    bool cmd_avail = parser.Parse("stats\r\n", consumed);
+    ASSERT_TRUE(cmd_avail);
+    ASSERT_EQ(7, consumed);
+    ASSERT_EQ("stats", parser.Name());
+
+    uint32_t value_size;
+    std::unique_ptr<Execute::Command> cmd = parser.Build(value_size);
+    ASSERT_FALSE(cmd == nullptr);
+    ASSERT_EQ(0, value_size);
+
+    Execute::Stats *tmp = reinterpret_cast<Execute::Stats *>(cmd.get());
+	ASSERT_FALSE(tmp == nullptr);
 }
