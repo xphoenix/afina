@@ -87,6 +87,10 @@ private:
     // including the delimiting \r\n. <bytes> may be zero (in which case
     // it's followed by an empty data block).
     uint32_t bytes;
+
+    bool negative;
+    std::string curKey;
+    bool parse_complete;
 };
 
 } // namespace Protocol
