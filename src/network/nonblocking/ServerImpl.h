@@ -36,6 +36,7 @@ protected:
     /**
     Method is calling epoll_wait in a separate thread
     */
+    void RunEpoll();
 
 private:
     // Port to listen for new connections, permits access only from
