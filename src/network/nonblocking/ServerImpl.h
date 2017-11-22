@@ -1,6 +1,8 @@
 #ifndef AFINA_NETWORK_NONBLOCKING_SERVER_H
 #define AFINA_NETWORK_NONBLOCKING_SERVER_H
 
+#include <atomic>
+#include <pthread.h>
 #include <vector>
 
 #include <afina/network/Server.h>
@@ -30,14 +32,28 @@ public:
     // See Server.h
     void Join() override;
 
+protected:
+    /**
+    Method is calling epoll_wait in a separate thread
+    */
+
 private:
     // Port to listen for new connections, permits access only from
     // inside of accept_thread
     // Read-only
-    uint32_t listen_port;
+    //uint32_t listen_port;
 
     // Thread that is accepting new connections
-    std::vector<Worker> workers;
+    //std::vector<Worker> workers;
+    std::atomic<bool> running;
+
+    // Thread accepting and crunching client connections
+    std::vector<pthread_t> workers;
+
+    // Port number to listen on
+    uint16_t listen_port;
+
+
 };
 
 } // namespace NonBlocking
