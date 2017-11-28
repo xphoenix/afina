@@ -15,6 +15,8 @@ namespace NonBlocking {
 // See Worker.h
 Worker::Worker(std::shared_ptr<Afina::Storage> ps) {
     // TODO: implementation here
+    pStorage = ps;
+    fifo_fd = -1;
 }
 
 // See Worker.h
@@ -26,18 +28,23 @@ Worker::~Worker() {
 void Worker::Start(int server_socket) {
     std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl;
     // TODO: implementation here
+    running.store(true);
+    this->thread = pthread_self();
+    pthread_create(... OnRun);
 }
 
 // See Worker.h
 void Worker::Stop() {
     std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl;
     // TODO: implementation here
+    running.store(false);
 }
 
 // See Worker.h
 void Worker::Join() {
     std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl;
     // TODO: implementation here
+    pthread_join(this->thread, ...)
 }
 
 // See Worker.h
@@ -54,6 +61,9 @@ void Worker::OnRun(void *args) {
     //
     // Do not forget to use EPOLLEXCLUSIVE flag when register socket
     // for events to avoid thundering herd type behavior.
+    while(running.load()) {
+
+    }
 }
 
 } // namespace NonBlocking

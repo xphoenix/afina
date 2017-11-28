@@ -340,3 +340,4 @@ ServerImpl::~ServerImpl() {}
 
         } // namespace Blocking
     } // namespace Network
+}//namespace Afina
