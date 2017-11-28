@@ -61,9 +61,11 @@ void Worker::OnRun(void *args) {
     //
     // Do not forget to use EPOLLEXCLUSIVE flag when register socket
     // for events to avoid thundering herd type behavior.
-    while(running.load()) {
 
-    }
+    
+    // while(running.load()) {
+
+    // }
 }
 
 } // namespace NonBlocking
