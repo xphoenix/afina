@@ -48,9 +48,9 @@ protected:
      * Method executing by background thread
      */
     void OnRun(void *args);
-
 private:
     pthread_t thread;
+    static void* RunProxy(void* args);
 };
 
 } // namespace NonBlocking

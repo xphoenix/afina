@@ -26,16 +26,22 @@ Worker::~Worker() {
     // TODO: implementation here
 }
 
+
+
 // See Worker.h
 void Worker::Start(int server_socket) {
     std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl;
     // TODO: implementation here
+    running.store(true);
+    this->thread = pthred_create()
 
-
-    // running.store(true);
-    // this->thread = pthread_self();
-    // pthread_create(... OnRun);
+    //pthread_create get pair <key, object>
+    auto args = new std::pair<Worker*, int> (this, server_socket);
+    if (pthread_create( &(this->thread), NULL, &(Worker::OnRun) , args) != 0){
+        throw std::runtime_error("can't create a thread");
+    }
 }
+
 
 // See Worker.h
 void Worker::Stop() {
@@ -54,7 +60,7 @@ void Worker::Join() {
 }
 
 // See Worker.h
-void Worker::OnRun(void *args) {
+void *Worker::OnRun(void *args) {
     std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl;
 
     // TODO: implementation here
