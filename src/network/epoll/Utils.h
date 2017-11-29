@@ -3,7 +3,7 @@
 
 namespace Afina {
 namespace Network {
-namespace NonBlocking {
+namespace epoll {
 
 void make_socket_non_blocking(int sfd);
 

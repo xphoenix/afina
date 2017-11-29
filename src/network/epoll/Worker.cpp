@@ -10,7 +10,7 @@
 
 namespace Afina {
 namespace Network {
-namespace NonBlocking {
+namespace epoll {
 
 // See Worker.h
 Worker::Worker(std::shared_ptr<Afina::Storage> ps) {

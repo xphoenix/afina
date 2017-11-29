@@ -10,7 +10,7 @@ namespace Afina {
 class Storage;
 
 namespace Network {
-namespace NonBlocking {
+namespace epoll {
 
 /**
  * # Thread running epoll
