@@ -223,6 +223,8 @@ ServerImpl::~ServerImpl() {}
                 }
             };
 
+
+            //завести в структуре указатель на advance
             struct listen_fd : ep_fd {
                 int epoll_fd;
                 std::shared_ptr<Afina::Storage> ps;
@@ -230,6 +232,7 @@ ServerImpl::~ServerImpl() {}
                 listen_fd(int fd_, int epoll_fd_, std::shared_ptr<Afina::Storage> ps_, std::list<client_fd> &client_list_)
                         : ep_fd(fd_), epoll_fd(epoll_fd_), ps(ps_), client_list(client_list_) {}
                 void advance(uint32_t events) override {
+                    //
                     if (events & (EPOLLHUP | EPOLLERR)) {
                         close(fd);
                         throw std::runtime_error("Caught error state on listen socket");
@@ -247,6 +250,8 @@ ServerImpl::~ServerImpl() {}
                                                          client_list.end() /* see below */);
                         cl_it->self = cl_it; // sets the self field so it would be able to suicide later
                         // register the object in epoll fd
+
+                        //
                         if (epoll_modify(epoll_fd, EPOLL_CTL_ADD, EPOLLIN | EPOLLOUT | EPOLLET, *cl_it))
                             throw std::runtime_error("epollctl failed to add client socket");
                     }

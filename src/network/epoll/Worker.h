@@ -25,7 +25,7 @@
 #include <memory>
 
 #include <protocol/Parser.h>
-#include <afina/Executor.h>
+//#include <afina/Executor.h>
 #include <afina/execute/Command.h>
 #include "Utils.h"
 
@@ -76,6 +76,7 @@ protected:
 private:
     pthread_t thread;
     static void* RunProxy(void* args);
+    std::shared_ptr<Afina::Storage> ps;
 };
 
 } // namespace NonBlocking
