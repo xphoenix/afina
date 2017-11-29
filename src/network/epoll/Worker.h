@@ -1,8 +1,33 @@
 #ifndef AFINA_NETWORK_NONBLOCKING_WORKER_H
 #define AFINA_NETWORK_NONBLOCKING_WORKER_H
 
-#include <memory>
+
+#include <assert.h>
 #include <pthread.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <signal.h>
+#include <sys/stat.h>
+#include <sys/epoll.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/signalfd.h>
+#include <errno.h>
+
+#include <memory>
+#include <mutex>
+#include <atomic>
+#include <exception>
+#include <list>
+#include <iostream>
+#include <cstring>
+#include <map>
+#include <memory>
+
+#include <protocol/Parser.h>
+#include <afina/Executor.h>
+#include <afina/execute/Command.h>
+#include "Utils.h"
 
 namespace Afina {
 
