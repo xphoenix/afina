@@ -162,7 +162,7 @@ bool Parser::Parse(const char *input, const size_t size, size_t &parsed) {
 
 // See Parse.h
 std::unique_ptr<Execute::Command> Parser::Build(uint32_t &body_size) const {
-    if (state != State::sLF) {
+    if (state != State::sLF || !parse_complete) {
         return std::unique_ptr<Execute::Command>(nullptr);
     }
 
@@ -192,6 +192,7 @@ void Parser::Reset() {
     flags = 0;
     bytes = 0;
     exprtime = 0;
+    parse_complete = false;
 }
 
 } // namespace Protocol
