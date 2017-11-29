@@ -77,6 +77,7 @@ private:
     pthread_t thread;
     static void* RunProxy(void* args);
     std::shared_ptr<Afina::Storage> ps;
+    std::atomic<bool> running;
 };
 
 } // namespace NonBlocking
