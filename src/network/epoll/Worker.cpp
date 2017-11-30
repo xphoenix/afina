@@ -16,13 +16,7 @@ namespace epoll {
 
 
 // See Worker.h
-Worker::Worker(std::shared_ptr<Afina::Storage> ps) {
-    // TODO: implementation here
-
-    
-    // pStorage = ps;
-    // fifo_fd = -1;
-}
+Worker::Worker(std::shared_ptr<Afina::Storage> _ps) : ps(_ps) {}
 
 // See Worker.h
 Worker::~Worker() {
@@ -47,7 +41,7 @@ void* Worker::RunProxy(void* _args) {
 
 // See Worker.h
 void Worker::Start(int server_socket) {
-    std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl;
+    // std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl;
     // TODO: implementation here
     this->running.store(true);
 
