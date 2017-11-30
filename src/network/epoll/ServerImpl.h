@@ -4,13 +4,14 @@
 #include <vector>
 
 #include <afina/network/Server.h>
+#include <Worker.h>
 
 namespace Afina {
 namespace Network {
 namespace epoll {
 
 // Forward declaration, see Worker.h
-class Worker;
+//class Worker;
 
 /**
  * # Network resource manager implementation
