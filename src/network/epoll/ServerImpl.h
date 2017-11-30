@@ -1,17 +1,18 @@
 #ifndef AFINA_NETWORK_NONBLOCKING_SERVER_H
 #define AFINA_NETWORK_NONBLOCKING_SERVER_H
 
+#include <atomic>
 #include <vector>
+#include <pthread.h>
 
 #include <afina/network/Server.h>
-#include "Worker.h"
 
 namespace Afina {
 namespace Network {
 namespace epoll {
 
 // Forward declaration, see Worker.h
-//class Worker;
+class Worker;
 
 /**
  * # Network resource manager implementation
