@@ -41,15 +41,15 @@ void* Worker::RunProxy(void* _args) {
 
 // See Worker.h
 void Worker::Start(int server_socket) {
-    // std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl;
+     std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl;
     // TODO: implementation here
-    this->running.store(true);
+    // this->running.store(true);
 
-    //pthread_create get pair <key, object>
-    auto args = new std::pair<Worker*, int> (this, server_socket);
-    if (pthread_create( &(this->thread), NULL, &(Worker::RunProxy) , args) != 0){
-        throw std::runtime_error("can't create a thread");
-    }
+    // //pthread_create get pair <key, object>
+    // auto args = new std::pair<Worker*, int> (this, server_socket);
+    // if (pthread_create( &(this->thread), NULL, &(Worker::RunProxy) , args) != 0){
+    //     throw std::runtime_error("can't create a thread");
+    // }
 }
 
 
