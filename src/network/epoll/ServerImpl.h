@@ -4,7 +4,7 @@
 #include <vector>
 
 #include <afina/network/Server.h>
-#include <afina/network/epoll/Worker.h>
+#include "Worker.h"
 
 namespace Afina {
 namespace Network {
