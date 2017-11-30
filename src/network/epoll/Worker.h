@@ -2,32 +2,11 @@
 #define AFINA_NETWORK_NONBLOCKING_WORKER_H
 
 
-#include <assert.h>
+#ifndef AFINA_NETWORK_NONBLOCKING_WORKER_H
+#define AFINA_NETWORK_NONBLOCKING_WORKER_H
+
+#include <memory>
 #include <pthread.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <sys/stat.h>
-#include <sys/epoll.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/signalfd.h>
-#include <errno.h>
-
-#include <memory>
-#include <mutex>
-#include <atomic>
-#include <exception>
-#include <list>
-#include <iostream>
-#include <cstring>
-#include <map>
-#include <memory>
-
-#include <protocol/Parser.h>
-//#include <afina/Executor.h>
-#include <afina/execute/Command.h>
-#include "Utils.h"
 
 namespace Afina {
 
@@ -35,7 +14,7 @@ namespace Afina {
 class Storage;
 
 namespace Network {
-namespace epoll {
+namespace NonBlocking {
 
 /**
  * # Thread running epoll
@@ -73,11 +52,9 @@ protected:
      * Method executing by background thread
      */
     void OnRun(void *args);
-    static void* RunProxy(void* args);
+
 private:
     pthread_t thread;
-    std::shared_ptr<Afina::Storage> ps;
-    std::atomic<bool> running;
 };
 
 } // namespace NonBlocking

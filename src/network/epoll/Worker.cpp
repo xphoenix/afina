@@ -10,48 +10,32 @@
 
 namespace Afina {
 namespace Network {
-namespace epoll {
-
-
-
+namespace NonBlocking {
 
 // See Worker.h
-Worker::Worker(std::shared_ptr<Afina::Storage> ps){}
+Worker::Worker(std::shared_ptr<Afina::Storage> ps) {
+    // TODO: implementation here
+
+    
+    // pStorage = ps;
+    // fifo_fd = -1;
+}
 
 // See Worker.h
 Worker::~Worker() {
     // TODO: implementation here
 }
 
-void* Worker::RunProxy(void* _args) {
-  auto args = reinterpret_cast<std::pair<Worker*, int>*>(_args);
-  Worker* worker_instance = args->first;
-  int server_socket = args->second;
-  sigset_t mask;
-  sigemptyset(&mask);
-  sigaddset(&mask, SIGINT);
-  sigaddset(&mask, SIGTERM);
-  if (pthread_sigmask(SIG_BLOCK, &mask, NULL) == -1) {
-    throw std::runtime_error("pthread_sigmask");
-  }
-  worker_instance->OnRun(server_socket);
-  return NULL;
-}
-
-
 // See Worker.h
 void Worker::Start(int server_socket) {
-     std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl;
+    std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl;
     // TODO: implementation here
-    // this->running.store(true);
 
-    // //pthread_create get pair <key, object>
-    // auto args = new std::pair<Worker*, int> (this, server_socket);
-    // if (pthread_create( &(this->thread), NULL, &(Worker::RunProxy) , args) != 0){
-    //     throw std::runtime_error("can't create a thread");
-    // }
+
+    // running.store(true);
+    // this->thread = pthread_self();
+    // pthread_create(... OnRun);
 }
-
 
 // See Worker.h
 void Worker::Stop() {
@@ -70,7 +54,7 @@ void Worker::Join() {
 }
 
 // See Worker.h
-void *Worker::OnRun(void *args) {
+void Worker::OnRun(void *args) {
     std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl;
 
     // TODO: implementation here
