@@ -16,7 +16,7 @@ namespace epoll {
 
 
 // See Worker.h
-Worker::Worker(std::shared_ptr<Afina::Storage> _ps) : ps(_ps) {}
+Worker::Worker(std::shared_ptr<Afina::Storage> ps){}
 
 // See Worker.h
 Worker::~Worker() {
