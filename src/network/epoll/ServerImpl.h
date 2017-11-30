@@ -1,15 +1,13 @@
 #ifndef AFINA_NETWORK_NONBLOCKING_SERVER_H
 #define AFINA_NETWORK_NONBLOCKING_SERVER_H
 
-#include <atomic>
 #include <vector>
-#include <pthread.h>
 
 #include <afina/network/Server.h>
 
 namespace Afina {
 namespace Network {
-namespace epoll {
+namespace NonBlocking {
 
 // Forward declaration, see Worker.h
 class Worker;
@@ -31,7 +29,6 @@ public:
 
     // See Server.h
     void Join() override;
-
 
 private:
     // Port to listen for new connections, permits access only from

@@ -21,7 +21,7 @@
 
 namespace Afina {
 namespace Network {
-namespace epoll {
+namespace NonBlocking {
 
 // See Server.h
 ServerImpl::ServerImpl(std::shared_ptr<Afina::Storage> ps) : Server(ps) {}
