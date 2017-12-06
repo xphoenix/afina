@@ -38,6 +38,10 @@ namespace NonBlocking {
 
 
 template <void (ServerImpl::*method)()> static void *PthreadProxy(void *p) {
+    /*
+    Позволяет преобразовывать любой указатель в указатель любого другого типа. 
+    Также позволяет преобразовывать любой целочисленный тип в любой тип указателя и наоборот.
+    */
             ServerImpl *srv = reinterpret_cast<ServerImpl *>(p);
             try {
                 (srv->*method)();
@@ -113,7 +117,7 @@ ServerImpl::~ServerImpl() {}
                 ep_fd(int fd_) : fd(fd_) {}
                 virtual void advance(uint32_t) = 0;
                 virtual ~ep_fd() {}
-            };
+            }; 
 
             static int epoll_modify(int epoll_fd, int how, uint32_t events, ep_fd &target) {
                 struct epoll_event new_ev {  // создаем структуры для epoll_ctl
