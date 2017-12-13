@@ -10,30 +10,8 @@ const int epoll_timeout = 5000; // ms, to check every now and then that we still
 static const size_t buffer_size = 16;
 
 
-static int setsocknonblocking(int sock) {
-        int flags = fcntl(sock, F_GETFL, NULL);
-        if (flags == -1)
-            return flags;
-        flags |= O_NONBLOCK;
-        return fcntl(sock, F_SETFL, flags);
-    }
 
-    
-struct ep_fd {
-    int fd;
-    ep_fd(int fd_) : fd(fd_) {}
-    virtual void advance(uint32_t) = 0;
-    virtual ~ep_fd() {}
-}; 
-
-static int epoll_modify(int epoll_fd, int how, uint32_t events, ep_fd &target) {
-    struct epoll_event new_ev {  // создаем структуры для epoll_ctl
-            events, { (void *)&target }
-    };
-    return epoll_ctl(epoll_fd, how, target.fd, &new_ev);
-}
-
-void checkIp(struct sockaddr_in server_addr, int server_socket){
+void check_socket(struct sockaddr_in server_addr, int server_socket){
         if (server_socket == -1) {
             throw std::runtime_error("Failed to open socket");
         }
@@ -66,22 +44,22 @@ void checkIp(struct sockaddr_in server_addr, int server_socket){
 
 
 
-template <void (ServerImpl::*method)()> static void *PthreadProxy(void *p) {
-    /*
-    Позволяет преобразовывать любой указатель в указатель любого другого типа. 
-    Также позволяет преобразовывать любой целочисленный тип в любой тип указателя и наоборот.
-    */
-    ServerImpl *srv = reinterpret_cast<ServerImpl *>(p);
-    try {
-        (srv->*method)();
-        return (void *)0;
-    } catch (std::runtime_error &ex) {
-        std::cerr << "Exception caught: " << ex.what() << std::endl;
-        return (void *)-1;
-    }
-    // different return values may be used to motify whoever calls pthread_join
-    // of error conditions
-}
+// template <void (ServerImpl::*method)()> static void *PthreadProxy(void *p) {
+//     /*
+//     Позволяет преобразовывать любой указатель в указатель любого другого типа. 
+//     Также позволяет преобразовывать любой целочисленный тип в любой тип указателя и наоборот.
+//     */
+//     ServerImpl *srv = reinterpret_cast<ServerImpl *>(p);
+//     try {
+//         (srv->*method)();
+//         return (void *)0;
+//     } catch (std::runtime_error &ex) {
+//         std::cerr << "Exception caught: " << ex.what() << std::endl;
+//         return (void *)-1;
+//     }
+//     // different return values may be used to motify whoever calls pthread_join
+//     // of error conditions
+// }
 
 // See Server.h
 ServerImpl::ServerImpl(std::shared_ptr<Afina::Storage> ps) : Server(ps) {}
@@ -110,7 +88,7 @@ void ServerImpl::Start(uint32_t port, uint16_t n_workers) {
     workers.resize(n_workers);
     running.store(true);
     for (uint16_t i = 0; i < n_workers; i++)
-        if (pthread_create(&workers[i], NULL, &PthreadProxy<&ServerImpl::RunEpoll>, this) < 0)
+        if (pthread_create(&workers[i], NULL, Epoll_Proxy, this) < 0)
             throw std::runtime_error("Could not create epoll thread");
 }
 
@@ -170,6 +148,7 @@ struct client_fd : ep_fd {
                 buf.resize(std::max(buf.size() * 2, buffer_size));
             len = recv(fd, buf.data() + offset, buf.size() - offset, 0);
         } while (len > 0);
+        //if socket need to be blocked
         if (errno != EWOULDBLOCK && errno != EAGAIN)
             return cleanup();
         if (!len)
@@ -272,6 +251,9 @@ struct listen_fd : ep_fd {
     }
 };
 
+
+
+
 // See Server.h
 void ServerImpl::RunEpoll() {
     std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl;
@@ -288,7 +270,7 @@ void ServerImpl::RunEpoll() {
     int server_socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 
 
-    checkIp(server_addr, server_socket);
+    check_socket(server_addr, server_socket);
 
 
     // prepare the necessary objects to handle clients

@@ -62,6 +62,7 @@ public:
 
     // See Server.h
     void Join() override;
+    friend void* Epoll_Proxy(void* p);
 
 protected:
     /**
