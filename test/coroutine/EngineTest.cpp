@@ -46,7 +46,7 @@ void printb(Afina::Coroutine::Engine &pe, std::stringstream &out, void *&other) 
 std::stringstream out;
 void *pa = nullptr, *pb = nullptr;
 void _printer(Afina::Coroutine::Engine &pe, std::string &result) {
-    // Create routines, note it doens't get control yet
+    // Create routines, note it doesn't get control yet
     pa = pe.run(printa, pe, out, pb);
     pb = pe.run(printb, pe, out, pa);
 
