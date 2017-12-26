@@ -20,31 +20,54 @@ private:
      * A single coroutine instance which could be scheduled for execution
      * should be allocated on heap
      */
-    struct context;
-    typedef struct context {
+    struct context {
         // coroutine stack start address
         char *Low = nullptr;
 
         // coroutine stack end address
-        char *Hight = nullptr;
+        char *High = nullptr;
 
         // coroutine stack copy buffer
-        std::tuple<char *, uint32_t> Stack = std::make_tuple(nullptr, 0);
+        std::tuple<char *, std::ptrdiff_t> Stack = std::make_tuple(nullptr, 0);
 
         // Saved coroutine context (registers)
         jmp_buf Environment;
 
-        // To include routine in the different lists, such as "alive", "blocked", e.t.c
-        struct context *prev = nullptr;
-        struct context *next = nullptr;
-    } context;
+        // Coroutine that has started this one. Once current routine is done, control must
+        // be passed back to caller
+        context *caller = nullptr;
+
+        // Coroutine got control from the current one. Whenever current routine
+        // continues self execution it must transfer control to callee if any
+        context *callee = nullptr;
+
+        // To include routine in the different lists, such as "alive", "blocked", etc
+        context *prev = nullptr;
+        context *next = nullptr;
+
+        ~context() {
+            if (prev) {
+                prev->next = next;
+            }
+
+            if (next) {
+                next->prev = prev;
+            }
+
+            if (caller) {
+                caller->callee = nullptr;
+            }
+
+            delete[] std::get<0>(Stack);
+        }
+    };
 
     /**
      * Where coroutines stack begins
      */
     char *StackBottom;
 
-    /**const int&
+    /**
      * Current coroutine
      */
     context *cur_routine;
@@ -103,7 +126,7 @@ public:
      * Entry point into the engine. Prepare all internal mechanics and starts given function which is
      * considered as main.
      *
-     * Once control returns back to caller of start all coroutines are done execution, in other words,
+     * Once control returns back to caller of start all coroutines are done executing, in other words,
      * this function doesn't return control until all coroutines are done.
      *
      * @param pointer to the main coroutine
@@ -121,9 +144,11 @@ public:
         if (setjmp(idle_ctx->Environment) > 0) {
             // Here: correct finish of the coroutine section
             yield();
-        } else if (pc != nullptr) {
-            Store(*idle_ctx);
-            sched(pc);
+        } else {
+            if (pc != nullptr) {
+                Store(*idle_ctx);
+                sched(pc);
+            }
         }
 
         // Shutdown runtime
@@ -132,8 +157,8 @@ public:
     }
 
     /**
-     * Register new coroutine. It won't receive control until scheduled explicitely or implicitly. In case of some
-     * errors function returns -1
+     * Register new coroutine. It won't receive control until scheduled explicitely or implicitly. In case of any
+     * errors function returns nullptr
      */
     template <typename... Ta> void *run(void (*func)(Ta...), Ta &&... args) {
         if (this->StackBottom == 0) {
@@ -143,6 +168,7 @@ public:
 
         // New coroutine context that carries around all information enough to call function
         context *pc = new context();
+        pc->caller = cur_routine;
 
         // Store current state right here, i.e just before enter new coroutine, later, once it gets scheduled
         // execution starts here. Note that we have to acquire stack of the current function call to ensure
@@ -156,15 +182,9 @@ public:
 
             // Routine has completed its execution, time to delete it. Note that we should be extremely careful in where
             // to pass control after that. We never want to go backward by stack as that would mean to go backward in
-            // time. Function run() has already return once (when setjmp returns 0), so return second return from run
-            // would looks a bit awkward
-            if (pc->prev != nullptr) {
-                pc->prev->next = pc->next;
-            }
-
-            if (pc->next != nullptr) {
-                pc->next->prev = pc->prev;
-            }
+            // time. Function run() has already returned once (when setjmp returns 0), so return second return from run
+            // would look a bit awkward
+            context *next = pc->caller;
 
             if (alive == cur_routine) {
                 alive = alive->next;
@@ -172,13 +192,15 @@ public:
 
             // current coroutine finished, and the pointer is not relevant now
             cur_routine = nullptr;
-            pc->prev = pc->next = nullptr;
-            delete std::get<0>(pc->Stack);
-            delete pc;
+
+            delete pc; // destructor will clean up
 
             // We cannot return here, as this function "returned" once already, so here we must select some other
             // coroutine to run. As current coroutine is completed and can't be scheduled anymore, it is safe to
             // just give up and ask scheduler code to select someone else, control will never returns to this one
+            if (next != nullptr) {
+                sched(next);
+            }
             Restore(*idle_ctx);
         }
 
@@ -187,7 +209,8 @@ public:
         // save stack.
         Store(*pc);
 
-        // Add routine as alive double-linked list
+        // Add routine as alive list
+        // add to the beginning of the double-linked list
         pc->next = alive;
         alive = pc;
         if (pc->next != nullptr) {
