@@ -40,16 +40,40 @@ void Engine::Restore(context &ctx) {
 }
 
 void Engine::yield() {
+
+  if (cur_routine == nullptr and alive == nullptr){
+    return
+  }
+
   if (alive){
     context *to_call = alive;
     alive->prev = nullptr;
-    alive = alive->next;
-    return sched(to_call);
+    if (alive->next != nullptr){
+      alive = alive->next;
+      sched(to_call);
+    }
   }
 }
 
+
 void Engine::sched(void *routine_) {
   context *to_call = (context *)routine_;
+
+    if (to_call == cur_routine) {
+      return;
+    }
+
+    // these lines are required to exit last run() correctly
+    if (to_call == nullptr && cur_routine == nullptr) {
+        if (alive == nullptr) {
+            return;   // no coroutines remain
+        }
+        else {
+            to_call = alive;
+        }
+    }
+
+
   if (cur_routine){
       Store(*cur_routine); //so there would be a place to return to
       if (setjmp(cur_routine -> Environment)){
