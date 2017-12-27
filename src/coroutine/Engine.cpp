@@ -40,16 +40,22 @@ void Engine::Restore(context &ctx) {
 }
 
 void Engine::yield() {
-
   if (cur_routine == nullptr and alive == nullptr){
     return;
+  }
+
+  for (context* p = alive; p != nullptr; p = p->next) {
+      if (p != cur_routine) { // find any routine != cur_routine
+          alive = p;
+          break;
+      }
   }
 
   if (alive){
     context *to_call = alive;
     alive->prev = nullptr;
-      alive = alive->next;
-      sched(to_call);
+    alive = alive->next;
+    sched(to_call);
   }
 }
 
@@ -61,16 +67,16 @@ void Engine::sched(void *routine_) {
       return;
     }
 
-    // these lines are required to exit last run() correctly
-    if (to_call == nullptr && cur_routine == nullptr) {
-        if (alive == nullptr) {
-            return;   // no coroutines remain
-        }
-        else {
-            to_call = alive;
-        }
-    }
 
+  // these lines are required to exit last run() correctly
+  if (to_call == nullptr) {
+      if (alive == nullptr) {
+          return;   // no coroutines remain
+      }
+      else {
+          to_call = alive;
+      }
+  }
 
   if (cur_routine){
       Store(*cur_routine); //so there would be a place to return to
