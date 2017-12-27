@@ -44,19 +44,15 @@ void Engine::yield() {
     return;
   }
 
-  for (context* p = alive; p != nullptr; p = p->next) {
+context* to_call = nullptr;
+ for (context* p = alive; p != nullptr; p = p->next) {
       if (p != cur_routine) { // find any routine != cur_routine
-          alive = p;
+          to_call = p;
           break;
       }
   }
-
-  if (alive){
-    context *to_call = alive;
-    alive->prev = nullptr;
-    alive = alive->next;
-    sched(to_call);
-  }
+  
+  sched(to_call);
 }
 
 
