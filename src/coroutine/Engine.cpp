@@ -7,7 +7,7 @@
 namespace Afina {
 namespace Coroutine {
 void Engine::Store(context &ctx) {
-  char stackStart;
+  volatile char stackStart;
   //Должен сохранить регистры и стэк
   ctx.Low = ctx.Height = this->StackBottom;
   if (&stackStart>ctx.Low){
@@ -29,7 +29,7 @@ void Engine::Store(context &ctx) {
 }
 
 void Engine::Restore(context &ctx) {
-  char stackStart;
+  volatile char stackStart;
   char *StackAddr = &stackStart;
   if(ctx.Low<=StackAddr && StackAddr<=ctx.Height) Restore(ctx);
 
