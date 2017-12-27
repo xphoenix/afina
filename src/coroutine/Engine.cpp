@@ -42,16 +42,14 @@ void Engine::Restore(context &ctx) {
 void Engine::yield() {
 
   if (cur_routine == nullptr and alive == nullptr){
-    return
+    return;
   }
 
   if (alive){
     context *to_call = alive;
     alive->prev = nullptr;
-    if (alive->next != nullptr){
       alive = alive->next;
       sched(to_call);
-    }
   }
 }
 
