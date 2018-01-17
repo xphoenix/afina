@@ -11,10 +11,10 @@ void Engine::Store(context &ctx) {
   //Должен сохранить регистры и стэк
   ctx.Low = ctx.Height = this->StackBottom;
   if (&stackStart>ctx.Low){
-    ctx.Height = &stackStart;
+    ctx.Height = const_cast<char*>(&stackStart);
   }
   else{
-    ctx.Low = &stackStart;
+    ctx.Low = const_cast<char*>(&stackStart);
   }
   int size = ctx.Height - ctx.Low;
 
@@ -30,7 +30,7 @@ void Engine::Store(context &ctx) {
 
 void Engine::Restore(context &ctx) {
   volatile char stackStart;
-  char *StackAddr = &stackStart;
+  char *StackAddr = const_cast<char*>(&stackStart);
   if(ctx.Low<=StackAddr && StackAddr<=ctx.Height) Restore(ctx);
 
   // memcpy(void *restrict dst, const void *restrict src, size_t n);
