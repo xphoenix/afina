@@ -1,0 +1,13 @@
+#include <afina/Version.h>
+
+#include <string>
+
+namespace Afina {
+
+const std::string Version_Major = "@VERSION_MAJOR@";
+const std::string Version_Minor = "@VERSION_MINOR@";
+const std::string Version_Patch = "@VERSION_PATCH@";
+const std::string Version_Release = "@VERSION_RELEASE@";
+const std::string Version_SHA =  "@VERSION_SHA1@";
+
+} // namespace Afina
