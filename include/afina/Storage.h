@@ -80,10 +80,13 @@ public:
      * In case if given key not found method returns false and doesn't perform
      * any changes on the output parameter
      *
-     * @param key to retrive1 value for
+     * @param key to retrive value for
      * @param value output parameter to copy value to
      */
     virtual bool Get(const std::string &key, std::string &value) const = 0;
+
+private:
+    virtual bool PutIfSizeOK(const std::string &key, std::string &value) const = 0;
 };
 
 } // namespace Afina

@@ -55,7 +55,7 @@ TEST(StorageTest, BigTest) {
 
     std::stringstream ss;
 
-    for(long i=0; i<100000; ++i)
+    for(long i = 0; i < 100000; ++i)
     {
         ss << "Key" << i;
         std::string key = ss.str();
