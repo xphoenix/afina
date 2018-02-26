@@ -18,7 +18,7 @@ ServerImpl::ServerImpl(std::shared_ptr<Afina::Storage> ps) : Server(ps) {}
 ServerImpl::~ServerImpl() { assert(workers.size() == 0); }
 
 // See Server.h
-void ServerImpl::Start(uint32_t port, uint16_t n_workers) {
+void ServerImpl::Start(uint16_t port, uint16_t n_workers) {
     struct sockaddr_storage address;
     int rc = uv_ip4_addr("0.0.0.0", port, (struct sockaddr_in *)&address);
     if (rc != 0) {

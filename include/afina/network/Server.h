@@ -22,7 +22,7 @@ public:
      * listen on the given interface/port pair to process  incomming
      * data in workers number of threads
      */
-    virtual void Start(uint32_t port, uint16_t workers = 1) = 0;
+    virtual void Start(uint16_t port, uint16_t workers = 1) = 0;
 
     /**
      * Signal all worker threads that server is going to shutdown. After method returns
