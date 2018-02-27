@@ -7,19 +7,21 @@ namespace Backend {
 
 // LRUListNode
 template <typename T>
-void LRUListNode::Next(LRUListNode<T> *new_node) {
+void LRUListNode<T>::Next(LRUListNode<T> *new_node) {
     _next = new_node;
     if (_next)
         _next->_prev = this;
 }
 
-void LRUListNode::Prev(LRUListNode *new_node) {
+template <typename T>
+void LRUListNode<T>::Prev(LRUListNode<T> *new_node) {
     _prev = new_node;
     if (_prev)
         _prev->_next = this;
 }
 
-void LRUListNode::SoftDelete() {
+template <typename T>
+void LRUListNode<T>::SoftDelete() {
     if (_next)
         _next->_prev = _prev;
 
@@ -27,33 +29,36 @@ void LRUListNode::SoftDelete() {
         _prev->_next = _next;
 }
 
-void LRUListNode::HardDelete() {
+template <typename T>
+void LRUListNode<T>::HardDelete() {
     SoftDelete();
     delete this;
 }
 
-LRUListNode* LRUListNode::getPrev() {
+template <typename T>
+LRUListNode<T>* LRUListNode<T>::getPrev() {
     return _prev;
 }
 
-LRUListNode* LRUListNode::getNext() {
+template <typename T>
+LRUListNode<T>* LRUListNode<T>::getNext() {
     return _next;
 }
 
 template <typename T>
-T LRUListNode::Value() {
+T LRUListNode<T>::Value() {
     return _value;
 }
 
 template <typename T>
-void LRUListNode::Value(const T& new_value) {
+void LRUListNode<T>::Value(const T& new_value) {
     _value = new_value;
 }
 
 
 // LRUList
 template <typename T>
-void LRUList::Append(const T& value) {
+void LRUList<T>::Append(const T& value) {
     LRUListNode<T> *new_node = new LRUListNode<T>(value);
 
     if (_tail)
@@ -66,19 +71,19 @@ void LRUList::Append(const T& value) {
 }
 
 template <typename T>
-void LRUList::Up(LRUListNode<T> *node_to_up) {
+void LRUList<T>::Up(LRUListNode<T> *node_to_up) {
     node_to_up->SoftDelete();
     _head->Prev(node_to_up);
     _head = node_to_up;
 }
 
 template <typename T>
-T LRUList::Head() {
-    return _head;
+LRUListNode<T>& LRUList<T>::Head() {
+    return *_head;
 }
 
 template <typename T>
-void LRUList::DeleteNode(LRUListNode<T>* node) {
+void LRUList<T>::DeleteNode(LRUListNode<T>* node) {
 
     // Need update head and tail of list if
     // node is one of them
@@ -97,31 +102,42 @@ void LRUList::DeleteNode(LRUListNode<T>* node) {
     node->HardDelete();
 }
 
-void LRUList::DeleteHead() {
-    auto tmp = _head->_next;
+template <typename T>
+void LRUList<T>::DeleteHead() {
+    auto tmp = _head->getNext();
     _head->HardDelete();
     _head = tmp;
 }
 
-LRUList::~LRUList() {
+template <typename T>
+LRUList<T>::~LRUList() {
     while (_head) {
-        auto tmp = _head->_next();
+        auto tmp = _head->getNext();
         delete _head;
         _head = tmp;
     }
 }
 
 bool MapBasedGlobalLockImpl::DeleteLRU() {
-    auto it = _lru->Head()->Value();
-    if (it) {
-        _backend.erase(it);
-    }
-    _lru->DeleteHead();
+    auto it = _lru.Head().Value();
+    _backend.erase(it);
+    _lru.DeleteHead();
+
+    return true;
 }
 
 bool MapBasedGlobalLockImpl::Insert(const std::string &key, const std::string &value) {
-    auto it = _backend.insert(std::make_pair( key, std::make_pair(value, _backend.end()) ));
-    _lru->Append(it.first);
+    Value map_value;
+    map_value.value = std::make_pair(
+        value, 
+        new LRUListNode<map_iterator>(_backend.end())
+    );
+
+    auto it = _backend.insert(std::make_pair(
+        key, 
+        map_value
+    ));
+    _lru.Append(it.first);
     auto ListNodePointer = it.first->second.value.second;
     ListNodePointer->Value(it.first);
 }
@@ -130,7 +146,7 @@ bool MapBasedGlobalLockImpl::Insert(const std::string &key, const std::string &v
 bool MapBasedGlobalLockImpl::Put(const std::string &key, const std::string &value) {
 
     // If end of size and elem doesn't exist
-    if (_backend.size() == _max_size() &&
+    if (_backend.size() == _max_size &&
         _backend.find(key) == _backend.end())
             MapBasedGlobalLockImpl::DeleteLRU(); // Need delete last recently used
 
@@ -163,7 +179,7 @@ bool MapBasedGlobalLockImpl::Set(const std::string &key, const std::string &valu
         // Update key with value
         MapBasedGlobalLockImpl::Insert(key, value);
         // And up in the queue
-        _lru->Up(_backend[key].value.second);
+        _lru.Up(_backend.find(key)->second.value.second);
         return true;
     }
 
@@ -186,9 +202,11 @@ bool MapBasedGlobalLockImpl::Get(const std::string &key, std::string &value) con
     if (_backend.find(key) == _backend.end())
         return false;
 
-    value = _backend[key].value.first;
+    auto item = _backend.find(key);
+    value = item->second.value.first;
     // And up in queue
-    _lru->Up(_backend[key].value.second);
+    auto ListNodePointer = _backend.find(key)->second.value.second;
+    _lru.Up(ListNodePointer);
 
     return true;
 }

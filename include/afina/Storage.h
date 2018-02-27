@@ -86,7 +86,6 @@ public:
     virtual bool Get(const std::string &key, std::string &value) const = 0;
 
 private:
-    virtual bool PutIfSizeOK(const std::string &key, std::string &value) const = 0;
 };
 
 } // namespace Afina

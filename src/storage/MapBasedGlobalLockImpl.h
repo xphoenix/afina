@@ -17,26 +17,26 @@ public:
     LRUListNode(const T& value): _value(value), _next(nullptr), _prev(nullptr) {}
 
     // Set next item
-    void Next(LRUListNode*) override;
+    void Next(LRUListNode*);
 
     // Set previous item
-    void Prev(LRUListNode*) override;
+    void Prev(LRUListNode*);
 
     // Delete links from neighbours
-    void SoftDelete() override;
+    void SoftDelete();
 
     // Delete links and destruct itself
-    void HardDelete() override;
+    void HardDelete();
 
     // Getters for previous and next items
-    LRUListNode* getPrev() override;
-    LRUListNode* getNext() override;
+    LRUListNode* getPrev();
+    LRUListNode* getNext();
 
     // Getter for value
-    T Value() override;
+    T Value();
 
     // Setter for value
-    void Value(const T&) override;
+    void Value(const T&);
 
     ~LRUListNode() {}
 
@@ -51,21 +51,21 @@ public:
     LRUList(): _tail(nullptr), _head(nullptr) {}
 
     // Add new item to the tail of list
-    void Append(const T&) override;
+    void Append(const T&) ;
 
     // Move node to the head of list
-    void Up(LRUListNode<T>*) override;
+    void Up(LRUListNode<T>*);
 
     // Get head of list
-    T Head() override;
+    LRUListNode<T>& Head();
 
     // Delete node from list
-    void DeleteNode(LRUListNode<T>*) override;
+    void DeleteNode(LRUListNode<T>*);
 
     // Delete head from list
-    void DeleteHead() override;
+    void DeleteHead();
 
-    ~LRUList() override;
+    ~LRUList();
 
 private:
     LRUListNode<T> *_tail, *_head;
@@ -96,9 +96,9 @@ public:
     // Implements Afina::Storage interface
     bool Get(const std::string &key, std::string &value) const override;
 
-    bool DeleteLRU() override;
+    bool DeleteLRU();
 
-    Insert(const std::string &key, const std::string &value) override;
+    bool Insert(const std::string &key, const std::string &value);
 
 private:
     size_t _max_size;
@@ -110,7 +110,7 @@ private:
     struct Value {
         std::pair<std::string, LRUListNode<map_iterator>* > value;
     };
-    LRUList<map_iterator> _lru;
+    mutable LRUList<map_iterator> _lru;
 
     // Implements Afina::Storage interface
     bool PutIfCould(std::string &key, std::string &value);
