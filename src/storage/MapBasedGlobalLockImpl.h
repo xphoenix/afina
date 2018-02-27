@@ -23,10 +23,7 @@ public:
     void Prev(LRUListNode*);
 
     // Delete links from neighbours
-    void SoftDelete();
-
-    // Delete links and destruct itself
-    void HardDelete();
+    void Delete();
 
     // Getters for previous and next items
     LRUListNode* getPrev();
@@ -112,8 +109,8 @@ private:
     };
     mutable LRUList<map_iterator> _lru;
 
-    // Implements Afina::Storage interface
-    bool PutIfCould(std::string &key, std::string &value);
+    // Update existsting element in storage
+    bool Update(const std::string &key, const std::string &value, map_iterator& elem_iter);
 };
 
 } // namespace Backend

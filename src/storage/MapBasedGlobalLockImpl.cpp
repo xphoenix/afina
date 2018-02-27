@@ -1,6 +1,7 @@
 #include "MapBasedGlobalLockImpl.h"
 
 #include <mutex>
+#include <iostream>
 
 namespace Afina {
 namespace Backend {
@@ -8,31 +9,32 @@ namespace Backend {
 // LRUListNode
 template <typename T>
 void LRUListNode<T>::Next(LRUListNode<T> *new_node) {
-    _next = new_node;
-    if (_next)
-        _next->_prev = this;
+    if (new_node != this) {
+        _next = new_node;
+
+        if (_next)
+            _next->_prev = this;
+    }
 }
 
 template <typename T>
 void LRUListNode<T>::Prev(LRUListNode<T> *new_node) {
-    _prev = new_node;
-    if (_prev)
-        _prev->_next = this;
+    if (new_node != this) {
+        _prev = new_node;
+
+        if (_prev)
+            _prev->_next = this;
+    }
+
 }
 
 template <typename T>
-void LRUListNode<T>::SoftDelete() {
+void LRUListNode<T>::Delete() {
     if (_next)
         _next->_prev = _prev;
 
     if (_prev)
         _prev->_next = _next;
-}
-
-template <typename T>
-void LRUListNode<T>::HardDelete() {
-    SoftDelete();
-    delete this;
 }
 
 template <typename T>
@@ -63,8 +65,9 @@ void LRUList<T>::Append(const T& value) {
 
     if (_tail)
         _tail->Next(new_node);
-    else
-        _tail = new_node;
+
+    _tail = new_node;
+
 
     if (!_head)
         _head = _tail;
@@ -72,7 +75,7 @@ void LRUList<T>::Append(const T& value) {
 
 template <typename T>
 void LRUList<T>::Up(LRUListNode<T> *node_to_up) {
-    node_to_up->SoftDelete();
+    node_to_up->Delete();
     _head->Prev(node_to_up);
     _head = node_to_up;
 }
@@ -99,13 +102,15 @@ void LRUList<T>::DeleteNode(LRUListNode<T>* node) {
         }
     }
 
-    node->HardDelete();
+    node->Delete();
+    delete node;
 }
 
 template <typename T>
 void LRUList<T>::DeleteHead() {
     auto tmp = _head->getNext();
-    _head->HardDelete();
+    _head->Delete();
+    delete _head;
     _head = tmp;
 }
 
@@ -140,20 +145,41 @@ bool MapBasedGlobalLockImpl::Insert(const std::string &key, const std::string &v
     _lru.Append(it.first);
     auto ListNodePointer = it.first->second.value.second;
     ListNodePointer->Value(it.first);
+
+    return true;
+}
+
+bool MapBasedGlobalLockImpl::Update(const std::string &key, const std::string &value, map_iterator& elem_iter) {
+    Value map_value;
+
+    auto ListNodePointer = elem_iter->second.value.second;
+
+    map_value.value = std::make_pair(
+        value,
+        ListNodePointer
+    );
+
+    _backend[key] = map_value;
+    _lru.Up(ListNodePointer);
+
+    return true;
 }
 
 // See MapBasedGlobalLockImpl.h
 bool MapBasedGlobalLockImpl::Put(const std::string &key, const std::string &value) {
 
+    auto find_iter = _backend.find(key);
+    bool exists = find_iter != _backend.end();
+
     // If end of size and elem doesn't exist
-    if (_backend.size() == _max_size &&
-        _backend.find(key) == _backend.end())
+    if (_backend.size() == _max_size && !exists)
             MapBasedGlobalLockImpl::DeleteLRU(); // Need delete last recently used
 
-    // Insert new
-    MapBasedGlobalLockImpl::Insert(key, value);
-
-    return true;
+    if (!exists)
+        // Insert new
+        return MapBasedGlobalLockImpl::Insert(key, value);
+    else
+        return MapBasedGlobalLockImpl::Update(key, value, find_iter);
 }
 
 // See MapBasedGlobalLockImpl.h
@@ -174,10 +200,13 @@ bool MapBasedGlobalLockImpl::PutIfAbsent(const std::string &key, const std::stri
 // See MapBasedGlobalLockImpl.h
 bool MapBasedGlobalLockImpl::Set(const std::string &key, const std::string &value) {
 
-    if (_backend.find(key) != _backend.end()) {
+    auto find_iter = _backend.find(key);
+    bool exists = find_iter != _backend.end();
+
+    if (!exists) {
 
         // Update key with value
-        MapBasedGlobalLockImpl::Insert(key, value);
+        MapBasedGlobalLockImpl::Update(key, value, find_iter);
         // And up in the queue
         _lru.Up(_backend.find(key)->second.value.second);
         return true;
@@ -202,8 +231,8 @@ bool MapBasedGlobalLockImpl::Get(const std::string &key, std::string &value) con
     if (_backend.find(key) == _backend.end())
         return false;
 
-    auto item = _backend.find(key);
-    value = item->second.value.first;
+    auto find_iter = _backend.find(key);
+    value = find_iter->second.value.first;
     // And up in queue
     auto ListNodePointer = _backend.find(key)->second.value.second;
     _lru.Up(ListNodePointer);
