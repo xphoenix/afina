@@ -95,8 +95,6 @@ public:
 
     bool DeleteLRU();
 
-    bool Insert(const std::string &key, const std::string &value);
-
 private:
     size_t _max_size;
     
@@ -113,6 +111,9 @@ private:
 
     // Update existsting element in storage
     bool Update(const std::string &key, const std::string &value, map_iterator& elem_iter);
+
+    // Insert new element in storage
+    bool Insert(const std::string &key, const std::string &value);
 };
 
 } // namespace Backend
