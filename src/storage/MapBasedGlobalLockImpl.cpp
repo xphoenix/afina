@@ -124,6 +124,7 @@ LRUList<T>::~LRUList() {
 }
 
 bool MapBasedGlobalLockImpl::DeleteLRU() {
+    
     auto it = _lru.Head().Value();
     _backend.erase(it);
     _lru.DeleteHead();
@@ -132,6 +133,7 @@ bool MapBasedGlobalLockImpl::DeleteLRU() {
 }
 
 bool MapBasedGlobalLockImpl::Insert(const std::string &key, const std::string &value) {
+
     Value map_value;
     map_value.value = std::make_pair(
         value, 
@@ -167,6 +169,7 @@ bool MapBasedGlobalLockImpl::Update(const std::string &key, const std::string &v
 
 // See MapBasedGlobalLockImpl.h
 bool MapBasedGlobalLockImpl::Put(const std::string &key, const std::string &value) {
+    std::lock_guard<std::mutex> lock(_global_lock);
 
     auto find_iter = _backend.find(key);
     bool exists = find_iter != _backend.end();
@@ -184,6 +187,7 @@ bool MapBasedGlobalLockImpl::Put(const std::string &key, const std::string &valu
 
 // See MapBasedGlobalLockImpl.h
 bool MapBasedGlobalLockImpl::PutIfAbsent(const std::string &key, const std::string &value) {
+    std::lock_guard<std::mutex> lock(_global_lock);
 
     if (_backend.find(key) == _backend.end()) {
 
@@ -199,6 +203,7 @@ bool MapBasedGlobalLockImpl::PutIfAbsent(const std::string &key, const std::stri
 
 // See MapBasedGlobalLockImpl.h
 bool MapBasedGlobalLockImpl::Set(const std::string &key, const std::string &value) {
+    std::lock_guard<std::mutex> lock(_global_lock);
 
     auto find_iter = _backend.find(key);
     bool exists = find_iter != _backend.end();
@@ -217,6 +222,7 @@ bool MapBasedGlobalLockImpl::Set(const std::string &key, const std::string &valu
 
 // See MapBasedGlobalLockImpl.h
 bool MapBasedGlobalLockImpl::Delete(const std::string &key) {
+    std::lock_guard<std::mutex> lock(_global_lock);
 
     auto ListNodePointer = _backend[key].value.second;
 
@@ -227,6 +233,7 @@ bool MapBasedGlobalLockImpl::Delete(const std::string &key) {
 }
 // See MapBasedGlobalLockImpl.h
 bool MapBasedGlobalLockImpl::Get(const std::string &key, std::string &value) const {
+    std::lock_guard<std::mutex> lock(_global_lock);
 
     if (_backend.find(key) == _backend.end())
         return false;

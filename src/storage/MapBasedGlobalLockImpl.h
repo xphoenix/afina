@@ -93,12 +93,11 @@ public:
     // Implements Afina::Storage interface
     bool Get(const std::string &key, std::string &value) const override;
 
-    bool DeleteLRU();
 
 private:
     size_t _max_size;
     
-    std::mutex _global_lock;
+    mutable std::mutex _global_lock;
 
     struct Value;
     using map_iterator = std::map<std::string, Value>::iterator;
@@ -114,6 +113,9 @@ private:
 
     // Insert new element in storage
     bool Insert(const std::string &key, const std::string &value);
+
+    // Delete Last Recently Used
+    bool DeleteLRU();
 };
 
 } // namespace Backend
