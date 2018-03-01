@@ -54,9 +54,9 @@ TEST(StorageTest, PutIfAbsent) {
 std::string
 pad_space(const std::string &s, size_t length)
 {
-    std::stringstream ss;
-    ss << std::setw(length) << s;
-    return ss.str();
+    std::string result = s;
+    result.resize(length, ' ');
+    return result;
 }
 
 TEST(StorageTest, BigTest) {
