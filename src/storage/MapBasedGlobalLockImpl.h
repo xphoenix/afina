@@ -99,6 +99,8 @@ public:
 
 private:
     size_t _max_size;
+    
+    std::mutex _global_lock;
 
     struct Value;
     using map_iterator = std::map<std::string, Value>::iterator;
