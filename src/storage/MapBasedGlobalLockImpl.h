@@ -1,9 +1,11 @@
 #ifndef AFINA_STORAGE_MAP_BASED_GLOBAL_LOCK_IMPL_H
 #define AFINA_STORAGE_MAP_BASED_GLOBAL_LOCK_IMPL_H
 
-#include <map>
+#include <unordered_map>
 #include <mutex>
 #include <string>
+#include <functional>
+
 
 #include <afina/Storage.h>
 
@@ -35,7 +37,7 @@ public:
     // Setter for value
     void Value(const T&);
 
-    ~LRUListNode() {}
+    ~LRUListNode();
 
 private:
     T _value;
@@ -54,7 +56,10 @@ public:
     void Up(LRUListNode<T>*);
 
     // Get head of list
-    LRUListNode<T>& Head();
+    LRUListNode<T>* Head();
+
+    // Get tail of list
+    LRUListNode<T>* Tail();
 
     // Delete node from list
     void DeleteNode(LRUListNode<T>*);
@@ -96,22 +101,25 @@ public:
     bool DeleteLRU();
 
 private:
+    using string_reference = std::reference_wrapper<std::string>;
+    using unordered_map_type = std::unordered_map<
+            string_reference,
+            std::pair<string_reference, LRUListNode<string_reference>* >,
+            std::hash<std::string>,
+            std::equal_to<std::string>
+    >;
+
     size_t _max_size;
 
-    struct Value;
-    using map_iterator = std::map<std::string, Value>::iterator;
-    std::map<std::string, Value> _backend;
+    unordered_map_type _backend;
 
-    struct Value {
-        std::pair<std::string, LRUListNode<map_iterator>* > value;
-    };
-    mutable LRUList<map_iterator> _lru;
+    mutable LRUList<string_reference> _lru;
 
     // Update existsting element in storage
-    bool Update(const std::string &key, const std::string &value, map_iterator& elem_iter);
+    bool _Update(const std::string &key, const std::string &value, unordered_map_type::iterator &elem_iter);
 
     // Insert new element in storage
-    bool Insert(const std::string &key, const std::string &value);
+    bool _Insert(const std::string &key, const std::string &value);
 };
 
 } // namespace Backend
