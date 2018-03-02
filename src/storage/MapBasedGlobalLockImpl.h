@@ -81,7 +81,7 @@ private:
 class MapBasedGlobalLockImpl : public Afina::Storage {
 public:
     MapBasedGlobalLockImpl(size_t max_size = 1024) : _max_size(max_size) {}
-    ~MapBasedGlobalLockImpl() {}
+    ~MapBasedGlobalLockImpl();
 
     // Implements Afina::Storage interface
     bool Put(const std::string &key, const std::string &value) override;
@@ -101,9 +101,10 @@ public:
 
 private:
     using string_reference = std::reference_wrapper<std::string>;
+    using string_pointer = std::string*;
     using unordered_map_type = std::unordered_map<
             string_reference,
-            std::pair<string_reference, LRUListNode<string_reference>* >,
+            std::pair<string_pointer, LRUListNode<string_reference>* >,
             std::hash<std::string>,
             std::equal_to<std::string>
     >;

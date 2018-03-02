@@ -142,10 +142,10 @@ LRUList<T>::~LRUList() {
 bool MapBasedGlobalLockImpl::DeleteLRU() {
 
     auto key = _lru.Head()->Value();
-    auto it = _backend.find(key);
+    auto it  = _backend.find(key);
 
-    auto key_pointer = &(it->first.get());
-    auto value_pointer = &(it->second.first.get());
+    auto key_pointer   = &(it->first.get());
+    auto value_pointer = it->second.first;
 
     _backend.erase(it);
     _lru.DeleteHead();
@@ -163,8 +163,8 @@ bool MapBasedGlobalLockImpl::_Insert(const std::string &key, const std::string &
 
     _lru.Append(string_reference(*new_key_pointer));
 
-    std::pair<string_reference, LRUListNode<string_reference>*> to_insert(
-            string_reference(*new_value_pointer),
+    std::pair<string_pointer, LRUListNode<string_reference>*> to_insert(
+            new_value_pointer,
             _lru.Tail()
     );
 
@@ -188,7 +188,7 @@ bool MapBasedGlobalLockImpl::_Update(const std::string &key,
     );
 
     // Update value in unordered_map
-    it->second.first = const_cast<std::string&>(value);
+    *it->second.first = value;
     _lru.Up(ListNodePointer);
 
     return true;
@@ -270,13 +270,24 @@ bool MapBasedGlobalLockImpl::Get(const std::string &key, std::string &value) con
         return false;
 
     auto find_iter = _backend.find(const_cast<std::string&>(key));
-    value = find_iter->second.first;
+    value = *find_iter->second.first;
 
     // And up in queue
     auto ListNodePointer = _backend.find(const_cast<std::string&>(key))->second.second;
     _lru.Up(ListNodePointer);
 
     return true;
+}
+
+MapBasedGlobalLockImpl::~MapBasedGlobalLockImpl() {
+    // Remember, that we allocated memory for key and value
+    for (auto &it : _backend) {
+        auto key_pointer   = &(it.first.get());
+        auto value_pointer = it.second.first;
+
+        delete key_pointer;
+        delete value_pointer;
+    }
 }
 
 } // namespace Backend
