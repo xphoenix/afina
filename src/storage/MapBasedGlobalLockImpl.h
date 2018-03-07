@@ -80,7 +80,7 @@ private:
  */
 class MapBasedGlobalLockImpl : public Afina::Storage {
 public:
-    MapBasedGlobalLockImpl(size_t max_size = 1024) : _max_size(max_size) {}
+    MapBasedGlobalLockImpl(size_t max_size = 1024) : _max_size(max_size), _usage_size(0) {}
     ~MapBasedGlobalLockImpl();
 
     // Implements Afina::Storage interface
@@ -110,6 +110,7 @@ private:
     >;
 
     size_t _max_size;
+    size_t _usage_size;
     
     mutable std::mutex _global_lock;
 
@@ -124,7 +125,10 @@ private:
     bool _Insert(const std::string &key, const std::string &value);
 
     // Delete Last Recently Used
-    bool DeleteLRU();
+    bool _DeleteLRU();
+
+    // Clear storage data if need
+    void _ClearUsageData(const std::string &, const std::string &, unordered_map_type::iterator &);
 };
 
 } // namespace Backend

@@ -43,7 +43,6 @@ TEST(StorageTest, Set) {
     MapBasedGlobalLockImpl storage;
 
     storage.Put("KEY1", "val1");
-    storage.Put("KEY1", "val2");
 
     std::string value;
     EXPECT_TRUE(storage.Set("KEY1", "new_val1"));
