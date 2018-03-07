@@ -50,7 +50,7 @@ public:
     LRUList(): _tail(nullptr), _head(nullptr) {}
 
     // Add new item to the tail of list
-    void Append(const T&) ;
+    void Append(const T&);
 
     // Move node to the head of list
     void Up(LRUListNode<T>*);
