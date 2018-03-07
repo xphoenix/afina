@@ -128,7 +128,7 @@ private:
     bool _DeleteLRU();
 
     // Clear storage data if need
-    void _ClearUsageData(const std::string &, const std::string &, unordered_map_type::iterator &);
+    bool _ClearUsageData(const std::string &, const std::string &, unordered_map_type::iterator &);
 };
 
 } // namespace Backend

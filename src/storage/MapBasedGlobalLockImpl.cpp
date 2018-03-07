@@ -71,7 +71,6 @@ LRUListNode<T>::~LRUListNode() {}
 template <typename T>
 void LRUList<T>::Append(const T& value) {
     LRUListNode<T> *new_node = new LRUListNode<T>(value);
-
     if (_tail)
         _tail->Next(new_node);
 
@@ -141,6 +140,11 @@ LRUList<T>::~LRUList() {
 
 bool MapBasedGlobalLockImpl::_DeleteLRU() {
 
+    if (!_lru.Head()) {
+        std::cerr << "Try to delete null LRU Head" << std::endl;
+        return false;
+    }
+
     auto key = _lru.Head()->Value();
     auto it  = _backend.find(key);
 
@@ -149,6 +153,8 @@ bool MapBasedGlobalLockImpl::_DeleteLRU() {
 
     _backend.erase(it);
     _lru.DeleteHead();
+
+    _usage_size -= key_pointer->size() + value_pointer->size();
 
     delete key_pointer;
     delete value_pointer;
@@ -203,23 +209,29 @@ bool MapBasedGlobalLockImpl::_Update(const std::string &key,
     return true;
 }
 
-void MapBasedGlobalLockImpl::_ClearUsageData(const std::string &key,
-                    const std::string &value,
+bool MapBasedGlobalLockImpl::_ClearUsageData(const std::string &new_key,
+                    const std::string &new_value,
                     unordered_map_type::iterator &find_iter) {
+
+    if (new_key.size() + new_value.size() > _max_size)
+        return false;
 
     bool exists = find_iter != _backend.end();
 
-    // If end of size and elem doesn't exist
     if (!exists) {
-        while (_usage_size + key.size() + value.size() >= _max_size) {
-            MapBasedGlobalLockImpl::_DeleteLRU();
+        while (_usage_size + new_key.size() + new_value.size() > _max_size) {
+            if (!MapBasedGlobalLockImpl::_DeleteLRU())
+                return false;
         }
     } else {
         auto last_value_size = find_iter->second.first->size();
-        while (_usage_size - last_value_size + value.size() >= _max_size) {
-            MapBasedGlobalLockImpl::_DeleteLRU();
+        while (_usage_size - last_value_size + new_value.size() > _max_size) {
+            if (!MapBasedGlobalLockImpl::_DeleteLRU())
+                return false;
         }
     }
+
+    return true;
 }
 
 // See MapBasedGlobalLockImpl.h
@@ -230,7 +242,8 @@ bool MapBasedGlobalLockImpl::Put(const std::string &key, const std::string &valu
     bool exists = find_iter != _backend.end();
 
     // Delete data if need
-    MapBasedGlobalLockImpl::_ClearUsageData(key, value, find_iter);
+    if (!MapBasedGlobalLockImpl::_ClearUsageData(key, value, find_iter))
+        return false;
 
     if (!exists)
         // Insert new
@@ -248,7 +261,8 @@ bool MapBasedGlobalLockImpl::PutIfAbsent(const std::string &key, const std::stri
     if (find_iter == _backend.end()) {
 
         // Delete data if need
-        MapBasedGlobalLockImpl::_ClearUsageData(key, value, find_iter);
+        if (!MapBasedGlobalLockImpl::_ClearUsageData(key, value, find_iter))
+            return false;
 
         MapBasedGlobalLockImpl::_Insert(key, value);
         return true;
@@ -267,7 +281,8 @@ bool MapBasedGlobalLockImpl::Set(const std::string &key, const std::string &valu
     if (exists) {
 
         // Delete data if need
-        MapBasedGlobalLockImpl::_ClearUsageData(key, value, find_iter);
+        if (!MapBasedGlobalLockImpl::_ClearUsageData(key, value, find_iter))
+            return false;
 
         // Update key with value
         MapBasedGlobalLockImpl::_Update(key, value, find_iter);
@@ -296,6 +311,8 @@ bool MapBasedGlobalLockImpl::Delete(const std::string &key) {
 
     auto value_size = it->second.first->size();
     _usage_size -= key.size() + value_size;
+
+    return true;
 }
 // See MapBasedGlobalLockImpl.h
 bool MapBasedGlobalLockImpl::Get(const std::string &key, std::string &value) const {
