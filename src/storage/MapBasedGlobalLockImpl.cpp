@@ -234,7 +234,7 @@ bool MapBasedGlobalLockImpl::_ClearUsageData(const std::string &new_key,
     return true;
 }
 
-// See MapBasedGlobalLockImpl.h
+// See MapBasedGlobalLockImpl.hc
 bool MapBasedGlobalLockImpl::Put(const std::string &key, const std::string &value) {
     std::lock_guard<std::mutex> lock(_global_lock);
 

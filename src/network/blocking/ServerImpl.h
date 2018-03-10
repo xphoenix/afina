@@ -5,13 +5,71 @@
 #include <condition_variable>
 #include <mutex>
 #include <pthread.h>
-#include <unordered_set>
+#include <thread>
+#include <unordered_map>
+#include <functional>
+#include <algorithm>
+#include <unistd.h>
+#include <fcntl.h>
+#include <iostream>
+
 
 #include <afina/network/Server.h>
 
 namespace Afina {
 namespace Network {
 namespace Blocking {
+
+// Class maganages threads' statutes
+class ThreadsStatus {
+public:
+    ThreadsStatus() = default;
+    ~ThreadsStatus() = default;
+
+    // Add new thread to map
+    void add_thread(std::thread::id thread_id);
+
+    // Check is thread with id - thread_id is still running
+    bool is_alive(std::thread::id thread_id) const;
+
+    // Match thread width id - thread_id as done
+    void add_done(std::thread::id thread_id);
+
+private:
+    mutable std::mutex _lock;
+    std::unordered_map<std::thread::id, bool > _thread_alive;
+};
+
+// Class Socket for read all data from it
+class Socket {
+public:
+    Socket(int fh);
+    ~Socket();
+
+    // Read all data from socket
+    void Read(std::string& out);
+
+    // Check if was an error
+    bool good() const;
+
+    // Check if socket closed
+    bool is_closed() const;
+
+private:
+    int _fh;
+
+    // Was error during operations
+    bool _good;
+
+    // Is fh closed
+    bool _closed;
+
+    // Makes fh non blocking
+    bool _make_non_blocking();
+
+    // Make fh blocking
+    bool _male_blokcing();
+};
 
 /**
  * # Network resource manager implementation
@@ -37,13 +95,16 @@ protected:
      */
     void RunAcceptor();
 
+
+
     /**
      * Methos is running for each connection
      */
-    void RunConnection();
-
+    void Worker(int);
 private:
-    static void *RunAcceptorProxy(void *p);
+    static void* RunAcceptorProxy(void* p);
+
+
 
     // Atomic flag to notify threads when it is time to stop. Note that
     // flag must be atomic in order to safely publisj changes cross thread
@@ -72,7 +133,8 @@ private:
 
     // Threads that are processing connection data, permits
     // access only from inside of accept_thread
-    std::unordered_set<pthread_t> connections;
+    ThreadsStatus threads_status;
+    std::vector<std::thread> connections;
 };
 
 } // namespace Blocking

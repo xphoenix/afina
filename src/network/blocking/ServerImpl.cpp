@@ -3,11 +3,14 @@
 #include <cassert>
 #include <cstring>
 #include <iostream>
+#include <sstream>
 #include <memory>
 #include <stdexcept>
+#include <thread>
 
 #include <pthread.h>
 #include <signal.h>
+#include <chrono>
 
 #include <netdb.h>
 #include <sys/socket.h>
@@ -18,6 +21,8 @@
 #include <unistd.h>
 
 #include <afina/Storage.h>
+#include <protocol/Parser.h>
+#include <afina/execute/Command.h>
 
 namespace Afina {
 namespace Network {
@@ -97,6 +102,11 @@ void ServerImpl::Stop() {
 void ServerImpl::Join() {
     std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl;
     pthread_join(accept_thread, 0);
+
+    for (auto &thread : connections) {
+        std::cout << "wait for " << thread.get_id() << std::endl;
+        thread.join();
+    }
 }
 
 // See Server.h
@@ -150,7 +160,7 @@ void ServerImpl::RunAcceptor() {
 
     // Start listening. The second parameter is the "backlog", or the maximum number of
     // connections that we'll allow to queue up. Note that listen() doesn't block until
-    // incoming connections arrive. It just makesthe OS aware that this process is willing
+    // incoming connections arrive. It just makes the OS aware that this process is willing
     // to accept connections on this socket (which is bound to a specific IP and port)
     if (listen(server_socket, 5) == -1) {
         close(server_socket);
@@ -160,38 +170,205 @@ void ServerImpl::RunAcceptor() {
     int client_socket;
     struct sockaddr_in client_addr;
     socklen_t sinSize = sizeof(struct sockaddr_in);
-    while (running.load()) {
-        std::cout << "network debug: waiting for connection..." << std::endl;
 
-        // When an incoming connection arrives, accept it. The call to accept() blocks until
-        // the incoming connection arrives
+    fd_set rfds;
+    struct timeval tv;
+
+
+    int select_retval;
+    while (running.load()) {
+
+        tv.tv_sec = 0;
+        tv.tv_usec = 1000000;
+        FD_ZERO(&rfds);
+        FD_SET(server_socket, &rfds);
+        select_retval = select(server_socket + 1, &rfds, NULL, NULL, &tv);
+        if (select_retval == -1) {
+            std::cerr << "[main] Error while select" << std::endl;
+            break;
+        } else if (!select_retval) {
+            std::cerr << "[main] No data for 1000ms" << std::endl;
+            continue;
+        }
+
         if ((client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &sinSize)) == -1) {
             close(server_socket);
             throw std::runtime_error("Socket accept() failed");
         }
-
-        // TODO: Start new thread and process data from/to connection
-        {
-            std::string msg = "TODO: start new thread and process memcached protocol instead";
-            if (send(client_socket, msg.data(), msg.size(), 0) <= 0) {
-                close(client_socket);
-                close(server_socket);
-                throw std::runtime_error("Socket send() failed");
+        std::cout << "[main] going to add new thread" << std::endl;
+        if (connections.size() == max_workers) {
+            for (auto it = connections.begin(); it != connections.end();) {
+                if (!threads_status.is_alive(it->get_id())) {
+                    std::cout << "join thread: " << it->get_id() << std::endl;
+                    it->join();
+                    connections.erase(it);
+                } else {
+                    ++it;
+                }
             }
+        }
+
+        std::cout << "[main]" << " current workers num = " << connections.size() << std::endl;
+        if (connections.size() == max_workers) {
+            std::cout << "Number of workers is too big, close connection :(" << std::endl;
             close(client_socket);
+        } else {
+            try {
+                connections.push_back(std::thread(&ServerImpl::Worker, this, client_socket));
+                threads_status.add_thread(connections.back().get_id());
+            } catch (std::runtime_error &ex) {
+                std::cerr << ex.what() << std::endl;
+            }
         }
     }
-
-    // Cleanup on exit...
     close(server_socket);
 }
 
-// See Server.h
-void ServerImpl::RunConnection() {
-    std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl;
-    // TODO: All connection work is here
+// See ServerImpl.h
+void ServerImpl::Worker(int client_socket) {
+    std::string data;
+
+    bool client_connected = true;
+
+    Socket client(client_socket);
+
+    while (client_connected && running.load()) {
+        data.clear();
+        std::cout << "[" << std::this_thread::get_id() << "]" << "wait read" << std::endl;
+
+        // Read data from client socket
+        client.Read(data);
+
+        // Check if client is still connected
+        client_connected = !client.is_closed();
+        if (!client_connected) {
+            std::cout << "[" << std::this_thread::get_id() << "]" <<  "cliend disconnected" << std::endl;
+            continue;
+        }
+
+        // Check if no errors happened
+        if (!client.good()) {
+            std::cout << "[" << std::this_thread::get_id() << "]" << "Error while read happend" << std::endl;
+            client_connected = false;
+            continue;
+        }
+
+        Protocol::Parser parser;
+
+        size_t parsed = 0;
+        parser.Parse(data, parsed);
+
+        uint32_t body_size;
+        auto command = parser.Build(body_size);
+        std::string body = std::string(data.begin() + parsed,
+                                       data.begin() + parsed + body_size);
+
+        std::string out;
+        command->Execute(*pStorage, body, out);
+
+        std::cout << "[" << std::this_thread::get_id() << "]" << "send" << std::endl;
+        send(client_socket, out.data(), out.size(), 0);
+    }
+    threads_status.add_done(std::this_thread::get_id());
 }
 
+
+void ThreadsStatus::add_thread(std::thread::id thread_id) {
+    std::lock_guard<std::mutex> lock(_lock);
+
+    _thread_alive[thread_id] = true;
+}
+
+bool ThreadsStatus::is_alive(std::thread::id thread_id) const {
+    std::lock_guard<std::mutex> lock(_lock);
+
+    auto it = _thread_alive.find(thread_id);
+    if (it == _thread_alive.end())
+        return false;
+
+    return it->second;
+}
+
+void ThreadsStatus::add_done(std::thread::id thread_id) {
+    std::lock_guard<std::mutex> lock(_lock);
+
+    auto it = _thread_alive.find(thread_id);
+    if (it == _thread_alive.end())
+        return;
+
+    it->second = false;
+}
+
+Socket::Socket(int fh) : _fh(fh), _good(true), _closed(false) {}
+
+Socket::~Socket() {
+    close(_fh);
+}
+
+void Socket::Read(std::string &out) {
+
+    char buffer[32];
+    ssize_t has_read = 0;
+
+    has_read = read(_fh, buffer, 32);
+    std::cout << "[" << std::this_thread::get_id() << "]" << "has_read_blockig = " << has_read << std::endl;
+    if (!has_read) {
+        _closed = true;
+        return;
+    }
+
+    out += std::string(buffer, buffer + has_read);
+    if (!this->_make_non_blocking()) {
+        _good = false;
+        return;
+    }
+
+    while ((has_read = read(_fh, buffer, 32)) > 0) {
+        std::cout << "[" << std::this_thread::get_id() << "]" << "has_read = " << has_read << std::endl;
+        out += std::string(buffer, buffer + has_read);
+    }
+
+    std::cout << "[" << std::this_thread::get_id() << "]" << "head_read_after = " << has_read << ", errno = " << errno << std::endl;
+
+    if (has_read < 0 && errno == EAGAIN) {
+        std::cout << "[" << std::this_thread::get_id() << "]" <<  "The socket is empty, make it blocking back" << std::endl;
+        if (!this->_male_blokcing()) {
+            _good = false;
+            return;
+        }
+    } else if (has_read == 0 && errno == 0) {
+        std::cout << "[" << std::this_thread::get_id() << "]" <<  "Client closed connection" << std::endl;
+        _closed = true;
+    }
+}
+
+bool Socket::good() const {
+    return _good;
+}
+
+bool Socket::is_closed() const {
+    return _closed;
+}
+
+bool Socket::_make_non_blocking() {
+    int flags = fcntl(_fh, F_GETFL, 0);
+    if (fcntl(_fh, F_SETFL, flags | O_NONBLOCK)) {
+        std::cerr << "Can not change flags of file handler = " << _fh << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+bool Socket::_male_blokcing() {
+    int flags = fcntl(_fh, F_GETFL, 0);
+    if (fcntl(_fh, F_SETFL, flags & ~O_NONBLOCK)) {
+        std::cerr << "Can not change flags of file handler = " << _fh << std::endl;
+        return false;
+    }
+
+    return true;
+}
 } // namespace Blocking
 } // namespace Network
 } // namespace Afina

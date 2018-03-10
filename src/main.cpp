@@ -22,8 +22,8 @@ typedef struct {
 // Handle all signals catched
 void signal_handler(uv_signal_t *handle, int signum) {
     Application *pApp = static_cast<Application *>(handle->data);
+    std::cout << "Receive stop signal, wait threads" << std::endl;
 
-    std::cout << "Receive stop signal" << std::endl;
     uv_stop(handle->loop);
 }
 
@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
 
     uv_signal_t sig;
     uv_signal_init(&loop, &sig);
-    uv_signal_start(&sig, signal_handler, SIGTERM | SIGKILL);
+    uv_signal_start(&sig, signal_handler, SIGINT);
     sig.data = &app;
 
     uv_timer_t timer;
@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
     // Start services
     try {
         app.storage->Start();
-        app.server->Start(8080);
+        app.server->Start(8080, 10);
 
         // Freeze current thread and process events
         std::cout << "Application started" << std::endl;
