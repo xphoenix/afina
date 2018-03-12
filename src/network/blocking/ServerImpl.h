@@ -27,17 +27,28 @@ public:
     ~ThreadsStatus() = default;
 
     // Add new thread to map
-    void add_thread(std::thread::id thread_id);
+    void add_thread(std::thread);
 
     // Check is thread with id - thread_id is still running
-    bool is_alive(std::thread::id thread_id) const;
+    bool is_alive(std::thread::id);
 
     // Match thread width id - thread_id as done
-    void add_done(std::thread::id thread_id);
+    void add_done(std::thread::id);
+
+    // Delete dead threads
+    void update();
+
+    // Join threads
+    void join();
+
+    size_t size() const;
 
 private:
-    mutable std::mutex _lock;
-    std::unordered_map<std::thread::id, bool > _thread_alive;
+    std::mutex _lock;
+    std::vector<std::thread> connections;
+
+    // Thread + is_alive
+    std::unordered_map<std::thread::id, bool> statuses;
 };
 
 // Class Socket for read all data from it
@@ -95,8 +106,6 @@ protected:
      */
     void RunAcceptor();
 
-
-
     /**
      * Methos is running for each connection
      */
@@ -104,13 +113,12 @@ protected:
 private:
     static void* RunAcceptorProxy(void* p);
 
-
-
     // Atomic flag to notify threads when it is time to stop. Note that
     // flag must be atomic in order to safely publisj changes cross thread
     // bounds
     std::atomic<bool> running;
 
+    std::mutex _dont_work;
     // Thread that is accepting new connections
     pthread_t accept_thread;
 
@@ -134,7 +142,6 @@ private:
     // Threads that are processing connection data, permits
     // access only from inside of accept_thread
     ThreadsStatus threads_status;
-    std::vector<std::thread> connections;
 };
 
 } // namespace Blocking

@@ -24,9 +24,40 @@
 #include <protocol/Parser.h>
 #include <afina/execute/Command.h>
 
+#include <sys/time.h>
+#include <chrono>
+#include <ctime>
+
 namespace Afina {
 namespace Network {
 namespace Blocking {
+
+std::mutex log_lock;
+void log(std::string write, long long opt = -1123) {
+    std::chrono::time_point<std::chrono::system_clock> now;
+    now = std::chrono::system_clock::now();
+    std::time_t end_time = std::chrono::system_clock::to_time_t(now);
+    std::string cur_time = std::ctime(&end_time);
+    cur_time.erase((cur_time.end() - 1));
+
+    struct timeval tp;
+    gettimeofday(&tp, NULL);
+    long int ms = tp.tv_sec * 1000 + tp.tv_usec / 1000;
+
+    std::cout << "[" << std::this_thread::get_id() << ", " << ms << "]" <<  write;
+    if (opt != -1123) {
+        std::cout << ' ' << opt;
+    }
+    std::cout << std::endl;
+}
+
+void log(const char* str, long long opt = -1123) {
+    std::lock_guard<std::mutex> lock(log_lock);
+    int len = strlen(str);
+    std::string tmp = std::string(str, str + len);
+    log(tmp, opt);
+}
+
 
 void *ServerImpl::RunAcceptorProxy(void *p) {
     ServerImpl *srv = reinterpret_cast<ServerImpl *>(p);
@@ -103,10 +134,7 @@ void ServerImpl::Join() {
     std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl;
     pthread_join(accept_thread, 0);
 
-    for (auto &thread : connections) {
-        std::cout << "wait for " << thread.get_id() << std::endl;
-        thread.join();
-    }
+    threads_status.join();
 }
 
 // See Server.h
@@ -187,54 +215,51 @@ void ServerImpl::RunAcceptor() {
             std::cerr << "[main] Error while select" << std::endl;
             break;
         } else if (!select_retval) {
-            std::cerr << "[main] No data for 1000ms" << std::endl;
             continue;
         }
 
+        log("update");
+        threads_status.update();
+        log("update done");
+        bool close_immediately = (threads_status.size() == max_workers);
         if ((client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &sinSize)) == -1) {
             close(server_socket);
             throw std::runtime_error("Socket accept() failed");
         }
-        std::cout << "[main] going to add new thread" << std::endl;
-        if (connections.size() == max_workers) {
-            for (auto it = connections.begin(); it != connections.end();) {
-                if (!threads_status.is_alive(it->get_id())) {
-                    std::cout << "join thread: " << it->get_id() << std::endl;
-                    it->join();
-                    connections.erase(it);
-                } else {
-                    ++it;
-                }
-            }
+        if (close_immediately) {
+            log("Number of workers is too big, close connection :(");
+            close(client_socket);
+            continue;
         }
 
-        std::cout << "[main]" << " current workers num = " << connections.size() << std::endl;
-        if (connections.size() == max_workers) {
-            std::cout << "Number of workers is too big, close connection :(" << std::endl;
-            close(client_socket);
-        } else {
-            try {
-                connections.push_back(std::thread(&ServerImpl::Worker, this, client_socket));
-                threads_status.add_thread(connections.back().get_id());
-            } catch (std::runtime_error &ex) {
-                std::cerr << ex.what() << std::endl;
-            }
+        log("current workers num", threads_status.size());
+        try {
+            _dont_work.lock();
+            threads_status.add_thread(std::thread(&ServerImpl::Worker, this, client_socket));
+            _dont_work.unlock();
+        } catch (std::runtime_error &ex) {
+            std::cerr << ex.what() << std::endl;
         }
+
     }
     close(server_socket);
 }
 
 // See ServerImpl.h
 void ServerImpl::Worker(int client_socket) {
+    _dont_work.lock();
+    _dont_work.unlock();
+    log("in Worker");
     std::string data;
 
     bool client_connected = true;
 
     Socket client(client_socket);
 
+    log("before loop");
     while (client_connected && running.load()) {
         data.clear();
-        std::cout << "[" << std::this_thread::get_id() << "]" << "wait read" << std::endl;
+        log("wait read");
 
         // Read data from client socket
         client.Read(data);
@@ -242,7 +267,7 @@ void ServerImpl::Worker(int client_socket) {
         // Check if client is still connected
         client_connected = !client.is_closed();
         if (!client_connected) {
-            std::cout << "[" << std::this_thread::get_id() << "]" <<  "cliend disconnected" << std::endl;
+            std::cout << "[" << std::this_thread::get_id() << "]" <<  "client disconnected" << std::endl;
             continue;
         }
 
@@ -269,35 +294,101 @@ void ServerImpl::Worker(int client_socket) {
         std::cout << "[" << std::this_thread::get_id() << "]" << "send" << std::endl;
         send(client_socket, out.data(), out.size(), 0);
     }
+
     threads_status.add_done(std::this_thread::get_id());
 }
 
-
-void ThreadsStatus::add_thread(std::thread::id thread_id) {
-    std::lock_guard<std::mutex> lock(_lock);
-
-    _thread_alive[thread_id] = true;
+void show(std::unordered_map<std::thread::id, bool>& map) {
+    for (auto& it : map) {
+        std::cout << "[main] [" << it.first << "] = " << it.second << std::endl;
+    }
 }
 
-bool ThreadsStatus::is_alive(std::thread::id thread_id) const {
+void ThreadsStatus::add_thread(std::thread thread) {
     std::lock_guard<std::mutex> lock(_lock);
 
-    auto it = _thread_alive.find(thread_id);
-    if (it == _thread_alive.end())
+    log("new thread id");
+    auto it_map = statuses.find(thread.get_id());
+    if (it_map != statuses.end()) {
+        std::cout << "[main] race condition, try to find = " << thread.get_id();
+        std::cout << " connections_size(" << connections.size() << ")" << std::endl;
+        for (auto it = connections.begin(); it != connections.end();) {
+            std::cout << "[main] look for: " << it->get_id() << std::endl;
+            if (it->get_id() == thread.get_id()) {
+                std::cout << "[main] join " << it->get_id() << std::endl;
+                it->join();
+                statuses.erase(it_map);
+                connections.erase(it);
+                break;
+            } else {
+                ++it;
+            }
+        }
+    }
+
+    statuses[thread.get_id()] = true;
+    connections.push_back(std::move(thread));
+    log("end of add thread");
+}
+
+// Only main, but access to common resource
+bool ThreadsStatus::is_alive(std::thread::id thread_id) {
+    std::lock_guard<std::mutex> lock(_lock);
+
+    auto it = statuses.find(thread_id);
+    if (it == statuses.end())
         return false;
 
     return it->second;
 }
 
+// Workers only
 void ThreadsStatus::add_done(std::thread::id thread_id) {
     std::lock_guard<std::mutex> lock(_lock);
 
-    auto it = _thread_alive.find(thread_id);
-    if (it == _thread_alive.end())
+    log("add done");
+    auto it = statuses.find(thread_id);
+    if (it == statuses.end()) {
+        log("wtf");
         return;
-
+    }
     it->second = false;
 }
+
+size_t ThreadsStatus::size() const {
+    return connections.size();
+}
+
+void ThreadsStatus::update() {
+    std::lock_guard<std::mutex> lock(_lock);
+
+    for (auto it = connections.begin(); it != connections.end();) {
+        log("try to find");
+        auto it_map = statuses.find(it->get_id());
+        std::cout << "Thread " << it->get_id() << " in map = " << it_map->second << std::endl;
+        if (it_map == statuses.end()) {
+            std::cout << "[main] wtf " << it->get_id() << std::endl;
+            connections.erase(it);
+            ++it;
+        } else if (!it_map->second) { // if thread is dead
+            log("join");
+            it->join();
+            statuses.erase(it_map);
+            connections.erase(it);
+        } else {
+            std::cout << "[main] thread " << it->get_id() << " is still running" << std::endl;
+            ++it;
+        }
+    }
+}
+
+void ThreadsStatus::join() {
+    for (auto& thread : connections) {
+        std::cout << "[main] join " << thread.get_id() << std::endl;
+        thread.join();
+    }
+}
+
 
 Socket::Socket(int fh) : _fh(fh), _good(true), _closed(false) {}
 
@@ -311,8 +402,8 @@ void Socket::Read(std::string &out) {
     ssize_t has_read = 0;
 
     has_read = read(_fh, buffer, 32);
-    std::cout << "[" << std::this_thread::get_id() << "]" << "has_read_blockig = " << has_read << std::endl;
-    if (!has_read) {
+    std::cout << "[" << std::this_thread::get_id() << "]" << "has_read_blocking = " << has_read << std::endl;
+    if (has_read <= 0) {
         _closed = true;
         return;
     }

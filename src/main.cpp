@@ -30,7 +30,6 @@ void signal_handler(uv_signal_t *handle, int signum) {
 // Called when it is time to collect passive metrics from services
 void timer_handler(uv_timer_t *handle) {
     Application *pApp = static_cast<Application *>(handle->data);
-    std::cout << "Start passive metrics collection" << std::endl;
 }
 
 int main(int argc, char **argv) {
@@ -49,6 +48,7 @@ int main(int argc, char **argv) {
         // and simplify validation below
         options.add_options()("s,storage", "Type of storage service to use", cxxopts::value<std::string>());
         options.add_options()("n,network", "Type of network service to use", cxxopts::value<std::string>());
+        options.add_options()("w,workers", "Workers number", cxxopts::value<int>());
         options.add_options()("h,help", "Print usage info");
         options.parse(argc, argv);
 
@@ -110,9 +110,13 @@ int main(int argc, char **argv) {
     uv_timer_start(&timer, timer_handler, 0, 5000);
 
     // Start services
+    int workers_num = 1;
+    if (options.count("workers") > 0) {
+        workers_num = options["workers"].as<int>();
+    }
     try {
         app.storage->Start();
-        app.server->Start(8080, 10);
+        app.server->Start(8080, workers_num);
 
         // Freeze current thread and process events
         std::cout << "Application started" << std::endl;
