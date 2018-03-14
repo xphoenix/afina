@@ -242,46 +242,39 @@ void ServerImpl::Worker(int client_socket, size_t number) {
     _dont_work.unlock();
     std::string data;
 
-    bool client_connected = true;
+    bool has_data = true;
 
     Socket client(client_socket);
 
-    while (client_connected && running.load()) {
-        data.clear();
+    while (has_data && running.load()) {
 
         // Read data from client socket
         client.Read(data);
-
-        // Check if client is still connected
-        client_connected = !client.is_closed();
-        if (!client_connected) {
-            logger.write("client disconnected");
-            continue;
-        }
 
         // Check if no errors happened
         if (!client.good()) {
             logger.write("Error while read happend");
             std::string error_msg = "SERVER_ERROR Interval Server Error\r\n";
             client.Write(error_msg);
-            client_connected = false;
-            continue;
+            break;
         }
 
-        Protocol::Parser parser;
-
-        size_t parsed = 0;
-        parser.Parse(data, parsed);
-
-        uint32_t body_size;
-        auto command = parser.Build(body_size);
-        std::string body = std::string(data.begin() + parsed,
-                                       data.begin() + parsed + body_size);
+        if (client.is_empty()) {
+            logger.write("No data anymore");
+            has_data = false;
+            break;
+        }
 
         std::string out;
-        command->Execute(*pStorage, body, out);
-
+        client.command->Execute(*pStorage, client.Body(), out);
+        out += "\r\n";
         client.Write(out);
+
+        // Check if client is still has data in socket
+        has_data = !client.is_empty();
+        if (!has_data) {
+            logger.write("No data anymore");
+        }
     }
 
     logger.write("Goodbye");
@@ -362,7 +355,7 @@ void ThreadsStatus::join() {
 }
 
 
-Socket::Socket(int fh) : _fh(fh), _good(true), _closed(false) {}
+Socket::Socket(int fh) : _fh(fh), _good(true), _empty(false) {}
 
 Socket::~Socket() {
     close(_fh);
@@ -373,49 +366,57 @@ void Socket::Read(std::string &out) {
     char buffer[32];
     ssize_t has_read = 0;
 
+    size_t parsed = 0;
     has_read = read(_fh, buffer, 32);
-
-
-    logger.write("has_read_blocking =", has_read);
-
-    if (has_read <= 0) {
-        _closed = true;
+    if (!has_read) {
+        _empty = true;
         return;
     }
 
-    out += std::string(buffer, buffer + has_read);
-    if (!this->_make_non_blocking()) {
+    if (has_read < 0) {
         _good = false;
         return;
     }
 
-    while ((has_read = read(_fh, buffer, 32)) > 0) {
-
+    do {
         logger.write("has_read =", has_read);
 
         out += std::string(buffer, buffer + has_read);
-    }
 
-    logger.write("head_read_after =", has_read, "errno =", errno);
+        size_t cur_parsed;
+        bool find_command = parser.Parse(std::string(out.data() + parsed), cur_parsed);
+        parsed += cur_parsed;
+        if (find_command) {
+            // Get command
 
-    if (has_read < 0 && errno == EAGAIN) {
-        logger.write("The socket is empty, make it blocking back");
-        if (!this->_male_blokcing()) {
-            _good = false;
+            uint32_t body_size;
+            command = parser.Build(body_size);
+            body = std::string(out.begin() + parsed,
+                               out.begin() + parsed + body_size);
+
+            body_size = (body_size == 0) ? body_size : body_size + 2; // \r\n
+
+            if (out.size() < parsed + body_size) {
+                // Read not enough, try again
+                continue;
+            }
+
+            out.erase(out.begin(), out.begin() + parsed + body_size);
+            parser.Reset();
             return;
         }
-    } else if (has_read == 0 && errno == 0) {
-        logger.write("Client closed connection");
-        _closed = true;
-    }
+    } while ((has_read = read(_fh, buffer, 32)) > 0);
+
+    // Should exit in loop
+    _good = false;
 }
 
 bool Socket::good() const {
     return _good;
 }
 
-bool Socket::is_closed() const {
-    return _closed;
+bool Socket::is_empty() const {
+    return _empty;
 }
 
 bool Socket::_make_non_blocking() {
@@ -450,6 +451,7 @@ void Socket::Write(std::string &out) {
         if (has_send_now == -1) {
             logger.write("Error durind send data to", _fh, "errno =", errno);
             _good = false;
+            break;
         } else {
             logger.write("Write to", _fh, has_send_now);
             has_send_all += has_send_now;

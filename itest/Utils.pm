@@ -10,8 +10,8 @@ our @EXPORT = qw(quote_symbols);
 
 sub quote_symbols {
     my ($msg) = @_;
-    $msg =~ s/\n/\\n/g;
-    $msg =~ s/\r/\\r/g;
+    $msg =~ s/\n/\\n/sgm;
+    $msg =~ s/\r/\\r/sgm;
     return $msg;
 }
 

@@ -20,14 +20,14 @@ sub main {
     my $value = "value";
 
     my $data = $server->set($key, $value);
-    if ($data ne "STORED") {
+    if ($data ne "STORED\r\n") {
         say "can not stored";
         return 0;
     }
 
     $data = $server->get($key);
     $server->close;
-    if ($data eq "VALUE $key 0 ".length($value)."\r\n$value\r\nEND") {
+    if ($data eq "VALUE $key 0 ".length($value)."\r\n$value\r\nEND\r\n") {
         return 1;
     } else {
         say "get not ok", quote_symbols($data);

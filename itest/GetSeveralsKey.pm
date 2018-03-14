@@ -24,7 +24,7 @@ sub main {
         my $key = $keys[$i];
         my $value = $values[$i];
         $data = $server->set($key, $value);
-        if ($data ne "STORED") {
+        if ($data ne "STORED\r\n") {
             say "can not stored";
             return 0;
         }

@@ -11,6 +11,7 @@ my @tests = qw(
     GetSeveralsKey
     AddLogic
     AppendLogic
+    SeveralCommand
 );
 
 my $test_index = 1;

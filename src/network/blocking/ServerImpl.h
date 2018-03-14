@@ -15,7 +15,7 @@
 //#include <logger/Logger.h>
 
 #include <afina/network/Server.h>
-
+#include <protocol/Parser.h>
 
 
 namespace Afina {
@@ -70,7 +70,10 @@ public:
     bool good() const;
 
     // Check if socket closed
-    bool is_closed() const;
+    bool is_empty() const;
+
+    Protocol::Parser::Command command;
+    std::string& Body() { return body; }
 
 private:
     int _fh;
@@ -78,14 +81,17 @@ private:
     // Was error during operations
     bool _good;
 
-    // Is fh closed
-    bool _closed;
+    // Is no data in socket
+    bool _empty;
 
     // Makes fh non blocking
     bool _make_non_blocking();
 
     // Make fh blocking
     bool _male_blokcing();
+
+    Protocol::Parser parser;
+    std::string body;
 };
 
 /**

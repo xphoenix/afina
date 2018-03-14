@@ -10,7 +10,6 @@
 #include <sstream>
 #include <chrono>
 #include <ctime>
-#include <unistd.h>
 #include <thread>
 #include <cstring>
 #include <iomanip>
@@ -63,7 +62,7 @@ public:
 
         std::stringstream ss;
 
-        ss << "[ " << getpid() << "-" << std::this_thread::get_id() << " ";
+        ss << "[ " << std::this_thread::get_id() << " ";
 
         ss << std::setfill('0') << std::setw(2) << (ptm->tm_year + 1900) << "-";
         ss << std::setfill('0') << std::setw(2) << ptm->tm_mon + 1 << "-";

@@ -18,7 +18,7 @@ sub main {
 
     my $data = $server->get("no_key");
     $server->close;
-    if ($data eq "END") {
+    if ($data eq "END\r\n") {
         return 1;
     } else {
         say "get bad key error", quote_symbols($data);

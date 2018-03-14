@@ -164,22 +164,22 @@ bool Parser::Parse(const char *input, const size_t size, size_t &parsed) {
 }
 
 // See Parse.h
-Parser::unique_ptr_type Parser::Build(uint32_t &body_size) const {
+Parser::Command Parser::Build(uint32_t &body_size) const {
     if (state != State::sLF) {
-        return unique_ptr_type(nullptr);
+        return Command(nullptr);
     }
 
     body_size = bytes;
     if (name == "set") {
-        return unique_ptr_type(new Execute::Set(keys[0], flags, exprtime));
+        return Command(new Execute::Set(keys[0], flags, exprtime));
     } else if (name == "add") {
-        return unique_ptr_type(new Execute::Add(keys[0], flags, exprtime));
+        return Command(new Execute::Add(keys[0], flags, exprtime));
     } else if (name == "append") {
-        return unique_ptr_type(new Execute::Append(keys[0], flags, exprtime));
+        return Command(new Execute::Append(keys[0], flags, exprtime));
     } else if (name == "get") {
-        return unique_ptr_type(new Execute::Get(keys));
+        return Command(new Execute::Get(keys));
     } else if (name == "stats") {
-        return unique_ptr_type(new Execute::Stats());
+        return Command(new Execute::Stats());
     } else {
         throw std::runtime_error("Unsupported command");
     }

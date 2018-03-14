@@ -29,9 +29,19 @@ sub main {
         say "can not write to socket";
         return;
     }
-    
+
     my $data = $server->recv_data;
-    say quote_symbols($data);
+    if ($data eq "STORED\r\n") {
+        $data = $server->recv_data;
+        if ($data eq "STORED\r\n") {
+            return 1;
+        }
+    } elsif ($data eq "STORED\r\nSTORED\r\n") {
+        return 1;
+    }
+
+    say "error store two keys simultaneously";
+    return 0;
 }
 
 1;
