@@ -12,11 +12,14 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <iostream>
-
+//#include <logger/Logger.h>
 
 #include <afina/network/Server.h>
 
+
+
 namespace Afina {
+
 namespace Network {
 namespace Blocking {
 
@@ -59,6 +62,9 @@ public:
 
     // Read all data from socket
     void Read(std::string& out);
+
+    // Write all data to socket
+    void Write(std::string& out);
 
     // Check if was an error
     bool good() const;
@@ -109,7 +115,7 @@ protected:
     /**
      * Methos is running for each connection
      */
-    void Worker(int);
+    void Worker(int, size_t);
 private:
     static void* RunAcceptorProxy(void* p);
 

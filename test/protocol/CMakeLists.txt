@@ -1,6 +1,6 @@
 # build service
 set(SOURCE_FILES
-    MemcachedParserTest.cpp
+        MemcachedParserTest.cpp
 )
 
 add_executable(runProtocolTests ${SOURCE_FILES} ${BACKWARD_ENABLE})

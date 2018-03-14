@@ -5,6 +5,7 @@
 #include <string>
 
 #include "InsertCommand.h"
+#include <logger/Logger.h>
 
 namespace Afina {
 namespace Execute {

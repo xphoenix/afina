@@ -14,6 +14,8 @@
 #include "network/uv/ServerImpl.h"
 #include "storage/MapBasedGlobalLockImpl.h"
 
+#include <logger/Logger.h>
+
 typedef struct {
     std::shared_ptr<Afina::Storage> storage;
     std::shared_ptr<Afina::Network::Server> server;
@@ -23,7 +25,6 @@ typedef struct {
 void signal_handler(uv_signal_t *handle, int signum) {
     Application *pApp = static_cast<Application *>(handle->data);
     std::cout << "Receive stop signal, wait threads" << std::endl;
-
     uv_stop(handle->loop);
 }
 

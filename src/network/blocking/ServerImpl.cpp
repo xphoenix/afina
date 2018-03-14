@@ -28,36 +28,13 @@
 #include <chrono>
 #include <ctime>
 
+#include <logger/Logger.h>
+
 namespace Afina {
 namespace Network {
 namespace Blocking {
 
-std::mutex log_lock;
-void log(std::string write, long long opt = -1123) {
-    std::chrono::time_point<std::chrono::system_clock> now;
-    now = std::chrono::system_clock::now();
-    std::time_t end_time = std::chrono::system_clock::to_time_t(now);
-    std::string cur_time = std::ctime(&end_time);
-    cur_time.erase((cur_time.end() - 1));
-
-    struct timeval tp;
-    gettimeofday(&tp, NULL);
-    long int ms = tp.tv_sec * 1000 + tp.tv_usec / 1000;
-
-    std::cout << "[" << std::this_thread::get_id() << ", " << ms << "]" <<  write;
-    if (opt != -1123) {
-        std::cout << ' ' << opt;
-    }
-    std::cout << std::endl;
-}
-
-void log(const char* str, long long opt = -1123) {
-    std::lock_guard<std::mutex> lock(log_lock);
-    int len = strlen(str);
-    std::string tmp = std::string(str, str + len);
-    log(tmp, opt);
-}
-
+Logger& logger = Logger::Instance();
 
 void *ServerImpl::RunAcceptorProxy(void *p) {
     ServerImpl *srv = reinterpret_cast<ServerImpl *>(p);
@@ -204,6 +181,7 @@ void ServerImpl::RunAcceptor() {
 
 
     int select_retval;
+    logger.i_am(std::string("MASTER"));
     while (running.load()) {
 
         tv.tv_sec = 0;
@@ -218,24 +196,33 @@ void ServerImpl::RunAcceptor() {
             continue;
         }
 
-        log("update");
         threads_status.update();
-        log("update done");
         bool close_immediately = (threads_status.size() == max_workers);
         if ((client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &sinSize)) == -1) {
             close(server_socket);
             throw std::runtime_error("Socket accept() failed");
         }
+
+        // If recv INT signal
+        if (!running.load()) {
+            logger.write("I'm going to die");
+            close(server_socket);
+            continue;
+        }
+
+        // If no workers
         if (close_immediately) {
-            log("Number of workers is too big, close connection :(");
+            logger.write("Number of workers is too big, close connection :(");
             close(client_socket);
             continue;
         }
 
-        log("current workers num", threads_status.size());
+        logger.write("current workers num =", threads_status.size());
         try {
             _dont_work.lock();
-            threads_status.add_thread(std::thread(&ServerImpl::Worker, this, client_socket));
+            threads_status.add_thread(
+                std::thread(&ServerImpl::Worker, this, client_socket, threads_status.size())
+            );
             _dont_work.unlock();
         } catch (std::runtime_error &ex) {
             std::cerr << ex.what() << std::endl;
@@ -246,20 +233,21 @@ void ServerImpl::RunAcceptor() {
 }
 
 // See ServerImpl.h
-void ServerImpl::Worker(int client_socket) {
+void ServerImpl::Worker(int client_socket, size_t number) {
+    std::stringstream ss;
+    ss << "WORKER_" << number;
+    logger.i_am(ss.str().data());
+
     _dont_work.lock();
     _dont_work.unlock();
-    log("in Worker");
     std::string data;
 
     bool client_connected = true;
 
     Socket client(client_socket);
 
-    log("before loop");
     while (client_connected && running.load()) {
         data.clear();
-        log("wait read");
 
         // Read data from client socket
         client.Read(data);
@@ -267,13 +255,15 @@ void ServerImpl::Worker(int client_socket) {
         // Check if client is still connected
         client_connected = !client.is_closed();
         if (!client_connected) {
-            std::cout << "[" << std::this_thread::get_id() << "]" <<  "client disconnected" << std::endl;
+            logger.write("client disconnected");
             continue;
         }
 
         // Check if no errors happened
         if (!client.good()) {
-            std::cout << "[" << std::this_thread::get_id() << "]" << "Error while read happend" << std::endl;
+            logger.write("Error while read happend");
+            std::string error_msg = "SERVER_ERROR Interval Server Error\r\n";
+            client.Write(error_msg);
             client_connected = false;
             continue;
         }
@@ -291,31 +281,21 @@ void ServerImpl::Worker(int client_socket) {
         std::string out;
         command->Execute(*pStorage, body, out);
 
-        std::cout << "[" << std::this_thread::get_id() << "]" << "send" << std::endl;
-        send(client_socket, out.data(), out.size(), 0);
+        client.Write(out);
     }
 
+    logger.write("Goodbye");
     threads_status.add_done(std::this_thread::get_id());
-}
-
-void show(std::unordered_map<std::thread::id, bool>& map) {
-    for (auto& it : map) {
-        std::cout << "[main] [" << it.first << "] = " << it.second << std::endl;
-    }
 }
 
 void ThreadsStatus::add_thread(std::thread thread) {
     std::lock_guard<std::mutex> lock(_lock);
 
-    log("new thread id");
+    logger.write("Create new thread");
     auto it_map = statuses.find(thread.get_id());
     if (it_map != statuses.end()) {
-        std::cout << "[main] race condition, try to find = " << thread.get_id();
-        std::cout << " connections_size(" << connections.size() << ")" << std::endl;
         for (auto it = connections.begin(); it != connections.end();) {
-            std::cout << "[main] look for: " << it->get_id() << std::endl;
             if (it->get_id() == thread.get_id()) {
-                std::cout << "[main] join " << it->get_id() << std::endl;
                 it->join();
                 statuses.erase(it_map);
                 connections.erase(it);
@@ -328,7 +308,6 @@ void ThreadsStatus::add_thread(std::thread thread) {
 
     statuses[thread.get_id()] = true;
     connections.push_back(std::move(thread));
-    log("end of add thread");
 }
 
 // Only main, but access to common resource
@@ -346,12 +325,10 @@ bool ThreadsStatus::is_alive(std::thread::id thread_id) {
 void ThreadsStatus::add_done(std::thread::id thread_id) {
     std::lock_guard<std::mutex> lock(_lock);
 
-    log("add done");
     auto it = statuses.find(thread_id);
-    if (it == statuses.end()) {
-        log("wtf");
+    if (it == statuses.end())
         return;
-    }
+
     it->second = false;
 }
 
@@ -363,29 +340,24 @@ void ThreadsStatus::update() {
     std::lock_guard<std::mutex> lock(_lock);
 
     for (auto it = connections.begin(); it != connections.end();) {
-        log("try to find");
         auto it_map = statuses.find(it->get_id());
-        std::cout << "Thread " << it->get_id() << " in map = " << it_map->second << std::endl;
         if (it_map == statuses.end()) {
-            std::cout << "[main] wtf " << it->get_id() << std::endl;
             connections.erase(it);
             ++it;
         } else if (!it_map->second) { // if thread is dead
-            log("join");
             it->join();
             statuses.erase(it_map);
             connections.erase(it);
         } else {
-            std::cout << "[main] thread " << it->get_id() << " is still running" << std::endl;
             ++it;
         }
     }
 }
 
 void ThreadsStatus::join() {
-    for (auto& thread : connections) {
-        std::cout << "[main] join " << thread.get_id() << std::endl;
-        thread.join();
+    for (auto it = connections.begin(); it != connections.end(); ++it) {
+        logger.write("join", it->get_id());
+        it->join();
     }
 }
 
@@ -402,7 +374,10 @@ void Socket::Read(std::string &out) {
     ssize_t has_read = 0;
 
     has_read = read(_fh, buffer, 32);
-    std::cout << "[" << std::this_thread::get_id() << "]" << "has_read_blocking = " << has_read << std::endl;
+
+
+    logger.write("has_read_blocking =", has_read);
+
     if (has_read <= 0) {
         _closed = true;
         return;
@@ -415,20 +390,22 @@ void Socket::Read(std::string &out) {
     }
 
     while ((has_read = read(_fh, buffer, 32)) > 0) {
-        std::cout << "[" << std::this_thread::get_id() << "]" << "has_read = " << has_read << std::endl;
+
+        logger.write("has_read =", has_read);
+
         out += std::string(buffer, buffer + has_read);
     }
 
-    std::cout << "[" << std::this_thread::get_id() << "]" << "head_read_after = " << has_read << ", errno = " << errno << std::endl;
+    logger.write("head_read_after =", has_read, "errno =", errno);
 
     if (has_read < 0 && errno == EAGAIN) {
-        std::cout << "[" << std::this_thread::get_id() << "]" <<  "The socket is empty, make it blocking back" << std::endl;
+        logger.write("The socket is empty, make it blocking back");
         if (!this->_male_blokcing()) {
             _good = false;
             return;
         }
     } else if (has_read == 0 && errno == 0) {
-        std::cout << "[" << std::this_thread::get_id() << "]" <<  "Client closed connection" << std::endl;
+        logger.write("Client closed connection");
         _closed = true;
     }
 }
@@ -444,7 +421,9 @@ bool Socket::is_closed() const {
 bool Socket::_make_non_blocking() {
     int flags = fcntl(_fh, F_GETFL, 0);
     if (fcntl(_fh, F_SETFL, flags | O_NONBLOCK)) {
-        std::cerr << "Can not change flags of file handler = " << _fh << std::endl;
+
+        logger.write("Can not change flags of file handler =", _fh);
+
         return false;
     }
 
@@ -454,11 +433,28 @@ bool Socket::_make_non_blocking() {
 bool Socket::_male_blokcing() {
     int flags = fcntl(_fh, F_GETFL, 0);
     if (fcntl(_fh, F_SETFL, flags & ~O_NONBLOCK)) {
-        std::cerr << "Can not change flags of file handler = " << _fh << std::endl;
+
+        logger.write("Can not change flags of file handler =", _fh);
+
         return false;
     }
 
     return true;
+}
+
+void Socket::Write(std::string &out) {
+    int has_send_all = 0;
+    ssize_t has_send_now;
+    while (has_send_all != out.size()) {
+        has_send_now = send(_fh, out.data(), out.size(), 0);
+        if (has_send_now == -1) {
+            logger.write("Error durind send data to", _fh, "errno =", errno);
+            _good = false;
+        } else {
+            logger.write("Write to", _fh, has_send_now);
+            has_send_all += has_send_now;
+        }
+    }
 }
 } // namespace Blocking
 } // namespace Network
