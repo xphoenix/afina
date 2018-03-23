@@ -104,8 +104,6 @@ private:
 
 };
 
-//#include "Logger_impl.h"
-
 #endif
 
 

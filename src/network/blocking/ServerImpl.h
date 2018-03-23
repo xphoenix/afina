@@ -23,37 +23,6 @@ namespace Afina {
 namespace Network {
 namespace Blocking {
 
-// Class maganages threads' statutes
-class ThreadsStatus {
-public:
-    ThreadsStatus() = default;
-    ~ThreadsStatus() = default;
-
-    // Add new thread to map
-    void add_thread(std::thread);
-
-    // Check is thread with id - thread_id is still running
-    bool is_alive(std::thread::id);
-
-    // Match thread width id - thread_id as done
-    void add_done(std::thread::id);
-
-    // Delete dead threads
-    void update();
-
-    // Join threads
-    void join();
-
-    size_t size() const;
-
-private:
-    std::mutex _lock;
-    std::vector<std::thread> connections;
-
-    // Thread + is_alive
-    std::unordered_map<std::thread::id, bool> statuses;
-};
-
 // Class Socket for read all data from it
 class Socket {
 public:
@@ -83,12 +52,6 @@ private:
 
     // Is no data in socket
     bool _empty;
-
-    // Makes fh non blocking
-    bool _make_non_blocking();
-
-    // Make fh blocking
-    bool _male_blokcing();
 
     Protocol::Parser parser;
     std::string body;
@@ -151,9 +114,7 @@ private:
     // connections list
     std::condition_variable connections_cv;
 
-    // Threads that are processing connection data, permits
-    // access only from inside of accept_thread
-    ThreadsStatus threads_status;
+    std::atomic<size_t> workers_number;
 };
 
 } // namespace Blocking

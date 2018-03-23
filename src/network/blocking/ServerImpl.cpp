@@ -110,8 +110,6 @@ void ServerImpl::Stop() {
 void ServerImpl::Join() {
     std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl;
     pthread_join(accept_thread, 0);
-
-    threads_status.join();
 }
 
 // See Server.h
@@ -179,52 +177,45 @@ void ServerImpl::RunAcceptor() {
     fd_set rfds;
     struct timeval tv;
 
-
     int select_retval;
     logger.i_am(std::string("MASTER"));
+
+    workers_number.store(0);
+
     while (running.load()) {
 
         tv.tv_sec = 0;
         tv.tv_usec = 1000000;
         FD_ZERO(&rfds);
         FD_SET(server_socket, &rfds);
+
         select_retval = select(server_socket + 1, &rfds, NULL, NULL, &tv);
         if (select_retval == -1) {
-            std::cerr << "[main] Error while select" << std::endl;
+            logger.write("Error while select");
             break;
         } else if (!select_retval) {
             continue;
         }
 
-        threads_status.update();
-        bool close_immediately = (threads_status.size() == max_workers);
         if ((client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &sinSize)) == -1) {
             close(server_socket);
             throw std::runtime_error("Socket accept() failed");
         }
 
-        // If recv INT signal
-        if (!running.load()) {
-            logger.write("I'm going to die");
-            close(server_socket);
-            continue;
-        }
-
         // If no workers
-        if (close_immediately) {
+        if (workers_number.load() == max_workers) {
             logger.write("Number of workers is too big, close connection :(");
             close(client_socket);
             continue;
         }
 
-        logger.write("current workers num =", threads_status.size());
+        logger.write("Current workers number =", workers_number.load());
         try {
-            _dont_work.lock();
-            threads_status.add_thread(
-                std::thread(&ServerImpl::Worker, this, client_socket, threads_status.size())
-            );
-            _dont_work.unlock();
+            workers_number.fetch_add(1);
+            std::thread new_worker(&ServerImpl::Worker, this, client_socket, workers_number.load());
+            new_worker.detach();
         } catch (std::runtime_error &ex) {
+            workers_number.fetch_sub(1);
             std::cerr << ex.what() << std::endl;
         }
 
@@ -238,8 +229,6 @@ void ServerImpl::Worker(int client_socket, size_t number) {
     ss << "WORKER_" << number;
     logger.i_am(ss.str().data());
 
-    _dont_work.lock();
-    _dont_work.unlock();
     std::string data;
 
     bool has_data = true;
@@ -261,7 +250,6 @@ void ServerImpl::Worker(int client_socket, size_t number) {
 
         if (client.is_empty()) {
             logger.write("No data anymore");
-            has_data = false;
             break;
         }
 
@@ -272,86 +260,12 @@ void ServerImpl::Worker(int client_socket, size_t number) {
 
         // Check if client is still has data in socket
         has_data = !client.is_empty();
-        if (!has_data) {
+        if (!has_data)
             logger.write("No data anymore");
-        }
     }
 
+    workers_number.fetch_sub(1);
     logger.write("Goodbye");
-    threads_status.add_done(std::this_thread::get_id());
-}
-
-void ThreadsStatus::add_thread(std::thread thread) {
-    std::lock_guard<std::mutex> lock(_lock);
-
-    logger.write("Create new thread");
-    auto it_map = statuses.find(thread.get_id());
-    if (it_map != statuses.end()) {
-        for (auto it = connections.begin(); it != connections.end();) {
-            if (it->get_id() == thread.get_id()) {
-                it->join();
-                statuses.erase(it_map);
-                connections.erase(it);
-                break;
-            } else {
-                ++it;
-            }
-        }
-    }
-
-    statuses[thread.get_id()] = true;
-    connections.push_back(std::move(thread));
-}
-
-// Only main, but access to common resource
-bool ThreadsStatus::is_alive(std::thread::id thread_id) {
-    std::lock_guard<std::mutex> lock(_lock);
-
-    auto it = statuses.find(thread_id);
-    if (it == statuses.end())
-        return false;
-
-    return it->second;
-}
-
-// Workers only
-void ThreadsStatus::add_done(std::thread::id thread_id) {
-    std::lock_guard<std::mutex> lock(_lock);
-
-    auto it = statuses.find(thread_id);
-    if (it == statuses.end())
-        return;
-
-    it->second = false;
-}
-
-size_t ThreadsStatus::size() const {
-    return connections.size();
-}
-
-void ThreadsStatus::update() {
-    std::lock_guard<std::mutex> lock(_lock);
-
-    for (auto it = connections.begin(); it != connections.end();) {
-        auto it_map = statuses.find(it->get_id());
-        if (it_map == statuses.end()) {
-            connections.erase(it);
-            ++it;
-        } else if (!it_map->second) { // if thread is dead
-            it->join();
-            statuses.erase(it_map);
-            connections.erase(it);
-        } else {
-            ++it;
-        }
-    }
-}
-
-void ThreadsStatus::join() {
-    for (auto it = connections.begin(); it != connections.end(); ++it) {
-        logger.write("join", it->get_id());
-        it->join();
-    }
 }
 
 
@@ -386,8 +300,8 @@ void Socket::Read(std::string &out) {
         size_t cur_parsed;
         bool find_command = parser.Parse(std::string(out.data() + parsed), cur_parsed);
         parsed += cur_parsed;
-        if (find_command) {
-            // Get command
+
+        if (find_command) { // Get command
 
             uint32_t body_size;
             command = parser.Build(body_size);
@@ -417,30 +331,6 @@ bool Socket::good() const {
 
 bool Socket::is_empty() const {
     return _empty;
-}
-
-bool Socket::_make_non_blocking() {
-    int flags = fcntl(_fh, F_GETFL, 0);
-    if (fcntl(_fh, F_SETFL, flags | O_NONBLOCK)) {
-
-        logger.write("Can not change flags of file handler =", _fh);
-
-        return false;
-    }
-
-    return true;
-}
-
-bool Socket::_male_blokcing() {
-    int flags = fcntl(_fh, F_GETFL, 0);
-    if (fcntl(_fh, F_SETFL, flags & ~O_NONBLOCK)) {
-
-        logger.write("Can not change flags of file handler =", _fh);
-
-        return false;
-    }
-
-    return true;
 }
 
 void Socket::Write(std::string &out) {
