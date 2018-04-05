@@ -5,13 +5,57 @@
 #include <condition_variable>
 #include <mutex>
 #include <pthread.h>
-#include <unordered_set>
+#include <thread>
+#include <unordered_map>
+#include <functional>
+#include <algorithm>
+#include <unistd.h>
+#include <fcntl.h>
+#include <iostream>
+//#include <logger/Logger.h>
 
 #include <afina/network/Server.h>
+#include <protocol/Parser.h>
+
 
 namespace Afina {
+
 namespace Network {
 namespace Blocking {
+
+// Class Socket for read all data from it
+class Socket {
+public:
+    Socket(int fh);
+    ~Socket();
+
+    // Read all data from socket
+    void Read(std::string& out);
+
+    // Write all data to socket
+    void Write(std::string& out);
+
+    // Check if was an error
+    bool good() const;
+
+    // Check if socket closed
+    bool is_empty() const;
+
+    Protocol::Parser::Command command;
+    std::string& Body() { return body; }
+
+private:
+    int _fh;
+
+    // Was error during operations
+    bool _good;
+
+    // Is no data in socket
+    bool _empty;
+
+    Protocol::Parser parser;
+    std::string body;
+};
 
 /**
  * # Network resource manager implementation
@@ -40,16 +84,16 @@ protected:
     /**
      * Methos is running for each connection
      */
-    void RunConnection();
-
+    void Worker(int, size_t);
 private:
-    static void *RunAcceptorProxy(void *p);
+    static void* RunAcceptorProxy(void* p);
 
     // Atomic flag to notify threads when it is time to stop. Note that
     // flag must be atomic in order to safely publisj changes cross thread
     // bounds
     std::atomic<bool> running;
 
+    std::mutex _dont_work;
     // Thread that is accepting new connections
     pthread_t accept_thread;
 
@@ -70,9 +114,7 @@ private:
     // connections list
     std::condition_variable connections_cv;
 
-    // Threads that are processing connection data, permits
-    // access only from inside of accept_thread
-    std::unordered_set<pthread_t> connections;
+    std::atomic<size_t> workers_number;
 };
 
 } // namespace Blocking

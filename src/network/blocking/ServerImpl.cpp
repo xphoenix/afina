@@ -3,11 +3,14 @@
 #include <cassert>
 #include <cstring>
 #include <iostream>
+#include <sstream>
 #include <memory>
 #include <stdexcept>
+#include <thread>
 
 #include <pthread.h>
 #include <signal.h>
+#include <chrono>
 
 #include <netdb.h>
 #include <sys/socket.h>
@@ -18,10 +21,20 @@
 #include <unistd.h>
 
 #include <afina/Storage.h>
+#include <protocol/Parser.h>
+#include <afina/execute/Command.h>
+
+#include <sys/time.h>
+#include <chrono>
+#include <ctime>
+
+#include <logger/Logger.h>
 
 namespace Afina {
 namespace Network {
 namespace Blocking {
+
+Logger& logger = Logger::Instance();
 
 void *ServerImpl::RunAcceptorProxy(void *p) {
     ServerImpl *srv = reinterpret_cast<ServerImpl *>(p);
@@ -150,7 +163,7 @@ void ServerImpl::RunAcceptor() {
 
     // Start listening. The second parameter is the "backlog", or the maximum number of
     // connections that we'll allow to queue up. Note that listen() doesn't block until
-    // incoming connections arrive. It just makesthe OS aware that this process is willing
+    // incoming connections arrive. It just makes the OS aware that this process is willing
     // to accept connections on this socket (which is bound to a specific IP and port)
     if (listen(server_socket, 5) == -1) {
         close(server_socket);
@@ -160,38 +173,181 @@ void ServerImpl::RunAcceptor() {
     int client_socket;
     struct sockaddr_in client_addr;
     socklen_t sinSize = sizeof(struct sockaddr_in);
-    while (running.load()) {
-        std::cout << "network debug: waiting for connection..." << std::endl;
 
-        // When an incoming connection arrives, accept it. The call to accept() blocks until
-        // the incoming connection arrives
+    fd_set rfds;
+    struct timeval tv;
+
+    int select_retval;
+    logger.i_am(std::string("MASTER"));
+
+    workers_number.store(0);
+
+    while (running.load()) {
+
+        tv.tv_sec = 0;
+        tv.tv_usec = 1000000;
+        FD_ZERO(&rfds);
+        FD_SET(server_socket, &rfds);
+
+        select_retval = select(server_socket + 1, &rfds, NULL, NULL, &tv);
+        if (select_retval == -1) {
+            logger.write("Error while select");
+            break;
+        } else if (!select_retval) {
+            continue;
+        }
+
         if ((client_socket = accept(server_socket, (struct sockaddr *)&client_addr, &sinSize)) == -1) {
             close(server_socket);
             throw std::runtime_error("Socket accept() failed");
         }
 
-        // TODO: Start new thread and process data from/to connection
-        {
-            std::string msg = "TODO: start new thread and process memcached protocol instead";
-            if (send(client_socket, msg.data(), msg.size(), 0) <= 0) {
-                close(client_socket);
-                close(server_socket);
-                throw std::runtime_error("Socket send() failed");
-            }
+        // If no workers
+        if (workers_number.load() == max_workers) {
+            logger.write("Number of workers is too big, close connection :(");
             close(client_socket);
+            continue;
         }
-    }
 
-    // Cleanup on exit...
+        logger.write("Current workers number =", workers_number.load());
+        try {
+            workers_number.fetch_add(1);
+            std::thread new_worker(&ServerImpl::Worker, this, client_socket, workers_number.load());
+            new_worker.detach();
+        } catch (std::runtime_error &ex) {
+            workers_number.fetch_sub(1);
+            std::cerr << ex.what() << std::endl;
+        }
+
+    }
     close(server_socket);
 }
 
-// See Server.h
-void ServerImpl::RunConnection() {
-    std::cout << "network debug: " << __PRETTY_FUNCTION__ << std::endl;
-    // TODO: All connection work is here
+// See ServerImpl.h
+void ServerImpl::Worker(int client_socket, size_t number) {
+    std::stringstream ss;
+    ss << "WORKER_" << number;
+    logger.i_am(ss.str().data());
+
+    std::string data;
+
+    bool has_data = true;
+
+    Socket client(client_socket);
+
+    while (has_data && running.load()) {
+
+        // Read data from client socket
+        client.Read(data);
+
+        // Check if no errors happened
+        if (!client.good()) {
+            logger.write("Error while read happend");
+            std::string error_msg = "SERVER_ERROR Interval Server Error\r\n";
+            client.Write(error_msg);
+            break;
+        }
+
+        if (client.is_empty()) {
+            logger.write("No data anymore");
+            break;
+        }
+
+        std::string out;
+        client.command->Execute(*pStorage, client.Body(), out);
+        out += "\r\n";
+        client.Write(out);
+
+        // Check if client is still has data in socket
+        has_data = !client.is_empty();
+        if (!has_data)
+            logger.write("No data anymore");
+    }
+
+    workers_number.fetch_sub(1);
+    logger.write("Goodbye");
 }
 
+
+Socket::Socket(int fh) : _fh(fh), _good(true), _empty(false) {}
+
+Socket::~Socket() {
+    close(_fh);
+}
+
+void Socket::Read(std::string &out) {
+
+    char buffer[32];
+    ssize_t has_read = 0;
+
+    size_t parsed = 0;
+    has_read = read(_fh, buffer, 32);
+    if (!has_read) {
+        _empty = true;
+        return;
+    }
+
+    if (has_read < 0) {
+        _good = false;
+        return;
+    }
+
+    do {
+        logger.write("has_read =", has_read);
+
+        out += std::string(buffer, buffer + has_read);
+
+        size_t cur_parsed;
+        bool find_command = parser.Parse(std::string(out.data() + parsed), cur_parsed);
+        parsed += cur_parsed;
+
+        if (find_command) { // Get command
+
+            uint32_t body_size;
+            command = parser.Build(body_size);
+            body = std::string(out.begin() + parsed,
+                               out.begin() + parsed + body_size);
+
+            body_size = (body_size == 0) ? body_size : body_size + 2; // \r\n
+
+            if (out.size() < parsed + body_size) {
+                // Read not enough, try again
+                continue;
+            }
+
+            out.erase(out.begin(), out.begin() + parsed + body_size);
+            parser.Reset();
+            return;
+        }
+    } while ((has_read = read(_fh, buffer, 32)) > 0);
+
+    // Should exit in loop
+    _good = false;
+}
+
+bool Socket::good() const {
+    return _good;
+}
+
+bool Socket::is_empty() const {
+    return _empty;
+}
+
+void Socket::Write(std::string &out) {
+    int has_send_all = 0;
+    ssize_t has_send_now;
+    while (has_send_all != out.size()) {
+        has_send_now = send(_fh, out.data(), out.size(), 0);
+        if (has_send_now == -1) {
+            logger.write("Error durind send data to", _fh, "errno =", errno);
+            _good = false;
+            break;
+        } else {
+            logger.write("Write to", _fh, has_send_now);
+            has_send_all += has_send_now;
+        }
+    }
+}
 } // namespace Blocking
 } // namespace Network
 } // namespace Afina

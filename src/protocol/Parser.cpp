@@ -4,9 +4,9 @@
 #include <sstream>
 #include <stdexcept>
 
+#include <afina/execute/Command.h>
 #include <afina/execute/Add.h>
 #include <afina/execute/Append.h>
-#include <afina/execute/Command.h>
 #include <afina/execute/Delete.h>
 #include <afina/execute/Get.h>
 #include <afina/execute/Set.h>
@@ -14,6 +14,9 @@
 
 namespace Afina {
 namespace Protocol {
+
+Parser::~Parser() = default;
+Parser::Parser() { Reset(); }
 
 // See Parse.h
 bool Parser::Parse(const char *input, const size_t size, size_t &parsed) {
@@ -161,22 +164,22 @@ bool Parser::Parse(const char *input, const size_t size, size_t &parsed) {
 }
 
 // See Parse.h
-std::unique_ptr<Execute::Command> Parser::Build(uint32_t &body_size) const {
+Parser::Command Parser::Build(uint32_t &body_size) const {
     if (state != State::sLF) {
-        return std::unique_ptr<Execute::Command>(nullptr);
+        return Command(nullptr);
     }
 
     body_size = bytes;
     if (name == "set") {
-        return std::unique_ptr<Execute::Command>(new Execute::Set(keys[0], flags, exprtime));
+        return Command(new Execute::Set(keys[0], flags, exprtime));
     } else if (name == "add") {
-        return std::unique_ptr<Execute::Command>(new Execute::Add(keys[0], flags, exprtime));
+        return Command(new Execute::Add(keys[0], flags, exprtime));
     } else if (name == "append") {
-        return std::unique_ptr<Execute::Command>(new Execute::Append(keys[0], flags, exprtime));
+        return Command(new Execute::Append(keys[0], flags, exprtime));
     } else if (name == "get") {
-        return std::unique_ptr<Execute::Command>(new Execute::Get(keys));
+        return Command(new Execute::Get(keys));
     } else if (name == "stats") {
-        return std::unique_ptr<Execute::Command>(new Execute::Stats());
+        return Command(new Execute::Stats());
     } else {
         throw std::runtime_error("Unsupported command");
     }
@@ -193,6 +196,8 @@ void Parser::Reset() {
     bytes = 0;
     exprtime = 0;
 }
+
+
 
 } // namespace Protocol
 } // namespace Afina

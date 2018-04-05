@@ -55,7 +55,7 @@ class Executor {
         }
 
         // Enqueue new task
-        tasks.push_back(exec);
+        tasks.push_back(exec); // tasks.emplace_back ???
         empty_condition.notify_one();
         return true;
     }
