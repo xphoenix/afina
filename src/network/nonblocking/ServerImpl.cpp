@@ -72,6 +72,13 @@ void ServerImpl::Start(uint32_t port, uint16_t n_workers) {
         throw std::runtime_error("Socket listen() failed");
     }
 
+    /* Be careful!! Must do .reserve(n_workers)!
+     * If we create new thread in Start() and use Worker::OnRun() for this thread,
+     * there will be a heap-use-after-free, because emplace_back will reallocate
+     * memory after few calls, and some Worker::OnRun will use old memory, so we
+     * should reserve memory, in order not to reallocated it
+     */
+    workers.reserve(n_workers);
     for (int i = 0; i < n_workers; i++) {
         workers.emplace_back(pStorage);
         workers.back().Start(server_socket);

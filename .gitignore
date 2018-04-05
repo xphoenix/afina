@@ -12,3 +12,6 @@ config/_local.conf
 .vscode
 compile_commands.json
 cquery_log.txt
+
+# vim
+*.sw*
