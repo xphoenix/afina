@@ -11,7 +11,7 @@ namespace Execute {
 
 /**
  * # Basic class for all commands with syntax: "<command> <key> <value> [noreply]"
- *
+ * Value is number. Example: incr, dect
  */
 class KeyValueCommand : public Command {
 protected:

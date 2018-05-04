@@ -10,7 +10,7 @@ namespace Afina {
 namespace Execute {
 
 /**
- * # Append/Prepend data for the key
+ * # Increment/Dectement data for the key
  * Commands "incr" and "decr" are used to change data for some item in-place, incrementing or decrementing it. The data for the item
  * is treated as decimal representation of a 64-bit unsigned integer.  If the current data value does not conform to such a representation,
  * the incr/decr commands return an error. Also, the item must already exist for incr/decr to work; these commands won't pretend

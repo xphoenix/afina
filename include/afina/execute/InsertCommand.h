@@ -11,7 +11,7 @@ namespace Execute {
 
 /**
  * # Basic class for all insert commands
- *
+ * Examples: set, replace, etc.
  */
 class InsertCommand : public Command {
 protected:

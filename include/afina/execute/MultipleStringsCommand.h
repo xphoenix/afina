@@ -11,6 +11,7 @@ namespace Execute {
 
 /**
  * Base class for commands with syntax: <command> <strings>*
+ * Examples: get, stats
  */
 class MultipleStringsCommand : public Command {
 protected:
