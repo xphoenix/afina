@@ -74,7 +74,7 @@ TEST(MemcachedParserTest, SimpleGet) {
     ASSERT_EQ(0, value_size);
 
     Execute::Get *tmp = reinterpret_cast<Execute::Get *>(cmd.get());
-    std::vector<std::string> keys = tmp->strings();
+    std::vector<std::string> keys = tmp->keys();
     ASSERT_EQ(3, keys.size());
     ASSERT_EQ("ke", keys[0]);
     ASSERT_EQ("key2", keys[1]);
