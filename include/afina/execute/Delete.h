@@ -16,11 +16,13 @@ namespace Execute {
  * - "NOT_FOUND" to indicate that the item with this key was not found
  */
 class Delete : public Command {
-public:
-    Delete();
-    ~Delete();
+private:
+    std::string _key;
 
-    void Execute(Storage &storage, const std::string &args, std::string &out) override;
+public:
+    bool ExtractArguments(std::string& args_str) override;
+
+    void Execute(Storage &storage, const std::string &args, std::string &out) const override;
 };
 
 } // namespace Execute

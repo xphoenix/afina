@@ -4,14 +4,23 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <functional>
+#include <utility>
+
+#include <afina/execute/Add.h>
+#include <afina/execute/Replace.h>
+#include <afina/execute/AppendPrepend.h>
+#include <afina/execute/IncrDecr.h>
+#include <afina/execute/Command.h>
+#include <afina/execute/Delete.h>
+#include <afina/execute/Get.h>
+#include <afina/execute/Set.h>
+#include <afina/execute/Stats.h>
 
 #include <cstddef>
 #include <cstdint>
 
 namespace Afina {
-namespace Execute {
-class Command;
-} // namespace Execute
 namespace Protocol {
 
 /**
@@ -19,8 +28,20 @@ namespace Protocol {
  * Parser supports subset of memcached protocol
  */
 class Parser {
+private:
+	typedef std::unique_ptr<Execute::Command> command_ptr;
+
+private:
+	// Appends input string to internal buffer (changes whitespace to single space)
+	// Extracts until \r\n (includes) is achieved, returns true in this case
+	// returns false if \r\n was not found
+	// Writes to count_before_space count of symbols in current_str before first space (for extracting of command name)
+	// count_before_space = size if space wasn't found and parsing wasn't complete <OR> if _builded_command != nullptr
+	// count of symbols in current_str before first space if space was found <OR> len of _current_str without \r\n in if parse complete
+	bool _FormatInput(const char *input, const size_t size, size_t& parsed, size_t& count_before_space);
+
 public:
-    Parser() { Reset(); }
+	Parser() { Reset(); }
     /**
      * Push given string into parser input. Method returns true if it was a command parsed out
      * from comulative input. In a such case method Build will return new command
@@ -29,7 +50,7 @@ public:
      * @param parsed output parameter tells how many bytes was consumed from the string
      * @return true if command has been parsed out
      */
-    bool Parse(const std::string &input, size_t &parsed) { return Parse(&input[0], input.size(), parsed); }
+    bool Parse(const std::string &input, size_t &parsed) { return Parse(input.c_str(), input.size(), parsed); }
 
     /**
      * Push given string into parser input. Method returns true if it was a command parsed out
@@ -43,54 +64,35 @@ public:
     bool Parse(const char *input, const size_t size, size_t &parsed);
 
     /**
-     * Builds new command from parsed input. In case if it wasn't enough input to prse command out
+     * Builds new command from parsed input. In case if it wasn't enough input to parse command out
      * method return nullptr
      */
-    std::unique_ptr<Execute::Command> Build(uint32_t &body_size) const;
+    command_ptr Build(uint32_t &body_size);
 
     /**
      * Reset parse so that it could be used to parse out new command
      */
     void Reset();
 
-    inline const std::string &Name() const { return name; }
+    inline const std::string &Name() const { return _current_name; }
 
 private:
-    /**
-     * State of the command parser. Prefixes are:
-     * - s: state for PUT and GET commands
-     * - sp: for PUT commands only
-     * - sg: for GET commands only
-     */
-    enum State : uint16_t { sCR, sLF, sName, spKey, spFlags, spExprTimeStart, spExprTime, spBytes, sgKey };
+    std::string _current_str;
+    std::string _current_name;
+    bool _parse_complete;
+    command_ptr _builded_command;
 
-    // Current parser state
-    State state;
+private:
+	//Emulates static constructor
+	struct _CommandTypes {
+		std::vector <std::pair<std::string, std::function<command_ptr()>>> types;
+		_CommandTypes();
+	};
+	static _CommandTypes _command_types; //Calls constructor, where we can register commands
 
-    // vrious fields of the command
-    std::string name;
-    std::vector<std::string> keys;
-
-    // <flags> is an arbitrary 16-bit unsigned integer (written out in decimal) that the server stores along with
-    // the data and sends back when the item is retrieved. Clients may use this as a bit field to store data-specific
-    //  information; this field is opaque to the server. Note that in memcached 1.2.1 and higher, flags may be 32-bits,
-    // instead of 16, but you might want to restrict yourself to 16 bits for compatibility with older versions.
-    uint32_t flags;
-
-    // <exptime> is expiration time. If it's 0, the item never expires (although it may be deleted from the cache to
-    // make place for other items). If it's non-zero (either Unix time or offset in seconds from current time), it is
-    // guaranteed that clients will not be able to retrieve this item after the expiration time arrives (measured by
-    // server time). If a negative value is given the item is immediately expired.
-    int32_t exprtime;
-
-    // <bytes> is the number of bytes in the data block to follow, *not*
-    // including the delimiting \r\n. <bytes> may be zero (in which case
-    // it's followed by an empty data block).
-    uint32_t bytes;
-
-    bool negative;
-    std::string curKey;
-    bool parse_complete;
+	// Array with pairs <"command name in memcahed protocol", "function, that returns command object for that name">
+	//Returns new command_ptr for name. nullptr for unknown command
+	static command_ptr _CommandFactory(const std::string& name);
 };
 
 } // namespace Protocol

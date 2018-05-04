@@ -14,18 +14,22 @@ namespace Execute {
  *
  */
 class InsertCommand : public Command {
-public:
-    InsertCommand(const std::string &key, uint32_t flags, int32_t expire) : _key(key), _flags(flags), _expire(expire) {}
-    ~InsertCommand() {}
+protected:
+    InsertCommand() : _flags(0), _expire(-1) {}
+
+public:	
+    bool ExtractArguments(std::string& args_str) override;
+    virtual void Execute(Storage &storage, const std::string& data, std::string &out) const override;	
 
     inline const std::string &key() const { return _key; }
     inline const uint32_t flags() const { return _flags; }
     inline const int32_t expire() const { return _expire; }
 
 protected:
-    const std::string _key;
-    const uint32_t _flags;
-    const int32_t _expire;
+    std::string _key;
+
+    uint32_t _flags;
+    int32_t _expire;
 };
 
 } // namespace Execute

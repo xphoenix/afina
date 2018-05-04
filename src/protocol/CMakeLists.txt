@@ -1,6 +1,7 @@
 # build service
 set(SOURCE_FILES
     Parser.cpp
+    Executor.cpp
 )
 
 add_library(Protocol ${SOURCE_FILES})

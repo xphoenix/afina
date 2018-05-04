@@ -8,7 +8,9 @@
 namespace Afina {
 namespace Execute {
 
-void Stats::Execute(Storage &storage, const std::string &args, std::string &out) { out.assign("END"); }
+void Stats::Execute(Storage &storage, const std::string &args, std::string &out) const { 
+	out.assign("END"); 
+}
 
 } // namespace Execute
 } // namespace Afina

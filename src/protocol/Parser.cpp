@@ -4,194 +4,101 @@
 #include <sstream>
 #include <stdexcept>
 
-#include <afina/execute/Add.h>
-#include <afina/execute/Append.h>
-#include <afina/execute/Command.h>
-#include <afina/execute/Delete.h>
-#include <afina/execute/Get.h>
-#include <afina/execute/Set.h>
-#include <afina/execute/Stats.h>
-
 namespace Afina {
 namespace Protocol {
 
-// See Parse.h
-bool Parser::Parse(const char *input, const size_t size, size_t &parsed) {
-    size_t pos;
-    parsed = 0;
+Parser::_CommandTypes Parser::_command_types;
 
-    for (pos = 0; pos < size && !parse_complete; pos++) {
-        char c = input[pos];
+Parser::_CommandTypes::_CommandTypes() {
+	types.push_back(std::make_pair("set",     []() { return std::unique_ptr<Execute::Command>(new Execute::Set);                  }));
+	types.push_back(std::make_pair("replace", []() { return std::unique_ptr<Execute::Command>(new Execute::Replace);              }));
+	types.push_back(std::make_pair("append",  []() { return std::unique_ptr<Execute::Command>(new Execute::AppendPrepend(true));  }));
+	types.push_back(std::make_pair("prepend", []() { return std::unique_ptr<Execute::Command>(new Execute::AppendPrepend(false)); }));
+	types.push_back(std::make_pair("add",     []() { return std::unique_ptr<Execute::Command>(new Execute::Add);                  }));
 
-        switch (state) {
-        case State::sName: {
-            if (c == ' ' || c == '\r') {
-                // std::cout << "parser debug: name='" << name << "'" << std::endl;
-                if (name == "set" || name == "add" || name == "append" || name == "prepend") {
-                    state = State::spKey;
-                } else if (name == "get" || name == "gets") {
-                    state = State::sgKey;
-                } else if (name == "stats") {
-                    state = State::sLF;
-                    continue;
-                } else {
-                    throw std::runtime_error("Unknown command name");
-                }
-            } else {
-                name.push_back(c);
-            }
-            break;
-        }
+	types.push_back(std::make_pair("incr", []() { return std::unique_ptr<Execute::Command>(new Execute::IncrDecr(true));  }));
+	types.push_back(std::make_pair("decr", []() { return std::unique_ptr<Execute::Command>(new Execute::IncrDecr(false)); }));
 
-        case State::spKey: {
-            if (c == ' ') {
-                state = State::spFlags;
-                keys.push_back(curKey);
-                // std::cout << "parser debug: key[" << keys.size() - 1 << "]='" << curKey << "'" << std::endl;
-            } else {
-                curKey.push_back(c);
-            }
-            break;
-        }
+	types.push_back(std::make_pair("get",  []() { return std::unique_ptr<Execute::Command>(new Execute::Get); }));
+	types.push_back(std::make_pair("gets", []() { return std::unique_ptr<Execute::Command>(new Execute::Get); }));
 
-        case State::sgKey: {
-            if (c == '\r') {
-                keys.push_back(curKey);
-                // std::cout << "parser debug: total '" << keys.size() << " keys" << std::endl;
+	types.push_back(std::make_pair("delete", []() { return std::unique_ptr<Execute::Command>(new Execute::Delete); }));
 
-                if (keys.size() == 0) {
-                    throw std::runtime_error("Client provides no key to retrive");
-                }
+	types.push_back(std::make_pair("stats", []() { return std::unique_ptr<Execute::Command>(new Execute::Stats); }));
+}
 
-                curKey.clear();
-                state = State::sLF;
-            } else if (c == ' ') {
-                // std::cout << "parser debug: key[" << keys.size() << "]='" << curKey << "'" << std::endl;
-                state = State::sgKey;
-                keys.push_back(curKey);
-                curKey.clear();
-            } else {
-                curKey.push_back(c);
-            }
-            break;
-        }
+Parser::command_ptr Parser::_CommandFactory(const std::string& name) {
+	for (auto it : _command_types.types) {
+		if (it.first == name) { return it.second(); }
+	}
+	return nullptr;
+}
 
-        case State::spFlags: {
-            if (c == ' ') {
-                negative = false;
-                state = State::spExprTimeStart;
-                // std::cout << "parser debug: flags='" << flags << "'" << std::endl;
-            } else if (c >= '0' && c <= '9') {
-                uint32_t f = (flags * 10) + (c - '0');
-                if (f < flags) {
-                    // Overflow
-                    throw std::runtime_error("Flags field overflow");
-                }
-                flags = f;
-            }
-            break;
-        }
+bool Parser::_FormatInput(const char *input, const size_t size, size_t& parsed, size_t& count_before_space) {
+	count_before_space = size;
+	bool is_whitespace = false;
 
-        case State::spExprTimeStart: {
-            if (c == '-') {
-                negative = true;
-                state = State::spExprTime;
-            } else if (c >= '0' && c <= '9') {
-                exprtime = (c - '0');
-                state = State::spExprTime;
-            }
-            break;
-        }
+	for (parsed = 0; parsed < size; parsed++) {
+		if (input[parsed] == '\n') {
+			if (!_current_str.empty() && _current_str[_current_str.size() - 1] == '\r') {
+				if (count_before_space == size && _builded_command == nullptr) { count_before_space = _current_str.size() - 1; } //No spaces, all is name
 
-        case State::spExprTime: {
-            if (c == ' ') {
-                state = State::spBytes;
-                // std::cout << "parser debug: ExprTime='" << exprtime << "'" << std::endl;
-            } else if (c >= '0' && c <= '9') {
-                int32_t et = exprtime;
-                if (negative) {
-                    et -= (c - '0');
-                    if (et > exprtime) {
-                        throw std::runtime_error("Expire time field overflow");
-                    }
-                } else {
-                    et += (c - '0');
-                    if (et < exprtime) {
-                        throw std::runtime_error("Expire time field overflow");
-                    }
-                }
-                exprtime = et;
-            }
-            break;
-        }
+				_current_str += '\n';	
+				++parsed; //for \n
+				return true;
+			}
+		}
 
-        case State::spBytes: {
-            if (c == '\r') {
-                state = State::sLF;
-                // std::cout << "parser debug: bytes='" << bytes << "'" << std::endl;
-            } else if (c >= '0' && c <= '9') {
-                uint32_t b = (bytes * 10) + (c - '0');
-                if (b < bytes) {
-                    // Overflow
-                    throw std::runtime_error("Bytes field overflow");
-                }
-                bytes = b;
-            }
-            break;
-        }
+		if (input[parsed] == ' ' || input[parsed] == '\t') {
+			if (!is_whitespace) {
+				if (count_before_space == size && _builded_command == nullptr) { count_before_space = _current_str.size(); }
+				_current_str += ' ';
+			}
+			is_whitespace = true;
+		}
+		else {
+			is_whitespace = false;
+			_current_str += input[parsed];
+		}
+	}
 
-        case State::sLF: {
-            if (c == '\n') {
-                parse_complete = true;
-            } else {
-                std::stringstream err;
-                err << "Invalid char " << (int)c << " at position " << (parsed + pos) << ", \\n expected";
-                throw std::runtime_error(err.str());
-            }
-            break;
-        }
-
-        default:
-            throw std::runtime_error("Unknown state");
-        }
-    }
-
-    parsed += pos;
-    return parse_complete;
+	return false;
 }
 
 // See Parse.h
-std::unique_ptr<Execute::Command> Parser::Build(uint32_t &body_size) const {
-    if (state != State::sLF) {
-        return std::unique_ptr<Execute::Command>(nullptr);
-    }
+bool Parser::Parse(const char *input, const size_t size, size_t &parsed) {
+	size_t count_before_space = size;
+	bool parse_complete = _FormatInput(input, size, parsed, count_before_space);
+	
+	if (count_before_space != size) { //a new command should be extracted
+		_current_name = _current_str.substr(0, count_before_space);
+		_builded_command = _CommandFactory(_current_name);
 
-    body_size = bytes;
-    if (name == "set") {
-        return std::unique_ptr<Execute::Command>(new Execute::Set(keys[0], flags, exprtime));
-    } else if (name == "add") {
-        return std::unique_ptr<Execute::Command>(new Execute::Add(keys[0], flags, exprtime));
-    } else if (name == "append") {
-        return std::unique_ptr<Execute::Command>(new Execute::Append(keys[0], flags, exprtime));
-    } else if (name == "get") {
-        return std::unique_ptr<Execute::Command>(new Execute::Get(keys));
-    } else if (name == "stats") {
-        return std::unique_ptr<Execute::Command>(new Execute::Stats());
-    } else {
-        throw std::runtime_error("Unsupported command");
-    }
+		if (_current_str[count_before_space] == ' ') { _current_str = _current_str.substr(count_before_space + 1); } //For space case
+		else { _current_str = _current_str.substr(count_before_space); } //\r\n after the name of command
+	}
+	if (parse_complete) {
+		if (_builded_command == nullptr) { throw std::runtime_error("Unknown command name!"); }
+		
+		_current_str = _current_str.substr(0, _current_str.size() - 2); //Removes \r\n
+		if (!_builded_command->ExtractArguments(_current_str)) { throw std::runtime_error("Wrong command args!"); }
+	}
+
+	return parse_complete;
+}
+
+// See Parse.h
+std::unique_ptr<Execute::Command> Parser::Build(uint32_t &body_size) {
+	body_size = _builded_command->DataSize();
+	return std::move(_builded_command);
 }
 
 // See Parse.h
 void Parser::Reset() {
-    state = State::sName;
-    name.clear();
-    keys.clear();
-    curKey.clear();
-    parse_complete = false;
-    flags = 0;
-    bytes = 0;
-    exprtime = 0;
+	_parse_complete = false;
+	_current_str.clear();
+	_builded_command.reset();
+	_current_name.clear();
 }
 
 } // namespace Protocol

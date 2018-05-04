@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "Command.h"
+#include "MultipleStringsCommand.h"
 
 namespace Afina {
 namespace Execute {
@@ -32,17 +32,12 @@ namespace Execute {
  * but deleted to make space for more items, or expired, or explicitly
  * deleted by a client).
  */
-class Get : public Command {
+class Get : public MultipleStringsCommand {
 public:
-    Get(const std::vector<std::string> &keys) : _keys(keys) {}
-    ~Get() {}
+    void Execute(Storage &storage, const std::string &args, std::string &out) const override;
 
-    inline const std::vector<std::string> &keys() const { return _keys; }
-
-    void Execute(Storage &storage, const std::string &args, std::string &out) override;
-
-private:
-    std::vector<std::string> _keys;
+    //For compatibility
+    const std::vector<std::string>& keys() const;
 };
 
 } // namespace Execute

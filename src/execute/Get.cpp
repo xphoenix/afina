@@ -21,15 +21,20 @@ to indicate the end of response.
 
 */
 
-void Get::Execute(Storage &storage, const std::string &args, std::string &out) {
+void Get::Execute(Storage &storage, const std::string &args, std::string &out) const {
     std::stringstream keyStream;
-    copy(_keys.begin(), _keys.end(), std::ostream_iterator<std::string>(keyStream, " "));
-    std::cout << "Get(" << keyStream.str() << ")" << std::endl;
+    std::string for_cout;
+    if (!_strings.empty()) {
+        copy(_strings.begin(), _strings.end(), std::ostream_iterator<std::string>(keyStream, " "));
+	for_cout = keyStream.str();
+	for_cout.pop_back();
+    }
+
+    std::cout << "Get(" << for_cout << ")" << std::endl; //pop_back - removes the last space
 
     std::stringstream outStream;
-
     std::string value;
-    for (auto &key : _keys) {
+    for (auto &key : _strings) {
         if (!storage.Get(key, value))
             continue;
         outStream << "VALUE " << key << " 0 " << value.size() << "\r\n";
@@ -38,6 +43,10 @@ void Get::Execute(Storage &storage, const std::string &args, std::string &out) {
     outStream << "END"; // networking layer should add the last \r\n
 
     out = outStream.str();
+}
+
+const std::vector<std::string>& Get::keys() const { 
+	return strings(); 
 }
 
 } // namespace Execute

@@ -145,41 +145,34 @@ afina_test(
 	0
 );
 
-TODO: {
-	local $TODO = "Replace command isn't yet implemented in the parser";
 
-	afina_test(
-		"replace test_ 0 0 3\r\nwtf\r\n",
-		"NOT_STORED\r\n",
-		"Don't replace non-existent key",
-		1
-	);
+afina_test(
+	"replace test_ 0 0 3\r\nwtf\r\n",
+	"NOT_STORED\r\n",
+	"Don't replace non-existent key",
+	1
+);
 
-	afina_test(
-		"replace test 0 0 3\r\nzzz\r\n",
-		"STORED\r\n",
-		"Replace an existent key",
-		1
-	);
+afina_test(
+	"replace test 0 0 3\r\nzzz\r\n",
+	"STORED\r\n",
+	"Replace an existent key",
+	1
+);
 
-	afina_test(
-		"get test\r\n",
-		"VALUE test 0 3\r\nzzz\r\nEND\r\n",
-		"Verify replace",
-		0
-	);
-}
+afina_test(
+	"get test\r\n",
+	"VALUE test 0 3\r\nzzz\r\nEND\r\n",
+	"Verify replace",
+	0
+);
 
-TODO: {
-	local $TODO = "Delete command isn't yet implemented";
-
-	afina_test(
-		"delete test\r\n",
-		"DELETED\r\n",
-		"Delete a key",
-		1
-	);
-}
+afina_test(
+	"delete test\r\nget test\r\n",
+	"DELETED\r\nEND\r\n",
+	"Delete a key",
+	1
+);
 
 afina_test(
 	"blablabla 0 0 0\r\n",
@@ -189,9 +182,9 @@ afina_test(
 );
 
 afina_test(
-	"get var\r\r",
-	qr/ERROR/,
-	"Must report desync errors to user",
+	"set incrdecr 0 0 1\r\n1\r\nincr incrdecr 10\r\ndecr incrdecr 5\r\nincr no_incr_key 100\r\n",
+	"STORED\r\n11\r\n6\r\nNOT_FOUND\r\n",
+	"Increment and decrement; unknown increment",
 	1
 );
 

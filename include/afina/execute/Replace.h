@@ -21,10 +21,7 @@ namespace Execute {
  */
 class Replace : public InsertCommand {
 public:
-    Replace(const std::string &key, uint32_t flags, int32_t expire) : InsertCommand(key, flags, expire) {}
-    ~Replace() {}
-
-    void Execute(Storage &storage, const std::string &args, std::string &out) override;
+    void Execute(Storage &storage, const std::string &args, std::string &out) const override;
 };
 
 } // namespace Execute
