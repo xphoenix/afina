@@ -1,0 +1,23 @@
+#include <afina/Version.h>
+
+#include <string>
+#include <sstream>
+
+namespace Afina {
+
+const std::string Version_Major = "@VERSION_MAJOR@";
+const std::string Version_Minor = "@VERSION_MINOR@";
+const std::string Version_Patch = "@VERSION_PATCH@";
+const std::string Version_Release = "@VERSION_RELEASE@";
+const std::string Version_SHA =  "@VERSION_SHA1@";
+
+std::string get_version() {
+  std::stringstream app_string;
+  app_string << "Afina " << Afina::Version_Major << "." << Afina::Version_Minor << "." << Afina::Version_Patch;
+  if (Afina::Version_SHA.size() > 0) {
+      app_string << "-" << Afina::Version_SHA;
+  }
+  return app_string.str();
+}
+
+} // namespace Afina
