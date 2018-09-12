@@ -58,7 +58,7 @@ public:
         }
 
         // Step 2: Configure network
-        std::string network_type = "st_blocking";
+        std::string network_type = "st_block";
         if (options.count("network") > 0) {
             network_type = options["network"].as<std::string>();
         }
