@@ -18,7 +18,9 @@
 #include "network/mt_blocking/ServerImpl.h"
 #include "network/nonblocking/ServerImpl.h"
 #include "network/st_blocking/ServerImpl.h"
-#include "storage/MapBasedGlobalLockImpl.h"
+
+#include "storage/SimpleLRU.h"
+#include "storage/ThreadSafeSimpleLRU.h"
 
 using namespace Afina;
 
@@ -42,13 +44,15 @@ public:
         logService.reset(new Logging::ServiceImpl(logConfig));
 
         // Step 1: configure storage
-        std::string storage_type = "map_global";
+        std::string storage_type = "st_lru";
         if (options.count("storage") > 0) {
             storage_type = options["storage"].as<std::string>();
         }
 
-        if (storage_type == "map_global") {
-            storage = std::make_shared<Afina::Backend::MapBasedGlobalLockImpl>();
+        if (storage_type == "st_lru") {
+            storage = std::make_shared<Afina::Backend::SimpleLRU>();
+        } else if (storage_type == "mt_lru") {
+            storage = std::make_shared<Afina::Backend::ThreadSafeSimplLRU>();
         } else {
             throw std::runtime_error("Unknown storage type");
         }
