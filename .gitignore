@@ -1,0 +1,14 @@
+.idea
+generated/*
+
+# local cmake builds
+/build
+/cmake-build-debug
+
+# local config use to test changes
+config/_local.conf
+
+# cquery
+.vscode
+compile_commands.json
+cquery_log.txt
