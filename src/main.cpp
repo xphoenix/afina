@@ -63,11 +63,11 @@ public:
             network_type = options["network"].as<std::string>();
         }
 
-        if (network_type == "st_blocking") {
+        if (network_type == "st_block") {
             server = std::make_shared<Afina::Network::STblocking::ServerImpl>(storage, logService);
-        } else if (network_type == "mt_blocking") {
+        } else if (network_type == "mt_block") {
             server = std::make_shared<Afina::Network::MTblocking::ServerImpl>(storage, logService);
-        } else if (network_type == "nonblocking") {
+        } else if (network_type == "non_block") {
             server = std::make_shared<Afina::Network::NonBlocking::ServerImpl>(storage, logService);
         } else {
             throw std::runtime_error("Unknown network type");
