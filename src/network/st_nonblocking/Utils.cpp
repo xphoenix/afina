@@ -10,7 +10,7 @@
 
 namespace Afina {
 namespace Network {
-namespace NonBlocking {
+namespace STnonblock {
 
 void make_socket_non_blocking(int sfd) {
     int flags, s;
@@ -27,6 +27,6 @@ void make_socket_non_blocking(int sfd) {
     }
 }
 
-} // namespace NonBlocking
+} // namespace STnonblock
 } // namespace Network
 } // namespace Afina

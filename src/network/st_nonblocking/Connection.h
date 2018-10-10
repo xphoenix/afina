@@ -1,5 +1,5 @@
-#ifndef AFINA_NETWORK_NONBLOCKING_CONNECTION_H
-#define AFINA_NETWORK_NONBLOCKING_CONNECTION_H
+#ifndef AFINA_NETWORK_ST_NONBLOCKING_CONNECTION_H
+#define AFINA_NETWORK_ST_NONBLOCKING_CONNECTION_H
 
 #include <cstring>
 
@@ -7,11 +7,14 @@
 
 namespace Afina {
 namespace Network {
-namespace NonBlocking {
+namespace STnonblock {
 
 class Connection {
 public:
-    Connection(int s) : _socket(s) { std::memset(&_event, 0, sizeof(struct epoll_event)); }
+    Connection(int s) : _socket(s) {
+        std::memset(&_event, 0, sizeof(struct epoll_event));
+        _event.data.ptr = this;
+    }
 
     inline bool isAlive() const { return true; }
 
@@ -24,15 +27,14 @@ protected:
     void DoWrite();
 
 private:
-    friend class Worker;
     friend class ServerImpl;
 
     int _socket;
     struct epoll_event _event;
 };
 
-} // namespace NonBlocking
+} // namespace STnonblock
 } // namespace Network
 } // namespace Afina
 
-#endif // AFINA_NETWORK_NONBLOCKING_CONNECTION_H
+#endif // AFINA_NETWORK_ST_NONBLOCKING_CONNECTION_H

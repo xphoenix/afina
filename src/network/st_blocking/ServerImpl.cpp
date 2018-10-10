@@ -220,6 +220,7 @@ void ServerImpl::OnRun() {
                         command_to_execute->Execute(*pStorage, argument_for_command, result);
 
                         // Send response
+                        result += "\r\n";
                         if (send(client_socket, result.data(), result.size(), 0) <= 0) {
                             throw std::runtime_error("Failed to send response");
                         }

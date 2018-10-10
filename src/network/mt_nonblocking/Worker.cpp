@@ -18,7 +18,7 @@
 
 namespace Afina {
 namespace Network {
-namespace NonBlocking {
+namespace MTnonblock {
 
 // See Worker.h
 Worker::Worker(std::shared_ptr<Afina::Storage> ps, std::shared_ptr<Afina::Logging::Service> pl)
@@ -127,6 +127,6 @@ void Worker::OnRun() {
     _logger->warn("Worker stopped");
 }
 
-} // namespace NonBlocking
+} // namespace MTnonblock
 } // namespace Network
 } // namespace Afina

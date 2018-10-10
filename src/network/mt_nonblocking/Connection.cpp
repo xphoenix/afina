@@ -4,7 +4,7 @@
 
 namespace Afina {
 namespace Network {
-namespace NonBlocking {
+namespace MTnonblock {
 
 // See Connection.h
 void Connection::Start() { std::cout << "Start" << std::endl; }
@@ -21,6 +21,6 @@ void Connection::DoRead() { std::cout << "DoRead" << std::endl; }
 // See Connection.h
 void Connection::DoWrite() { std::cout << "DoWrite" << std::endl; }
 
-} // namespace NonBlocking
+} // namespace MTnonblock
 } // namespace Network
 } // namespace Afina
