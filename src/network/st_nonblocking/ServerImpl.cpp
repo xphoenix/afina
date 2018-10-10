@@ -140,6 +140,8 @@ void ServerImpl::OnRun() {
 
             // That is some connection!
             Connection *pc = static_cast<Connection *>(current_event.data.ptr);
+
+            auto old_mask = pc->_event.events;
             if ((current_event.events & EPOLLERR) || (current_event.events & EPOLLHUP)) {
                 pc->OnError();
             } else if (current_event.events & EPOLLRDHUP) {
@@ -157,8 +159,21 @@ void ServerImpl::OnRun() {
             // Does it alive?
             if (!pc->isAlive()) {
                 if (epoll_ctl(epoll_descr, EPOLL_CTL_DEL, pc->_socket, &pc->_event)) {
-                    std::cerr << "Failed to delete connection!" << std::endl;
+                    _logger->error("Failed to delete connection from epoll");
                 }
+
+                close(pc->_socket);
+                pc->OnClose();
+
+                delete pc;
+            } else if (pc->_event.events != old_mask) {
+                if (epoll_ctl(epoll_descr, EPOLL_CTL_MOD, pc->_socket, &pc->_event)) {
+                    _logger->error("Failed to change connection event mask");
+                }
+
+                close(pc->_socket);
+                pc->OnClose();
+
                 delete pc;
             }
         }
