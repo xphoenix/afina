@@ -18,6 +18,9 @@ if(CCACHE_FOUND)
         set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif(CCACHE_FOUND)
 
+# RAGEL requires to generate protocol parsers
+find_package(RAGEL 6.6 REQUIRED)
+
 # Use native optimizations, for example fast crc32
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-march=native" COMPILER_OPT_ARCH_NATIVE_SUPPORTED)

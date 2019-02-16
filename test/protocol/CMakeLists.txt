@@ -1,5 +1,6 @@
 # build service
 set(SOURCE_FILES
+    TextImplTest.cpp
     MemcachedParserTest.cpp
 )
 
