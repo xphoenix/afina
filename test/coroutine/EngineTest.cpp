@@ -18,29 +18,23 @@ TEST(CoroutineTest, SimpleStart) {
 
 void printa(Afina::Coroutine::Engine &pe, std::stringstream &out, void *&other) {
     out << "A1 ";
-    std::cout << "A1 " << std::endl;
     pe.sched(other);
 
     out << "A2 ";
-    std::cout << "A2 " << std::endl;
     pe.sched(other);
 
     out << "A3 ";
-    std::cout << "A3 " << std::endl;
     pe.sched(other);
 }
 
 void printb(Afina::Coroutine::Engine &pe, std::stringstream &out, void *&other) {
     out << "B1 ";
-    std::cout << "B1 " << std::endl;
     pe.sched(other);
 
     out << "B2 ";
-    std::cout << "B2 " << std::endl;
     pe.sched(other);
 
     out << "B3 ";
-    std::cout << "B3 " << std::endl;
 }
 
 std::stringstream out;
@@ -56,7 +50,6 @@ void _printer(Afina::Coroutine::Engine &pe, std::string &result) {
     pe.sched(pa);
 
     out << "END";
-    std::cout << "END" << std::endl;
 
     // done
     result = out.str();
