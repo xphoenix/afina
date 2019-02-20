@@ -1,5 +1,5 @@
-#ifndef AFINA_THREADPOOL_H
-#define AFINA_THREADPOOL_H
+#ifndef AFINA_CONCURRENCY_EXECUTOR_H
+#define AFINA_CONCURRENCY_EXECUTOR_H
 
 #include <condition_variable>
 #include <functional>
@@ -10,6 +10,7 @@
 #include <thread>
 
 namespace Afina {
+namespace Concurrency {
 
 /**
  * # Thread pool
@@ -98,6 +99,7 @@ private:
     State state;
 };
 
+} // namespace Concurrency
 } // namespace Afina
 
-#endif // AFINA_THREADPOOL_H
+#endif // AFINA_CONCURRENCY_EXECUTOR_H
