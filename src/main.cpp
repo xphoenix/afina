@@ -60,18 +60,22 @@ public:
 
         // Step 2: Configure network
         std::string network_type = "st_block";
+        bool local = false;
         if (options.count("network") > 0) {
             network_type = options["network"].as<std::string>();
         }
+        if (options.count("local") > 0) {
+            local = true;
+        }
 
         if (network_type == "st_block") {
-            server = std::make_shared<Afina::Network::STblocking::ServerImpl>(storage, logService);
+            server = std::make_shared<Afina::Network::STblocking::ServerImpl>(storage, logService, local);
         } else if (network_type == "mt_block") {
-            server = std::make_shared<Afina::Network::MTblocking::ServerImpl>(storage, logService);
+            server = std::make_shared<Afina::Network::MTblocking::ServerImpl>(storage, logService, local);
         } else if (network_type == "st_nonblock") {
-            server = std::make_shared<Afina::Network::STnonblock::ServerImpl>(storage, logService);
+            server = std::make_shared<Afina::Network::STnonblock::ServerImpl>(storage, logService, local);
         } else if (network_type == "mt_nonblock") {
-            server = std::make_shared<Afina::Network::MTnonblock::ServerImpl>(storage, logService);
+            server = std::make_shared<Afina::Network::MTnonblock::ServerImpl>(storage, logService, local);
         } else {
             throw std::runtime_error("Unknown network type");
         }
@@ -130,6 +134,7 @@ int main(int argc, char **argv) {
         options.add_options()("s,storage", "Type of storage service to use", cxxopts::value<std::string>());
         options.add_options()("n,network", "Type of network service to use", cxxopts::value<std::string>());
         options.add_options()("h,help", "Print usage info");
+        options.add_options()("l,local", "Bind to local interface only");
         options.parse(argc, argv);
 
         if (options.count("help") > 0) {

@@ -17,8 +17,8 @@ namespace Network {
  */
 class Server {
 public:
-    Server(std::shared_ptr<Afina::Storage> ps, std::shared_ptr<Afina::Logging::Service> pl)
-        : pStorage(ps), pLogging(pl) {}
+    Server(std::shared_ptr<Afina::Storage> ps, std::shared_ptr<Afina::Logging::Service> pl, bool local)
+        : pStorage(ps), pLogging(pl), _local(local) {}
     virtual ~Server() {}
 
     /**
@@ -55,6 +55,9 @@ protected:
      * Logging service to be used in order to report application progress
      */
     std::shared_ptr<Afina::Logging::Service> pLogging;
+
+    // Whether to run locally
+    bool _local;
 };
 
 } // namespace Network
