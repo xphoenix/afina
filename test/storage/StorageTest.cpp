@@ -52,6 +52,57 @@ TEST(StorageTest, PutIfAbsent) {
     EXPECT_TRUE(value == "val1");
 }
 
+TEST(StorageTest, PutSetGet) {
+    SimpleLRU storage;
+
+    storage.Put("KEY1", "val1");
+    storage.Set("KEY1", "val2");
+
+    std::string value;
+    EXPECT_TRUE(storage.Get("KEY1", value));
+    EXPECT_TRUE(value == "val2");
+}
+
+TEST(StorageTest, SetIfAbsent) {
+    SimpleLRU storage;
+
+    storage.Put("KEY1", "val1");
+
+    std::string value;
+    EXPECT_FALSE(storage.Set("KEY2", "val2"));
+    EXPECT_TRUE(storage.Get("KEY1", value));
+    EXPECT_TRUE(value == "val1");
+}
+
+TEST(StorageTest, PutDeleteGet) {
+    SimpleLRU storage;
+
+    storage.Put("KEY1", "val1");
+    storage.Put("KEY2", "val2");
+
+    EXPECT_TRUE(storage.Delete("KEY1"));
+
+    std::string value;
+    EXPECT_FALSE(storage.Get("KEY1", value));
+    EXPECT_TRUE(storage.Get("KEY2", value));
+    EXPECT_TRUE(value == "val2");
+}
+
+TEST(StorageTest, LRUlogicTest) {
+    SimpleLRU storage (16);
+
+    storage.Put("KEY1", "val1");
+    storage.Put("KEY2", "val2");
+    storage.Put("KEY3", "val3");
+
+    std::string val;
+    EXPECT_FALSE(storage.Get("KEY1", val));
+    EXPECT_TRUE(storage.Get("KEY2", val));
+    EXPECT_TRUE(val == "val2");
+    EXPECT_TRUE(storage.Get("KEY3", val));
+    EXPECT_TRUE(val == "val3");
+}
+
 std::string pad_space(const std::string &s, size_t length) {
     std::string result = s;
     result.resize(length, ' ');
@@ -85,7 +136,7 @@ TEST(StorageTest, MaxTest) {
 
     std::stringstream ss;
 
-    for (long i = 0; i < 1100; ++i) {
+    for (long i = 100; i < 1100; ++i) {
         auto key = pad_space("Key " + std::to_string(i), length);
         auto val = pad_space("Val " + std::to_string(i), length);
         storage.Put(key, val);
