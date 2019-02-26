@@ -88,21 +88,6 @@ TEST(StorageTest, PutDeleteGet) {
     EXPECT_TRUE(value == "val2");
 }
 
-TEST(StorageTest, LRUlogicTest) {
-    SimpleLRU storage (16);
-
-    storage.Put("KEY1", "val1");
-    storage.Put("KEY2", "val2");
-    storage.Put("KEY3", "val3");
-
-    std::string val;
-    EXPECT_FALSE(storage.Get("KEY1", val));
-    EXPECT_TRUE(storage.Get("KEY2", val));
-    EXPECT_TRUE(val == "val2");
-    EXPECT_TRUE(storage.Get("KEY3", val));
-    EXPECT_TRUE(val == "val3");
-}
-
 std::string pad_space(const std::string &s, size_t length) {
     std::string result = s;
     result.resize(length, ' ');
@@ -136,7 +121,7 @@ TEST(StorageTest, MaxTest) {
 
     std::stringstream ss;
 
-    for (long i = 100; i < 1100; ++i) {
+    for (long i = 0; i < 1100; ++i) {
         auto key = pad_space("Key " + std::to_string(i), length);
         auto val = pad_space("Val " + std::to_string(i), length);
         storage.Put(key, val);
