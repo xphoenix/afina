@@ -83,7 +83,7 @@ public:
      * @param key to retrive1 value for
      * @param value output parameter to copy value to
      */
-    virtual bool Get(const std::string &key, std::string &value) const = 0;
+    virtual bool Get(const std::string &key, std::string &value) = 0;
 };
 
 } // namespace Afina
