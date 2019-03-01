@@ -28,7 +28,7 @@ class Executor {
         kStopped
     };
 
-    Executor(std::string name, int size);
+    Executor(const std::string &name, int size);
     ~Executor();
 
     /**
@@ -46,7 +46,7 @@ class Executor {
      * That function doesn't wait for function result. Function could always be written in a way to notify caller about
      * execution finished by itself
      */
-    template <typename F, typename... Types> bool Execute(F &&func, Types... args) {
+    template <typename F, typename... Types> bool Execute(F &&func, Types&&... args) {
         // Prepare "task"
         auto exec = std::bind(std::forward<F>(func), std::forward<Types>(args)...);
 
