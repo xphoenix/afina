@@ -19,8 +19,8 @@ using namespace std;
 TEST(StorageTest, PutGet) {
     SimpleLRU storage;
 
-    storage.Put("KEY1", "val1");
-    storage.Put("KEY2", "val2");
+    EXPECT_TRUE(storage.Put("KEY1", "val1"));
+    EXPECT_TRUE(storage.Put("KEY2", "val2"));
 
     std::string value;
     EXPECT_TRUE(storage.Get("KEY1", value));
@@ -33,8 +33,8 @@ TEST(StorageTest, PutGet) {
 TEST(StorageTest, PutOverwrite) {
     SimpleLRU storage;
 
-    storage.Put("KEY1", "val1");
-    storage.Put("KEY1", "val2");
+    EXPECT_TRUE(storage.Put("KEY1", "val1"));
+    EXPECT_TRUE(storage.Put("KEY1", "val2"));
 
     std::string value;
     EXPECT_TRUE(storage.Get("KEY1", value));
@@ -44,12 +44,51 @@ TEST(StorageTest, PutOverwrite) {
 TEST(StorageTest, PutIfAbsent) {
     SimpleLRU storage;
 
-    storage.Put("KEY1", "val1");
-    storage.PutIfAbsent("KEY1", "val2");
+    EXPECT_TRUE(storage.PutIfAbsent("KEY1", "val1"));
+
+    EXPECT_FALSE(storage.PutIfAbsent("KEY1", "val2"));
 
     std::string value;
     EXPECT_TRUE(storage.Get("KEY1", value));
     EXPECT_TRUE(value == "val1");
+}
+
+TEST(StorageTest, PutSetGet) {
+    SimpleLRU storage;
+
+    EXPECT_TRUE(storage.Put("KEY1", "val1"));
+    EXPECT_TRUE(storage.Set("KEY1", "val2"));
+
+    EXPECT_FALSE(storage.Set("KEY2", "val2"));
+
+    std::string value;
+    EXPECT_TRUE(storage.Get("KEY1", value));
+    EXPECT_TRUE(value == "val2");
+}
+
+TEST(StorageTest, SetIfAbsent) {
+    SimpleLRU storage;
+
+    EXPECT_TRUE(storage.Put("KEY1", "val1"));
+
+    std::string value;
+    EXPECT_FALSE(storage.Set("KEY2", "val2"));
+    EXPECT_TRUE(storage.Get("KEY1", value));
+    EXPECT_TRUE(value == "val1");
+}
+
+TEST(StorageTest, PutDeleteGet) {
+    SimpleLRU storage;
+
+    EXPECT_TRUE(storage.Put("KEY1", "val1"));
+    EXPECT_TRUE(storage.Put("KEY2", "val2"));
+
+    EXPECT_TRUE(storage.Delete("KEY1"));
+
+    std::string value;
+    EXPECT_FALSE(storage.Get("KEY1", value));
+    EXPECT_TRUE(storage.Get("KEY2", value));
+    EXPECT_TRUE(value == "val2");
 }
 
 std::string pad_space(const std::string &s, size_t length) {
@@ -65,7 +104,7 @@ TEST(StorageTest, BigTest) {
     for (long i = 0; i < 100000; ++i) {
         auto key = pad_space("Key " + std::to_string(i), length);
         auto val = pad_space("Val " + std::to_string(i), length);
-        storage.Put(key, val);
+        EXPECT_TRUE(storage.Put(key, val));
     }
 
     for (long i = 99999; i >= 0; --i) {
@@ -88,7 +127,7 @@ TEST(StorageTest, MaxTest) {
     for (long i = 0; i < 1100; ++i) {
         auto key = pad_space("Key " + std::to_string(i), length);
         auto val = pad_space("Val " + std::to_string(i), length);
-        storage.Put(key, val);
+        EXPECT_TRUE(storage.Put(key, val));
     }
 
     for (long i = 100; i < 1100; ++i) {
