@@ -17,7 +17,7 @@ namespace Backend {
  */
 class SimpleLRU : public Afina::Storage {
 public:
-    SimpleLRU(size_t max_size = 1024) : _max_size(max_size) {}
+    SimpleLRU(size_t max_size = 1024) : _max_size(max_size) {} // TODO: больше предустановок
 
     ~SimpleLRU() {
         _lru_index.clear();
