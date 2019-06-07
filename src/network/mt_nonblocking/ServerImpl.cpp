@@ -38,7 +38,7 @@ ServerImpl::~ServerImpl() {}
 // See Server.h
 void ServerImpl::Start(uint16_t port, uint32_t n_acceptors, uint32_t n_workers) {
     _logger = pLogging->select("network");
-    _logger->info("Start network service");
+    _logger->info("Start mt_nonblocking network service");
 
     sigset_t sig_mask;
     sigemptyset(&sig_mask);
