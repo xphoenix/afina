@@ -29,7 +29,8 @@ namespace Network {
 namespace STnonblock {
 
 // See Server.h
-ServerImpl::ServerImpl(std::shared_ptr<Afina::Storage> ps, std::shared_ptr<Logging::Service> pl) : Server(ps, pl) {}
+ServerImpl::ServerImpl(std::shared_ptr<Afina::Storage> ps, std::shared_ptr<Logging::Service> pl, bool local)
+    : Server(ps, pl, local) {}
 
 // See Server.h
 ServerImpl::~ServerImpl() {}
@@ -49,9 +50,13 @@ void ServerImpl::Start(uint16_t port, uint32_t n_acceptors, uint32_t n_workers) 
     // Create server socket
     struct sockaddr_in server_addr;
     std::memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;         // IPv4
-    server_addr.sin_port = htons(port);       // TCP port number
-    server_addr.sin_addr.s_addr = INADDR_ANY; // Bind to any address
+    server_addr.sin_family = AF_INET;   // IPv4
+    server_addr.sin_port = htons(port); // TCP port number
+    if (!_local) {
+        server_addr.sin_addr.s_addr = INADDR_ANY; // Bind to any address
+    } else {
+        server_addr.sin_addr.s_addr = inet_addr("127.0.0.1"); // Bind only to loopback interface
+    }
 
     _server_socket = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (_server_socket == -1) {
