@@ -51,8 +51,10 @@ namespace Afina {
             auto it = _lru_index.find(key);
             if (it == _lru_index.end()) {
                 auto new_head = make_unique<lru_node>(key, value);
+                auto node_ptr = new_head.get();
+                auto key_ref = std::ref(node_ptr->key);
                 if (push(std::move(new_head))) {
-                    _lru_index.insert({std::ref(key), std::ref(*new_head.get())});
+                    _lru_index.insert({key_ref, std::ref(*node_ptr)});
                     return true;
                 }
             } else {
@@ -72,8 +74,10 @@ namespace Afina {
                 if (key.size() + value.size() > _capacity)
                     return false;
                 auto new_head = make_unique<lru_node>(key, value);
+                auto node_ptr = new_head.get();
+                auto key_ref = std::ref(node_ptr->key);
                 if (push(std::move(new_head))) {
-                    _lru_index.insert({std::ref(key), std::ref(*new_head.get())});
+                    _lru_index.insert({key_ref, std::ref(*node_ptr)});
                     return true;
                 }
             }
