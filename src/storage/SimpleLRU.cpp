@@ -11,7 +11,7 @@ namespace Afina {
         bool SimpleLRU::push(std::unique_ptr<lru_node> new_head) {
             std::size_t size = new_head->value.size() + new_head->key.size();
             if (size > _capacity) return false;
-            for (; size > _capacity - _size; pop(_lru_tail));
+            for (; size > _capacity - _size; _lru_index.erase(_lru_tail->key), pop(_lru_tail));
             if (_lru_head == nullptr) {
                 _lru_head = std::move(new_head);
                 _lru_tail = _lru_head.get();
