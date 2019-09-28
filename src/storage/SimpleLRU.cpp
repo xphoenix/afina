@@ -118,6 +118,5 @@ namespace Afina {
             }
             return false;
         }
-
     } // namespace Backend
 } // namespace Afina

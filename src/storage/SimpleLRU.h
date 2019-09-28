@@ -10,7 +10,6 @@
 
 namespace Afina {
     namespace Backend {
-
         /**
          * # Map based implementation
          * That is NOT thread safe implementaiton!!
