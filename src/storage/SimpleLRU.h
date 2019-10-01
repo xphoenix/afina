@@ -17,11 +17,25 @@ namespace Backend {
  */
 class SimpleLRU : public Afina::Storage {
 public:
-    SimpleLRU(size_t max_size = 1024) : _max_size(max_size) {}
+    SimpleLRU(size_t max_size = 1024) : _max_size(max_size), _cur_size(0)
+    {
+        _lru_head = std::unique_ptr<lru_node>(nullptr);
+    }
 
     ~SimpleLRU() {
         _lru_index.clear();
-        _lru_head.reset(); // TODO: Here is stack overflow
+        lru_node *last_node = _lru_head.get();
+        if(last_node)
+        {
+            while(last_node->next.get() != nullptr)
+                last_node = last_node->next.get();
+            while(last_node->prev != nullptr)
+            {
+                last_node = last_node->prev;
+                last_node->next.reset(nullptr);
+            }
+        }
+        _lru_head.reset();
     }
 
     // Implements Afina::Storage interface
@@ -44,13 +58,14 @@ private:
     using lru_node = struct lru_node {
         std::string key;
         std::string value;
-        std::unique_ptr<lru_node> prev;
+        lru_node *prev;
         std::unique_ptr<lru_node> next;
     };
 
     // Maximum number of bytes could be stored in this cache.
     // i.e all (keys+values) must be less the _max_size
     std::size_t _max_size;
+    std::size_t _cur_size;
 
     // Main storage of lru_nodes, elements in this list ordered descending by "freshness": in the head
     // element that wasn't used for longest time.
@@ -59,7 +74,17 @@ private:
     std::unique_ptr<lru_node> _lru_head;
 
     // Index of nodes from list above, allows fast random access to elements by lru_node#key
-    std::map<std::reference_wrapper<std::string>, std::reference_wrapper<lru_node>, std::less<std::string>> _lru_index;
+    typedef std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<const std::string>> map_lru;
+    map_lru _lru_index;
+
+    // Transfer node to the list's head
+    void NodeTransfer(lru_node &node);
+
+    // Create new LRU node
+    lru_node *MakeNode(const std::string &key, const std::string &value);
+
+    // Delete nodes from LRU cache to free size
+    void DropNodes(std::size_t size_to_release);
 };
 
 } // namespace Backend
