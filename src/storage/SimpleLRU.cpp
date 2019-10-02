@@ -1,5 +1,7 @@
 #include "SimpleLRU.h"
 
+#include <stdexcept>
+
 namespace Afina {
 namespace Backend {
 
@@ -57,7 +59,8 @@ void SimpleLRU::DropNodes(std::size_t size)
 bool SimpleLRU::Put(const std::string &key, const std::string &value)
 {
     if (key.size() + value.size() > _max_size)
-        return false;
+        throw std::runtime_error("Limit size exceeded");
+
     auto map_it = _lru_index.find(key);
     std::size_t put_size = value.size();
     std::size_t out_size = 0;
@@ -69,7 +72,7 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value)
     }
     else
         put_size += key.size();
-
+    // if necessary will be free size in cache
     DropNodes(put_size - out_size);
 
     _cur_size += put_size;
@@ -88,9 +91,12 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value)
 bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value)
 {
     std::size_t put_size = value.size() + key.size();
-    if (put_size > _max_size || _lru_index.find(key) != _lru_index.end())
+    if (put_size > _max_size)
+        throw std::runtime_error("Limit size exceeded");
+        // return false;
+    if(_lru_index.find(key) != _lru_index.end())
         return false;
-
+    // if necessary will be free size in cache
     DropNodes(put_size);
 
     _cur_size += put_size;
@@ -105,11 +111,15 @@ bool SimpleLRU::Set(const std::string &key, const std::string &value)
     std::size_t put_size = value.size() + key.size();
     std::size_t out_size = 0;
     auto map_it = _lru_index.find(key);
-    if (put_size > _max_size || map_it == _lru_index.end())
+    if (put_size > _max_size)
+        throw std::runtime_error("Limit size exceeded");
+        // return false;
+    if (map_it == _lru_index.end())
         return false;
 
     NodeTransfer(map_it->second.get());
     out_size = map_it->second.get().value.size();
+    // if necessary will be free size in cache
     DropNodes(put_size - out_size);
 
     _cur_size += put_size;
