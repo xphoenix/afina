@@ -74,7 +74,7 @@ bool SimpleLRU::Delete(const std::string &key)
     }
     else{
         lru_node& finded_node = it->second.get();
-		_lru_index.erase(std::cref(finded_node.key));
+        _lru_index.erase(std::cref(finded_node.key));
 
         //head deletion
         if (_lru_head.get() == &finded_node){
