@@ -88,6 +88,8 @@ private:
       std::cerr << std::endl;
     }
 
+    void free_memmory_for_node(const std::string &key, const std::string &value);
+
 };
 
 } // namespace Backend

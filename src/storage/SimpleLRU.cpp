@@ -1,5 +1,4 @@
 #include "SimpleLRU.h"
-#include <iostream>
 
 namespace Afina {
 namespace Backend {
@@ -18,6 +17,25 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value) {
     }
 }
 
+// delete nodes from tail until enough space
+// and refresh _cur_size
+void SimpleLRU::free_memmory_for_node(const std::string &key, const std::string &value){
+  lru_node *p = _lru_head.get();
+  if (p){
+      while (p->next){
+        p = p->next.get();
+      }
+      while(p->prev && (_cur_size + key.size() + value.size() > _max_size)){
+          std::string k = p->key;
+          size_t csz = p->key.size() + p->value.size();
+          _lru_index.erase(k);
+          p = p->prev;
+          p->next.reset();
+          _cur_size -= csz;
+      }
+  }
+}
+
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
     auto it = _lru_index.find(key);
@@ -30,24 +48,7 @@ bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
 
     // if size of new node is too big
     if (_cur_size + key.size() + value.size() > _max_size) {
-        // TODO: delete nodes from tail until enough space
-        // and refresh _cur_size
-        lru_node *p = _lru_head.get();
-        if (p){
-            while (p->next){
-              p = p->next.get();
-            }
-            while(p->prev && (_cur_size + key.size() + value.size() > _max_size)){
-                std::string k = p->key;
-                size_t csz = p->key.size() + p->value.size();
-                _lru_index.erase(k);
-                p = p->prev;
-                p->next.reset();
-                _cur_size -= csz;
-            }
-        }
-
-
+        free_memmory_for_node(key, value);
     }
 
     // create new node
@@ -68,10 +69,7 @@ bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
       }
 
     _lru_index.insert(std::make_pair(std::ref(_lru_head->key), std::ref(*_lru_head)));
-
     _cur_size += key.size() + value.size();
-
-// deb_print_list(_lru_head.get());
     return true;
 }
 
@@ -107,22 +105,7 @@ bool SimpleLRU::Set(const std::string &key, const std::string &value) {
 
         // if size of new node is too big
         if (_cur_size - old_size + new_size > _max_size) {
-            // TODO: delete nodes from tail until enough space
-            // and refresh _cur_size
-            lru_node *p = _lru_head.get();
-            if (p){
-                while (p->next){
-                  p = p->next.get();
-                }
-                while(p->prev && (_cur_size + key.size() + value.size() > _max_size)){
-                    std::string k = p->key;
-                    size_t csz = p->key.size() + p->value.size();
-                    _lru_index.erase(k);
-                    p = p->prev;
-                    p->next.reset();
-                    _cur_size -= csz;
-                }
-            }
+            free_memmory_for_node(key, value);
         }
 
         it->second.get().next = std::move(pnode);
@@ -134,9 +117,6 @@ bool SimpleLRU::Set(const std::string &key, const std::string &value) {
 
     // update _cur_size
     _cur_size += key.size() + value.size();
-
-// deb_print_list(_lru_head.get());
-
     return true;
 }
 
@@ -164,9 +144,7 @@ bool SimpleLRU::Delete(const std::string &key) {
 
     // refresh _cur_size
     _cur_size -= d_size;
-
     return true;
-
 }
 
 // See MapBasedGlobalLockImpl.h
