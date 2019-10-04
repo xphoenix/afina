@@ -32,20 +32,20 @@ bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
     if (_cur_size + key.size() + value.size() > _max_size) {
         // TODO: delete nodes from tail until enough space
         // and refresh _cur_size
-        // lru_node *p = _lru_head.get();
-        // if (p){
-        //     while (p->next){
-        //       p = p->next.get();
-        //     }
-        //     while(p->prev && (_cur_size + key.size() + value.size() > _max_size)){
-        //         std::string k = p->key;
-        //         size_t csz = p->key.size() + p->value.size();
-        //         _lru_index.erase(k);
-        //         p = p->prev;
-        //         p->next.reset
-        //         _cur_size -= csz;
-        //     }
-        // }
+        lru_node *p = _lru_head.get();
+        if (p){
+            while (p->next){
+              p = p->next.get();
+            }
+            while(p->prev && (_cur_size + key.size() + value.size() > _max_size)){
+                std::string k = p->key;
+                size_t csz = p->key.size() + p->value.size();
+                _lru_index.erase(k);
+                p = p->prev;
+                p->next.reset();
+                _cur_size -= csz;
+            }
+        }
 
 
     }
@@ -68,6 +68,8 @@ bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
       }
 
     _lru_index.insert(std::make_pair(std::ref(_lru_head->key), std::ref(*_lru_head)));
+
+    _cur_size += key.size() + value.size();
 
 // deb_print_list(_lru_head.get());
     return true;
@@ -107,6 +109,20 @@ bool SimpleLRU::Set(const std::string &key, const std::string &value) {
         if (_cur_size - old_size + new_size > _max_size) {
             // TODO: delete nodes from tail until enough space
             // and refresh _cur_size
+            lru_node *p = _lru_head.get();
+            if (p){
+                while (p->next){
+                  p = p->next.get();
+                }
+                while(p->prev && (_cur_size + key.size() + value.size() > _max_size)){
+                    std::string k = p->key;
+                    size_t csz = p->key.size() + p->value.size();
+                    _lru_index.erase(k);
+                    p = p->prev;
+                    p->next.reset();
+                    _cur_size -= csz;
+                }
+            }
         }
 
         it->second.get().next = std::move(pnode);
@@ -116,8 +132,11 @@ bool SimpleLRU::Set(const std::string &key, const std::string &value) {
     _lru_head->key = key;
     _lru_head->value = value;
 
-    // update _cur_size ?
+    // update _cur_size
+    _cur_size += key.size() + value.size();
+
 // deb_print_list(_lru_head.get());
+
     return true;
 }
 
