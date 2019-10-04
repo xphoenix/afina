@@ -1,4 +1,5 @@
 #include "SimpleLRU.h"
+#include <iostream>
 
 namespace Afina {
 namespace Backend {
@@ -31,6 +32,22 @@ bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
     if (_cur_size + key.size() + value.size() > _max_size) {
         // TODO: delete nodes from tail until enough space
         // and refresh _cur_size
+        // lru_node *p = _lru_head.get();
+        // if (p){
+        //     while (p->next){
+        //       p = p->next.get();
+        //     }
+        //     while(p->prev && (_cur_size + key.size() + value.size() > _max_size)){
+        //         std::string k = p->key;
+        //         size_t csz = p->key.size() + p->value.size();
+        //         _lru_index.erase(k);
+        //         p = p->prev;
+        //         p->next.reset
+        //         _cur_size -= csz;
+        //     }
+        // }
+
+
     }
 
     // create new node
@@ -51,6 +68,8 @@ bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
       }
 
     _lru_index.insert(std::make_pair(std::ref(_lru_head->key), std::ref(*_lru_head)));
+
+// deb_print_list(_lru_head.get());
     return true;
 }
 
@@ -67,8 +86,7 @@ bool SimpleLRU::Set(const std::string &key, const std::string &value) {
     size_t new_size = key.size() + value.size();
     size_t old_size = it->second.get().key.size() + it->second.get().value.size();
 
-    // TODO: error
-    if (it->second.get().prev && it->second.get().next){
+    if (it->second.get().prev){
         // // move founded node to head
         // create new pnode
         std::unique_ptr<lru_node> pnode;
@@ -77,9 +95,13 @@ bool SimpleLRU::Set(const std::string &key, const std::string &value) {
         pnode = std::move(_lru_head);
         _lru_head = std::move(it->second.get().prev->next);
 
-        // prev.next to next & next.prev to prev
-        it->second.get().prev->next = std::move(it->second.get().next);
-        it->second.get().prev->next->prev = it->second.get().prev; // 'delete' this branch for setting at last node
+        // prev.next to next & next.prev to
+        if (it->second.get().next){
+            it->second.get().prev->next = std::move(it->second.get().next);
+            it->second.get().prev->next->prev = it->second.get().prev; // 'delete' this branch for setting at last node
+        } else {
+           it->second.get().prev->next = std::move(it->second.get().next);
+        }
 
         // if size of new node is too big
         if (_cur_size - old_size + new_size > _max_size) {
@@ -95,7 +117,7 @@ bool SimpleLRU::Set(const std::string &key, const std::string &value) {
     _lru_head->value = value;
 
     // update _cur_size ?
-
+// deb_print_list(_lru_head.get());
     return true;
 }
 
@@ -110,19 +132,22 @@ bool SimpleLRU::Delete(const std::string &key) {
     // last, not first
     if (!it->second.get().next && it->second.get().prev) {
         it->second.get().prev->next = std::move(it->second.get().next);
+        _lru_index.erase(it);
     }  // first, not last
     else if (it->second.get().next && !it->second.get().prev) {
+        std::unique_ptr<lru_node> pnode;
+        pnode = std::move(_lru_head);
+
         _lru_head = std::move(it->second.get().next);
         _lru_head->prev = nullptr;
+        _lru_index.erase(it);
     }
 
     // refresh _cur_size
     _cur_size -= d_size;
 
-    //update _lru_index
-    _lru_index.erase(it);
-
     return true;
+
 }
 
 // See MapBasedGlobalLockImpl.h
