@@ -56,10 +56,11 @@ public:
 private:
     // LRU cache node
     using lru_node = struct lru_node {
-        std::string key;
+        const std::string key;
         std::string value;
         lru_node *prev;
         std::unique_ptr<lru_node> next;
+        lru_node(std::string _key): key(_key){};
     };
 
     // Maximum number of bytes could be stored in this cache.

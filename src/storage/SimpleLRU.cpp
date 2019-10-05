@@ -23,10 +23,10 @@ void SimpleLRU::NodeTransfer(lru_node &node)
 
 SimpleLRU::lru_node *SimpleLRU::MakeNode(const std::string &key, const std::string &value)
 {
-    lru_node *new_node = new lru_node;
+    lru_node *new_node = new lru_node(key);
     if(_lru_head)
         _lru_head->prev = new_node;
-    new_node->key = key;
+    // new_node->key = key;
     new_node->value = value;
     new_node->prev = nullptr;
     new_node->next = std::move(_lru_head);
