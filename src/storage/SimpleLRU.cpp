@@ -67,9 +67,13 @@ bool SimpleLRU::_insert_kv(const std::string &key, const std::string &value){
     while (size > _free_size) {
         _delete_oldest();
     }
-	lru_node *new_node = new lru_node(std::move(key), std::move(value));
-	_lru_index.insert(std::make_pair(std::reference_wrapper<const std::string>(new_node->key), std::reference_wrapper<lru_node>(*new_node)));
+	//std::unique_ptr<lru_node> new_node( new lru_node(key, value));
+   	lru_node *new_node = new lru_node(std::move(key), std::move(value));
+	_lru_index.insert(std::make_pair(std::reference_wrapper<const std::string>(new_node->key), 
+							std::reference_wrapper<lru_node>(*new_node)));
+							//std::reference_wrapper<lru_node>(*new_node.get())));
 	_free_size -= size;
+	//return _insert(*new_node.get());
 	return _insert(*new_node);
 }
 // Delete head, is not NULL
