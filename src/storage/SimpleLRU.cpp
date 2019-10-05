@@ -38,8 +38,9 @@ void SimpleLRU::PopBack() {
 
 void SimpleLRU::InsertToHead(lru_node* node) {
 
-    while (_free_size < (node->key.size() + node->value.size()))
+    while (_free_size < (node->key.size() + node->value.size())) {
         PopBack();
+    }
 
     _free_size -= node->key.size() + node->value.size();
     if (_lru_head != nullptr) {
@@ -58,8 +59,9 @@ void SimpleLRU::InsertToHead(lru_node* node) {
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::Put(const std::string &key, const std::string &value) {
 
-    if ((key.size() + value.size()) >= _max_size)
+    if ((key.size() + value.size()) >= _max_size) {
         return false;
+    }
 
     auto it = _lru_index.find(key);
     if (it != _lru_index.end()) {
