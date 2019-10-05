@@ -17,10 +17,16 @@ namespace Backend {
  */
 class SimpleLRU : public Afina::Storage {
 public:
-    SimpleLRU(size_t max_size = 1024) : _max_size(max_size) {}
+    SimpleLRU(size_t max_size = 1024) : _max_size(max_size), _free_size(max_size), _lru_head(nullptr), _lru_tail(nullptr) {}
 
     ~SimpleLRU() {
         _lru_index.clear();
+        while (_lru_head != nullptr && _lru_head->next != nullptr) {
+            std::unique_ptr<lru_node> tmp = nullptr;
+            tmp.swap(_lru_head);
+            _lru_head.swap(tmp->next);
+            tmp.reset();
+        }
         _lru_head.reset(); // TODO: Here is stack overflow
     }
 
@@ -42,15 +48,16 @@ public:
 private:
     // LRU cache node
     using lru_node = struct lru_node {
-        std::string key;
+        const std::string key;
         std::string value;
-        std::unique_ptr<lru_node> prev;
+        lru_node *prev;
         std::unique_ptr<lru_node> next;
     };
 
     // Maximum number of bytes could be stored in this cache.
     // i.e all (keys+values) must be less the _max_size
     std::size_t _max_size;
+    std::size_t _free_size;
 
     // Main storage of lru_nodes, elements in this list ordered descending by "freshness": in the head
     // element that wasn't used for longest time.
@@ -58,8 +65,19 @@ private:
     // List owns all nodes
     std::unique_ptr<lru_node> _lru_head;
 
+    lru_node *_lru_tail;
+
+    using lru_index_iterator =
+        std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>>::iterator;
+
     // Index of nodes from list above, allows fast random access to elements by lru_node#key
     std::map<std::reference_wrapper<std::string>, std::reference_wrapper<lru_node>, std::less<std::string>> _lru_index;
+
+    void _free_data(size_t size);
+    void _move_to_tail(lru_node &elem);
+
+    bool _Set(const std::string &key, const std::string &value, lru_index_iterator &now);
+    bool _PutIfAbsent(const std::string &key, const std::string &value);
 };
 
 } // namespace Backend
