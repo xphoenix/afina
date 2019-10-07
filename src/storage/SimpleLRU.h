@@ -17,23 +17,26 @@ namespace Backend {
  */
 class SimpleLRU : public Afina::Storage {
 public:
-    SimpleLRU(size_t max_size = 1024) : _max_size(max_size), _cur_size(0)
+    SimpleLRU(size_t max_size = 1024) :
+    _max_size(max_size),
+    _cur_size(0)
     {
-        _lru_head = std::unique_ptr<lru_node>(nullptr);
+        lru_node *first_node = new lru_node("", "");
+        lru_node *last_node = new lru_node("", "");
+        _lru_head = std::unique_ptr<lru_node>(first_node);
+        first_node->next = std::unique_ptr<lru_node>(last_node);
+        first_node->prev = last_node;
+        last_node->next = std::unique_ptr<lru_node>(nullptr);
+        last_node->prev = first_node;
     }
 
     ~SimpleLRU() {
         _lru_index.clear();
-        lru_node *last_node = _lru_head.get();
-        if(last_node)
+        lru_node *last_node = _lru_head->prev;
+        while(last_node->prev != _lru_head.get())
         {
-            while(last_node->next.get() != nullptr)
-                last_node = last_node->next.get();
-            while(last_node->prev != nullptr)
-            {
-                last_node = last_node->prev;
-                last_node->next.reset(nullptr);
-            }
+            last_node = last_node->prev;
+            last_node->next.reset(nullptr);
         }
         _lru_head.reset();
     }
@@ -60,8 +63,17 @@ private:
         std::string value;
         lru_node *prev;
         std::unique_ptr<lru_node> next;
-        lru_node(std::string _key): key(_key){};
+        lru_node(std::string _key, std::string _value): key(_key), value(_value){};
     };
+
+    // Transfer node to the list's head
+    void MoveNodeToHead(lru_node &node);
+
+    // Create new LRU node
+    lru_node *MakeLRUNode(const std::string &key, const std::string &value);
+
+    // Delete nodes from LRU cache to free size
+    void DropNodes(std::size_t size_to_release);
 
     // Maximum number of bytes could be stored in this cache.
     // i.e all (keys+values) must be less the _max_size
@@ -75,19 +87,9 @@ private:
     std::unique_ptr<lru_node> _lru_head;
 
     // Index of nodes from list above, allows fast random access to elements by lru_node#key
-    typedef std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<const std::string>> map_lru;
+    using map_lru = std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<const std::string>>;
     map_lru _lru_index;
-
-    // Transfer node to the list's head
-    void NodeTransfer(lru_node &node);
-
-    // Create new LRU node
-    lru_node *MakeNode(const std::string &key, const std::string &value);
-
-    // Delete nodes from LRU cache to free size
-    void DropNodes(std::size_t size_to_release);
 };
-
 } // namespace Backend
 } // namespace Afina
 
