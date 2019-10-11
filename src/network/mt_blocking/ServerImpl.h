@@ -39,6 +39,8 @@ protected:
     void OnRun();
 
 private:
+
+    void to_process(int);
     // Logger instance
     std::shared_ptr<spdlog::logger> _logger;
 
@@ -52,6 +54,15 @@ private:
 
     // Thread to run network on
     std::thread _thread;
+
+    // Worker counter
+     std::atomic<int> _wcounter;
+
+     int  _max_workers = 4;
+
+     std::mutex _mutex;
+
+     std::condition_variable cv;
 };
 
 } // namespace MTblocking
