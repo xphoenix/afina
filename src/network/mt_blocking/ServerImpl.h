@@ -3,6 +3,9 @@
 
 #include <atomic>
 #include <thread>
+#include <condition_variable>
+#include <mutex>
+#include <queue>
 
 #include <afina/network/Server.h>
 
@@ -38,6 +41,12 @@ protected:
      */
     void OnRun();
 
+    // Process new connection:
+    // - read commands until socket alive
+    // - execute each command
+    // - send response
+    void ProcessConnection(int client_socket);
+
 private:
     // Logger instance
     std::shared_ptr<spdlog::logger> _logger;
@@ -52,6 +61,24 @@ private:
 
     // Thread to run network on
     std::thread _thread;
+
+    // Maximum number of connections
+    uint32_t _max_accept;
+
+    // Vector of working threads
+    std::vector<std::thread> _workers;
+
+    // Queue for workers which connections are closed
+    std::queue<std::thread::id> _workers_to_be_closed;
+
+    // Mutex for queue with closed connections threads' id
+    std::mutex _worker_mutex;
+
+    // Indicate that all workers are closed
+    std::condition_variable _cv;
+
+    // Indicate that all existing connections are stopped
+    bool _connections_stopped;
 };
 
 } // namespace MTblocking
