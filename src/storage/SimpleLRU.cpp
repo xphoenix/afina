@@ -18,14 +18,15 @@ void SimpleLRU::MoveNodeToHead(lru_node &node)
     _lru_head->next = std::move(tmp_ptr);
 }
 
-SimpleLRU::lru_node *SimpleLRU::MakeLRUNode(const std::string &key, const std::string &value)
+SimpleLRU::lru_node &SimpleLRU::MakeLRUNode(const std::string &key, const std::string &value)
 {
-    lru_node *new_node = new lru_node(key, value);
+    std::unique_ptr<lru_node> new_node = std::unique_ptr<lru_node>(new lru_node(key, value));
+    lru_node &return_ref = *new_node;
     new_node->prev = _lru_head.get();
     new_node->next = std::move(_lru_head->next);
-    new_node->next->prev = new_node;
-    _lru_head->next = std::unique_ptr<lru_node>(new_node);
-    return new_node;
+    new_node->next->prev = new_node.get();
+    _lru_head->next = std::move(new_node);
+    return return_ref;
 }
 
 void SimpleLRU::DropNodes(std::size_t size)
@@ -76,8 +77,8 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value)
     }
     else
     {
-        lru_node *node = MakeLRUNode(key, value);
-        _lru_index.insert(std::make_pair(std::ref(node->key), std::ref(*node)));
+        lru_node &node = MakeLRUNode(key, value);
+        _lru_index.insert(std::make_pair(std::ref(node.key), std::ref(node)));
     }
     return true;
 }
@@ -98,8 +99,8 @@ bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value)
     DropNodes(put_size);
 
     _cur_size += put_size;
-    lru_node *node = MakeLRUNode(key, value);
-    _lru_index.insert(std::make_pair(std::ref(node->key), std::ref(*node)));
+    lru_node &node = MakeLRUNode(key, value);
+    _lru_index.insert(std::make_pair(std::ref(node.key), std::ref(node)));
     return true;
 }
 
