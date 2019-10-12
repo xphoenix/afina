@@ -77,6 +77,9 @@ private:
     // Indicate that all workers are closed
     std::condition_variable _cv;
 
+    // Indicate that workers can be joined
+    std::condition_variable _cv_join;
+
     // Indicate that all existing connections are stopped
     bool _connections_stopped;
 };

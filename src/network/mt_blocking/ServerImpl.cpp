@@ -88,13 +88,13 @@ void ServerImpl::Stop() {
 
 // See Server.h
 void ServerImpl::Join() {
-    // {
-    //     std::unique_lock<std::mutex> locker(_worker_mutex);
-    //     while(!_connections_stopped)
-    //     {
-    //         _cv.wait(locker);
-    //     }
-    // }
+    {
+        std::unique_lock<std::mutex> locker(_worker_mutex);
+        while(!_connections_stopped)
+        {
+            _cv_join.wait(locker);
+        }
+    }
     for (auto &worker: _workers){
         assert(worker.joinable());
         worker.join();
@@ -178,7 +178,7 @@ void ServerImpl::OnRun() {
         }
         _connections_stopped = true;
     }
-    _cv.notify_one();
+    _cv_join.notify_one();
 }
 
 // See ServerImpl.h
@@ -283,8 +283,8 @@ void ServerImpl::ProcessConnection(int client_socket) {
     {
         std::unique_lock<std::mutex> locker(_worker_mutex);
         _workers_to_be_closed.push(std::this_thread::get_id());
-        _cv.notify_all();
     }
+    _cv.notify_one();
 
     // Prepare for the next command: just in case if connection was closed in the middle of executing something
     command_to_execute.reset();
