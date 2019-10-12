@@ -70,7 +70,7 @@ private:
     void MoveNodeToHead(lru_node &node);
 
     // Create new LRU node
-    lru_node *MakeLRUNode(const std::string &key, const std::string &value);
+    lru_node &MakeLRUNode(const std::string &key, const std::string &value);
 
     // Delete nodes from LRU cache to free size
     void DropNodes(std::size_t size_to_release);

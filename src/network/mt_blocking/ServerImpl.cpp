@@ -39,7 +39,10 @@ void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
     _logger->info("Start mt_blocking network service");
 
     _max_accept = n_accept;
-    _workers.reserve(_max_accept);
+    {
+        std::unique_lock<std::mutex> locker(_worker_mutex);
+        _workers.reserve(_max_accept);
+    }
     _connections_stopped = false;
 
     sigset_t sig_mask;
@@ -94,13 +97,14 @@ void ServerImpl::Join() {
         {
             _cv_join.wait(locker);
         }
+
+        for (auto &worker: _workers){
+            assert(worker.joinable());
+            worker.join();
+        }
+        assert(_thread.joinable());
+        _thread.join();
     }
-    for (auto &worker: _workers){
-        assert(worker.joinable());
-        worker.join();
-    }
-    assert(_thread.joinable());
-    _thread.join();
     close(_server_socket);
 }
 
@@ -149,12 +153,14 @@ void ServerImpl::OnRun() {
                 }
             }
         }
-
-        if (_workers.size() >= _max_accept)
         {
-            _logger->debug("Connection limit exceeded");
-            close(client_socket);
-            continue;
+            std::unique_lock<std::mutex> locker(_worker_mutex);
+            if (_workers.size() >= _max_accept)
+            {
+                _logger->debug("Connection limit exceeded");
+                close(client_socket);
+                continue;
+            }
         }
 
         // Configure read timeout
@@ -164,8 +170,10 @@ void ServerImpl::OnRun() {
             tv.tv_usec = 0;
             setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
         }
-
-        _workers.emplace_back(&ServerImpl::ProcessConnection, this, client_socket);
+        {
+            std::unique_lock<std::mutex> locker(_worker_mutex);
+            _workers.emplace_back(&ServerImpl::ProcessConnection, this, client_socket);
+        }
     }
 
     // Cleanup on exit...
@@ -178,7 +186,7 @@ void ServerImpl::OnRun() {
         }
         _connections_stopped = true;
     }
-    _cv_join.notify_one();
+    _cv_join.notify_all();
 }
 
 // See ServerImpl.h
@@ -283,8 +291,11 @@ void ServerImpl::ProcessConnection(int client_socket) {
     {
         std::unique_lock<std::mutex> locker(_worker_mutex);
         _workers_to_be_closed.push(std::this_thread::get_id());
+        if (_workers.size() == _workers_to_be_closed.size())
+        {
+            _cv.notify_all();
+        }
     }
-    _cv.notify_one();
 
     // Prepare for the next command: just in case if connection was closed in the middle of executing something
     command_to_execute.reset();
