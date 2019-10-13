@@ -12,7 +12,8 @@
 namespace Afina {
 namespace Backend {
 
-/**
+
+    /**
  * # Map based implementation
  * That is NOT thread safe implementaiton!!
  */
@@ -77,6 +78,7 @@ private:
 
     // Index of nodes from list above, allows fast random access to elements by lru_node#key
     std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<std::string>> _lru_index;
+    using mapT = std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<std::string>>;
 
     void deb_print_list(lru_node* p){
       // lru_node *p = _lru_head.get();
@@ -89,6 +91,8 @@ private:
     }
 
     void free_memmory_for_node(const std::string &key, const std::string &value);
+    bool _PutIfAbsent(mapT::iterator it, const std::string &key, const std::string &value);
+    bool _Set(mapT::iterator it, const std::string &key, const std::string &value);
 
 };
 

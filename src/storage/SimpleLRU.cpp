@@ -10,10 +10,10 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value) {
     }
     auto it = _lru_index.find(key);
     if (it != _lru_index.end()){
-        return Set(key, value);
+        return _Set(it, key, value);
     }
     else {
-        return PutIfAbsent(key, value);
+        return _PutIfAbsent(it, key, value);
     }
 }
 
@@ -36,15 +36,7 @@ void SimpleLRU::free_memmory_for_node(const std::string &key, const std::string 
   }
 }
 
-// See MapBasedGlobalLockImpl.h
-bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
-    auto it = _lru_index.find(key);
-    if (it != _lru_index.end()){
-        return false;
-    }
-    if (key.size() + value.size() > _max_size) {
-        return false;
-    }
+bool SimpleLRU::_PutIfAbsent(mapT::iterator it, const std::string &key, const std::string &value) {
 
     // if size of new node is too big
     if (_cur_size + key.size() + value.size() > _max_size) {
@@ -66,7 +58,7 @@ bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
         pnode->next = std::move(_lru_head);
         (pnode->next)->prev = pnode.get();
         _lru_head = std::move(pnode);
-      }
+    }
 
     _lru_index.insert(std::make_pair(std::ref(_lru_head->key), std::ref(*_lru_head)));
     _cur_size += key.size() + value.size();
@@ -74,15 +66,19 @@ bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
 }
 
 // See MapBasedGlobalLockImpl.h
-bool SimpleLRU::Set(const std::string &key, const std::string &value) {
-    if (key.size() + value.size() > _max_size) {
-        // ? and that is all ? anything changes ?
-        return false;
-    }
+bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
     auto it = _lru_index.find(key);
-    if (it == _lru_index.end()) {
+    if (it != _lru_index.end()){
         return false;
     }
+    if (key.size() + value.size() > _max_size) {
+        return false;
+    }
+
+    return _PutIfAbsent(it, key, value);
+}
+
+bool SimpleLRU::_Set(mapT::iterator it, const std::string &key, const std::string &value) {
     size_t new_size = key.size() + value.size();
     size_t old_size = it->second.get().key.size() + it->second.get().value.size();
 
@@ -100,7 +96,7 @@ bool SimpleLRU::Set(const std::string &key, const std::string &value) {
             it->second.get().prev->next = std::move(it->second.get().next);
             it->second.get().prev->next->prev = it->second.get().prev; // 'delete' this branch for setting at last node
         } else {
-           it->second.get().prev->next = std::move(it->second.get().next);
+            it->second.get().prev->next = std::move(it->second.get().next);
         }
 
         // if size of new node is too big
@@ -118,6 +114,20 @@ bool SimpleLRU::Set(const std::string &key, const std::string &value) {
     // update _cur_size
     _cur_size += key.size() + value.size();
     return true;
+}
+
+// See MapBasedGlobalLockImpl.h
+bool SimpleLRU::Set(const std::string &key, const std::string &value) {
+    if (key.size() + value.size() > _max_size) {
+        // ? and that is all ? anything changes ?
+        return false;
+    }
+    auto it = _lru_index.find(key);
+    if (it == _lru_index.end()) {
+        return false;
+    }
+
+    return _Set(it, key, value);
 }
 
 // See MapBasedGlobalLockImpl.h
