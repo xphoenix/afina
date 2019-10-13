@@ -7,6 +7,7 @@
 #include <afina/network/Server.h>
 #include <map>
 #include <mutex>
+#include <condition_variable>
 
 namespace spdlog {
 class logger;
@@ -59,6 +60,7 @@ private:
 
     std::mutex mutex_map;
     std::map<int, std::thread> _client_workers;
+    std::condition_variable cond_var;
 
     void handle_client(int client_socket);
 
