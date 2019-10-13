@@ -146,7 +146,7 @@ void ServerImpl::OnRun() {
                 if (send(client_socket, msg.data(), msg.size(), 0) <= 0) {
                     _logger->error("Failed to write response to client: {}", strerror(errno));
                 }
-                sleep(0.01); // иначе сокет закроется быстрее, чем мы увидим сообщение
+//                sleep(0.01); // иначе сокет закроется быстрее, чем мы увидим сообщение
                 close(client_socket);
             }
         }
