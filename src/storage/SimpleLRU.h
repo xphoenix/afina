@@ -74,7 +74,7 @@ private:
     // element that wasn't used for longest time.
     //
     // List owns all nodes
-    std::unique_ptr<lru_node> _lru_head;
+    std::unique_ptr<lru_node> _lru_head = nullptr;
 
     // Index of nodes from list above, allows fast random access to elements by lru_node#key
     std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<std::string>> _lru_index;
@@ -83,10 +83,16 @@ private:
     void deb_print_list(lru_node* p){
       // lru_node *p = _lru_head.get();
       while (p->next){
-        std::cerr << p->key<< " : (" << p->value << ");        ";
+        std::cerr << p->key << " : (" << p->value << ");        ";
+        if (p->prev == nullptr){
+            std::cerr << "NULLPTR\n";
+        }
         p = p->next.get();
       }
       std::cerr << p->key<< " : (" << p->value << ");        ";
+        if (p->prev == nullptr){
+            std::cerr << "NULLPTR\n";
+        }
       std::cerr << std::endl;
     }
 
