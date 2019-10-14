@@ -37,7 +37,6 @@ void SimpleLRU::free_memmory_for_node(const std::string &key, const std::string 
 }
 
 bool SimpleLRU::_PutIfAbsent(mapT::iterator it, const std::string &key, const std::string &value) {
-
     // if size of new node is too big
     if (_cur_size + key.size() + value.size() > _max_size) {
         free_memmory_for_node(key, value);
@@ -60,7 +59,7 @@ bool SimpleLRU::_PutIfAbsent(mapT::iterator it, const std::string &key, const st
         _lru_head = std::move(pnode);
     }
 
-    _lru_index.insert(std::make_pair(std::ref(_lru_head->key), std::ref(*_lru_head)));
+    _lru_index.insert(std::make_pair(std::ref(_lru_head->key), std::ref(*(_lru_head.get()))));
     _cur_size += key.size() + value.size();
     return true;
 }
@@ -88,6 +87,7 @@ bool SimpleLRU::_Set(mapT::iterator it, const std::string &key, const std::strin
         std::unique_ptr<lru_node> pnode;
 
         // link pnode to head & head to founded
+        _lru_head->prev = &it->second.get();
         pnode = std::move(_lru_head);
         _lru_head = std::move(it->second.get().prev->next);
 
@@ -108,7 +108,6 @@ bool SimpleLRU::_Set(mapT::iterator it, const std::string &key, const std::strin
         it->second.get().prev = nullptr;
     }
 
-    _lru_head->key = key;
     _lru_head->value = value;
 
     // update _cur_size
@@ -119,7 +118,6 @@ bool SimpleLRU::_Set(mapT::iterator it, const std::string &key, const std::strin
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::Set(const std::string &key, const std::string &value) {
     if (key.size() + value.size() > _max_size) {
-        // ? and that is all ? anything changes ?
         return false;
     }
     auto it = _lru_index.find(key);
