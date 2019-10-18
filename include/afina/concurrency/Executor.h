@@ -12,6 +12,10 @@
 namespace Afina {
 namespace Concurrency {
 
+class Executor;
+
+void perform(Executor *executor);
+
 /**
  * # Thread pool
  */
@@ -61,26 +65,27 @@ public:
      * That function doesn't wait for function result. Function could always be written in a way to notify caller about
      * execution finished by itself
      */
-    template <typename F, typename... Types> bool Execute(F &&func, Types... args) {
-        // Prepare "task"
-        auto exec = std::bind(std::forward<F>(func), std::forward<Types>(args)...);
+     template <typename F, typename... Types> bool Execute(F &&func, Types... args)
+     {
+         // Prepare "task"
+         auto exec = std::bind(std::forward<F>(func), std::forward<Types>(args)...);
 
-        std::unique_lock<std::mutex> lock(this->mutex);
-        if ((state != State::kRun) || (tasks.size() >= _max_queue_size))
-        {
-            return false;
-        }
-        // if (_free_threads == 0 && threads.size() < _hight_watermark)
-        // {
-        //     threads.emplace_back(&Concurrency::perform, this);
-        //     _free_threads++;
-        // }
+         std::unique_lock<std::mutex> lock(this->mutex);
+         if ((state != State::kRun) || (tasks.size() >= _max_queue_size))
+         {
+             return false;
+         }
+         if ((_free_threads == 0) && (threads.size() < _hight_watermark))
+         {
+             threads.emplace_back(&perform, this);
+             _free_threads++;
+         }
 
-        // Enqueue new task
-        tasks.push_back(exec);
-        empty_condition.notify_one();
-        return true;
-    }
+         // Enqueue new task
+         tasks.push_back(exec);
+         empty_condition.notify_one();
+         return true;
+     }
 
 private:
     // // No copy/move/assign allowed

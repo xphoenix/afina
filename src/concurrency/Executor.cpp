@@ -1,5 +1,7 @@
 #include <chrono>
 
+#include<iostream>
+
 #include <afina/concurrency/Executor.h>
 #include "afina/network/Server.h"
 
@@ -81,22 +83,26 @@ Executor::~Executor(){}
 
 void Executor::Stop(bool await)
 {
+    std::cout << "Executor::Stop" << std::endl;
     {
         std::unique_lock<std::mutex> locker(mutex);
         state = Executor::State::kStopping;
+        std::cout << "lock1" << std::endl;
         while (!tasks.empty())
         {
             empty_condition.wait(locker);
         }
+        std::cout << "after cv_wait" << std::endl;
         state = Executor::State::kStopped;
     }
     {
         std::unique_lock<std::mutex> locker(mutex);
+        std::cout << "lock2" << std::endl;
         while (_free_threads != threads.size())
         {
             join_condition.wait(locker);
         }
-
+    std::cout << "after j_c" << std::endl;
         if (await)
         {
             for (auto &thread: threads)
@@ -106,6 +112,7 @@ void Executor::Stop(bool await)
                     thread.join();
                 }
             }
+                std::cout << "after if(await)" << std::endl;
         }
         else
         {
