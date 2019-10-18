@@ -20,6 +20,7 @@
 #include <afina/Storage.h>
 #include <afina/execute/Command.h>
 #include <afina/logging/Service.h>
+#include <afina/concurrency/Executor.h>
 
 #include "protocol/Parser.h"
 
@@ -39,10 +40,8 @@ void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
     _logger->info("Start mt_blocking network service");
 
     _max_accept = n_accept;
-    {
-        std::unique_lock<std::mutex> locker(_worker_mutex);
-        _workers.reserve(_max_accept);
-    }
+    _max_workers = n_workers;
+    _min_workers = (n_workers / 2) > 1 ? n_workers / 2 : 2;
     _connections_stopped = false;
 
     sigset_t sig_mask;
@@ -92,15 +91,10 @@ void ServerImpl::Stop() {
 // See Server.h
 void ServerImpl::Join() {
     {
-        std::unique_lock<std::mutex> locker(_worker_mutex);
+        std::unique_lock<std::mutex> locker(_thread_pool_mutex);
         while(!_connections_stopped)
         {
             _cv_join.wait(locker);
-        }
-
-        for (auto &worker: _workers){
-            assert(worker.joinable());
-            worker.join();
         }
         assert(_thread.joinable());
         _thread.join();
@@ -110,6 +104,8 @@ void ServerImpl::Join() {
 
 // See Server.h
 void ServerImpl::OnRun() {
+    Concurrency::Executor thread_pool(_min_workers, _max_workers, _max_accept, 5);
+
     while (running.load()) {
         _logger->debug("waiting for connection...");
 
@@ -134,35 +130,6 @@ void ServerImpl::OnRun() {
             _logger->debug("Accepted connection on descriptor {} (host={}, port={})\n", client_socket, host, port);
         }
 
-        // проверка на вытеснение из вектора отработавших потоков
-        {
-            std::unique_lock<std::mutex> locker(_worker_mutex);
-            // while(!_workers_to_be_closed.empty()){
-            if(!_workers_to_be_closed.empty())
-            {
-                for (auto it = _workers.begin(); it != _workers.end(); it++)
-                {
-                    if(it->get_id() == _workers_to_be_closed.front())
-                    {
-                        _workers_to_be_closed.pop();
-                        assert(it->joinable());
-                        it->join();
-                        _workers.erase(it);
-                        break;
-                    }
-                }
-            }
-        }
-        {
-            std::unique_lock<std::mutex> locker(_worker_mutex);
-            if (_workers.size() >= _max_accept)
-            {
-                _logger->debug("Connection limit exceeded");
-                close(client_socket);
-                continue;
-            }
-        }
-
         // Configure read timeout
         {
             struct timeval tv;
@@ -170,20 +137,19 @@ void ServerImpl::OnRun() {
             tv.tv_usec = 0;
             setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
         }
+
+        if (!thread_pool.Execute(&ServerImpl::ProcessConnection, this, client_socket))
         {
-            std::unique_lock<std::mutex> locker(_worker_mutex);
-            _workers.emplace_back(&ServerImpl::ProcessConnection, this, client_socket);
+            close(client_socket);
         }
     }
 
     // Cleanup on exit...
     _logger->warn("Network stopped");
+    bool await = true;
+    thread_pool.Stop(await);
     {
-        std::unique_lock<std::mutex> locker(_worker_mutex);
-        while(_workers.size() != _workers_to_be_closed.size())
-        {
-            _cv.wait(locker);
-        }
+        std::unique_lock<std::mutex> locker(_thread_pool_mutex);
         _connections_stopped = true;
     }
     _cv_join.notify_all();
@@ -288,14 +254,6 @@ void ServerImpl::ProcessConnection(int client_socket) {
 
     // We are done with this connection
     close(client_socket);
-    {
-        std::unique_lock<std::mutex> locker(_worker_mutex);
-        _workers_to_be_closed.push(std::this_thread::get_id());
-        if (_workers.size() == _workers_to_be_closed.size())
-        {
-            _cv.notify_all();
-        }
-    }
 
     // Prepare for the next command: just in case if connection was closed in the middle of executing something
     command_to_execute.reset();

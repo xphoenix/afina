@@ -65,17 +65,14 @@ private:
     // Maximum number of connections
     uint32_t _max_accept;
 
-    // Vector of working threads
-    std::vector<std::thread> _workers;
+    // Maximum number of threads
+    uint32_t _max_workers;
 
-    // Queue for workers which connections are closed
-    std::queue<std::thread::id> _workers_to_be_closed;
+    // Minimum number of threads
+    uint32_t _min_workers;
 
     // Mutex for queue with closed connections threads' id
-    std::mutex _worker_mutex;
-
-    // Indicate that all workers are closed
-    std::condition_variable _cv;
+    std::mutex _thread_pool_mutex;
 
     // Indicate that workers can be joined
     std::condition_variable _cv_join;
