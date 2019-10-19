@@ -18,9 +18,9 @@
 #include <spdlog/logger.h>
 
 #include <afina/Storage.h>
+#include <afina/concurrency/Executor.h>
 #include <afina/execute/Command.h>
 #include <afina/logging/Service.h>
-#include <afina/concurrency/Executor.h>
 
 #include "protocol/Parser.h"
 
@@ -87,8 +87,7 @@ void ServerImpl::Stop() {
     running.store(false);
     {
         std::unique_lock<std::mutex> locker(_thread_pool_mutex);
-        for (auto cl_socket: _cl_sockets)
-        {
+        for (auto cl_socket : _cl_sockets) {
             shutdown(cl_socket, SHUT_RD);
         }
         shutdown(_server_socket, SHUT_RDWR);
@@ -99,12 +98,10 @@ void ServerImpl::Stop() {
 void ServerImpl::Join() {
     {
         std::unique_lock<std::mutex> locker(_thread_pool_mutex);
-        while(_cl_sockets.size() != 0)
-        {
+        while (_cl_sockets.size() != 0) {
             _cv_join.wait(locker);
         }
-        if(_thread.joinable())
-        {
+        if (_thread.joinable()) {
             _thread.join();
         }
     }
@@ -146,8 +143,7 @@ void ServerImpl::OnRun() {
             setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
         }
 
-        if (!thread_pool.Execute(&ServerImpl::ProcessConnection, this, client_socket))
-        {
+        if (!thread_pool.Execute(&ServerImpl::ProcessConnection, this, client_socket)) {
             close(client_socket);
         }
         {
@@ -265,12 +261,11 @@ void ServerImpl::ProcessConnection(int client_socket) {
     {
         std::unique_lock<std::mutex> locker(_thread_pool_mutex);
         auto it = _cl_sockets.find(client_socket);
-        if (it != _cl_sockets.end())
-        {
+        if (it != _cl_sockets.end()) {
             _cl_sockets.erase(it);
         }
     }
-        close(client_socket);
+    close(client_socket);
 
     // Prepare for the next command: just in case if connection was closed in the middle of executing something
     command_to_execute.reset();
