@@ -42,7 +42,7 @@ void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
     _max_accept = n_accept;
     _max_workers = n_workers;
     _min_workers = (n_workers / 2) > 1 ? n_workers / 2 : 2;
-    _connections_stopped = false;
+    _idle_time = 5;
 
     sigset_t sig_mask;
     sigemptyset(&sig_mask);
@@ -85,26 +85,34 @@ void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
 // See Server.h
 void ServerImpl::Stop() {
     running.store(false);
-    shutdown(_server_socket, SHUT_RDWR);
+    {
+        std::unique_lock<std::mutex> locker(_thread_pool_mutex);
+        for (auto cl_socket: _cl_sockets)
+        {
+            shutdown(cl_socket, SHUT_RD);
+        }
+        shutdown(_server_socket, SHUT_RDWR);
+    }
 }
 
 // See Server.h
 void ServerImpl::Join() {
     {
         std::unique_lock<std::mutex> locker(_thread_pool_mutex);
-        while(!_connections_stopped)
+        while(_cl_sockets.size() != 0)
         {
             _cv_join.wait(locker);
         }
-        assert(_thread.joinable());
-        _thread.join();
+        if(_thread.joinable())
+        {
+            _thread.join();
+        }
     }
-    close(_server_socket);
 }
 
 // See Server.h
 void ServerImpl::OnRun() {
-    Concurrency::Executor thread_pool(_min_workers, _max_workers, _max_accept, 5);
+    Concurrency::Executor thread_pool(_min_workers, _max_workers, _max_accept, _idle_time);
 
     while (running.load()) {
         _logger->debug("waiting for connection...");
@@ -142,17 +150,18 @@ void ServerImpl::OnRun() {
         {
             close(client_socket);
         }
+        {
+            std::unique_lock<std::mutex> locker(_thread_pool_mutex);
+            _cl_sockets.insert(client_socket);
+        }
     }
 
     // Cleanup on exit...
     _logger->warn("Network stopped");
     bool await = true;
     thread_pool.Stop(await);
-    {
-        std::unique_lock<std::mutex> locker(_thread_pool_mutex);
-        _connections_stopped = true;
-    }
     _cv_join.notify_all();
+    close(_server_socket);
 }
 
 // See ServerImpl.h
@@ -253,7 +262,15 @@ void ServerImpl::ProcessConnection(int client_socket) {
     }
 
     // We are done with this connection
-    close(client_socket);
+    {
+        std::unique_lock<std::mutex> locker(_thread_pool_mutex);
+        auto it = _cl_sockets.find(client_socket);
+        if (it != _cl_sockets.end())
+        {
+            _cl_sockets.erase(it);
+        }
+    }
+        close(client_socket);
 
     // Prepare for the next command: just in case if connection was closed in the middle of executing something
     command_to_execute.reset();

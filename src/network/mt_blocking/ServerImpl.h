@@ -5,7 +5,7 @@
 #include <thread>
 #include <condition_variable>
 #include <mutex>
-#include <queue>
+#include <unordered_set>
 
 #include <afina/network/Server.h>
 
@@ -59,6 +59,9 @@ private:
     // Server socket to accept connections on
     int _server_socket;
 
+    // Client sockets
+    std::unordered_set<int> _cl_sockets;
+
     // Thread to run network on
     std::thread _thread;
 
@@ -71,14 +74,14 @@ private:
     // Minimum number of threads
     uint32_t _min_workers;
 
+    // Time in milliseconds for thread to wait task
+    uint32_t _idle_time;
+
     // Mutex for queue with closed connections threads' id
     std::mutex _thread_pool_mutex;
 
     // Indicate that workers can be joined
     std::condition_variable _cv_join;
-
-    // Indicate that all existing connections are stopped
-    bool _connections_stopped;
 };
 
 } // namespace MTblocking
