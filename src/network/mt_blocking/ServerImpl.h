@@ -5,7 +5,7 @@
 #include <thread>
 #include <condition_variable>
 #include <mutex>
-#include <queue>
+#include <unordered_set>
 
 #include <afina/network/Server.h>
 
@@ -59,17 +59,14 @@ private:
     // Server socket to accept connections on
     int _server_socket;
 
+    // Client sockets
+    std::unordered_set<int> _cl_sockets;
+
     // Thread to run network on
     std::thread _thread;
 
     // Maximum number of connections
     uint32_t _max_accept;
-
-    // Vector of working threads
-    std::vector<std::thread> _workers;
-
-    // Queue for workers which connections are closed
-    std::queue<std::thread::id> _workers_to_be_closed;
 
     // Mutex for queue with closed connections threads' id
     std::mutex _worker_mutex;

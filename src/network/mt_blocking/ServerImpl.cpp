@@ -39,10 +39,6 @@ void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
     _logger->info("Start mt_blocking network service");
 
     _max_accept = n_accept;
-    {
-        std::unique_lock<std::mutex> locker(_worker_mutex);
-        _workers.reserve(_max_accept);
-    }
     _connections_stopped = false;
 
     sigset_t sig_mask;
@@ -86,26 +82,26 @@ void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
 // See Server.h
 void ServerImpl::Stop() {
     running.store(false);
-    shutdown(_server_socket, SHUT_RDWR);
+    {
+        std::unique_lock<std::mutex> locker(_worker_mutex);
+        for (auto cl_socket : _cl_sockets) {
+            shutdown(cl_socket, SHUT_RD);
+        }
+        shutdown(_server_socket, SHUT_RDWR);
+    }
 }
 
 // See Server.h
 void ServerImpl::Join() {
     {
         std::unique_lock<std::mutex> locker(_worker_mutex);
-        while(!_connections_stopped)
-        {
+        while (!_connections_stopped) {
             _cv_join.wait(locker);
         }
-
-        for (auto &worker: _workers){
-            assert(worker.joinable());
-            worker.join();
+        if (_thread.joinable()) {
+            _thread.join();
         }
-        assert(_thread.joinable());
-        _thread.join();
     }
-    close(_server_socket);
 }
 
 // See Server.h
@@ -134,28 +130,9 @@ void ServerImpl::OnRun() {
             _logger->debug("Accepted connection on descriptor {} (host={}, port={})\n", client_socket, host, port);
         }
 
-        // проверка на вытеснение из вектора отработавших потоков
         {
             std::unique_lock<std::mutex> locker(_worker_mutex);
-            // while(!_workers_to_be_closed.empty()){
-            if(!_workers_to_be_closed.empty())
-            {
-                for (auto it = _workers.begin(); it != _workers.end(); it++)
-                {
-                    if(it->get_id() == _workers_to_be_closed.front())
-                    {
-                        _workers_to_be_closed.pop();
-                        assert(it->joinable());
-                        it->join();
-                        _workers.erase(it);
-                        break;
-                    }
-                }
-            }
-        }
-        {
-            std::unique_lock<std::mutex> locker(_worker_mutex);
-            if (_workers.size() >= _max_accept)
+            if (_cl_sockets.size() >= _max_accept)
             {
                 _logger->debug("Connection limit exceeded");
                 close(client_socket);
@@ -172,7 +149,9 @@ void ServerImpl::OnRun() {
         }
         {
             std::unique_lock<std::mutex> locker(_worker_mutex);
-            _workers.emplace_back(&ServerImpl::ProcessConnection, this, client_socket);
+            _cl_sockets.insert(client_socket);
+            std::thread th(&ServerImpl::ProcessConnection, this, client_socket);
+            th.detach();
         }
     }
 
@@ -180,13 +159,14 @@ void ServerImpl::OnRun() {
     _logger->warn("Network stopped");
     {
         std::unique_lock<std::mutex> locker(_worker_mutex);
-        while(_workers.size() != _workers_to_be_closed.size())
+        while(_cl_sockets.size() > 0)
         {
             _cv.wait(locker);
         }
         _connections_stopped = true;
     }
     _cv_join.notify_all();
+    close(_server_socket);
 }
 
 // See ServerImpl.h
@@ -285,17 +265,19 @@ void ServerImpl::ProcessConnection(int client_socket) {
             _logger->error("Failed to write response to client: {}", strerror(errno));
         }
     }
-
     // We are done with this connection
-    close(client_socket);
     {
         std::unique_lock<std::mutex> locker(_worker_mutex);
-        _workers_to_be_closed.push(std::this_thread::get_id());
-        if (_workers.size() == _workers_to_be_closed.size())
+        auto it = _cl_sockets.find(client_socket);
+        if (it != _cl_sockets.end()) {
+            _cl_sockets.erase(it);
+        }
+        if (_cl_sockets.size() == 0)
         {
             _cv.notify_all();
         }
     }
+    close(client_socket);
 
     // Prepare for the next command: just in case if connection was closed in the middle of executing something
     command_to_execute.reset();
