@@ -1,10 +1,10 @@
 #ifndef AFINA_STORAGE_THREAD_SAFE_SIMPLE_LRU_H
 #define AFINA_STORAGE_THREAD_SAFE_SIMPLE_LRU_H
 
-#include <map>
 #include <atomic>
-#include <mutex>
 #include <condition_variable>
+#include <map>
+#include <mutex>
 #include <string>
 
 #include "SimpleLRU.h"
@@ -19,50 +19,41 @@ namespace Backend {
  */
 class ThreadSafeSimplLRU : public SimpleLRU {
 public:
-    ThreadSafeSimplLRU(size_t max_size = 1024) :
-        SimpleLRU(max_size),
-        _readers(0),
-        _writers(0)
-        {}
+    ThreadSafeSimplLRU(size_t max_size = 1024) : SimpleLRU(max_size), _readers(0), _writers(0) {}
     ~ThreadSafeSimplLRU() {}
 
-    void lock(){
+    void lock() {
         std::unique_lock<std::mutex> locker(_mutex);
-        while(_writers != 0)
-        {
+        while (_writers != 0) {
             _cv_read.wait(locker);
         }
         _writers++;
-        while(_readers != 0)
-        {
+        while (_readers != 0) {
             _cv_write.wait(locker);
         }
     }
 
-    void unlock(){
+    void unlock() {
         {
             std::unique_lock<std::mutex> locker(_mutex);
-              _writers--;
+            _writers--;
         }
-            _cv_read.notify_all();
+        _cv_read.notify_all();
     }
 
-    void shared_lock(){
+    void shared_lock() {
         std::unique_lock<std::mutex> locker(_mutex);
-        while (_writers != 0)
-        {
+        while (_writers != 0) {
             _cv_read.wait(locker);
         }
         _readers++;
     }
 
-    void shared_unlock(){
+    void shared_unlock() {
         std::unique_lock<std::mutex> locker(_mutex);
         _readers--;
-        if (_writers != 0)
-        {
-            if (_readers == 0)
-            {
+        if (_writers != 0) {
+            if (_readers == 0) {
                 _cv_write.notify_one();
             }
         }

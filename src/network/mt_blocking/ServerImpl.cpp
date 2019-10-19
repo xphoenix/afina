@@ -132,8 +132,7 @@ void ServerImpl::OnRun() {
 
         {
             std::unique_lock<std::mutex> locker(_worker_mutex);
-            if (_cl_sockets.size() >= _max_accept)
-            {
+            if (_cl_sockets.size() >= _max_accept) {
                 _logger->debug("Connection limit exceeded");
                 close(client_socket);
                 continue;
@@ -159,8 +158,7 @@ void ServerImpl::OnRun() {
     _logger->warn("Network stopped");
     {
         std::unique_lock<std::mutex> locker(_worker_mutex);
-        while(_cl_sockets.size() > 0)
-        {
+        while (_cl_sockets.size() > 0) {
             _cv.wait(locker);
         }
         _connections_stopped = true;
@@ -272,8 +270,7 @@ void ServerImpl::ProcessConnection(int client_socket) {
         if (it != _cl_sockets.end()) {
             _cl_sockets.erase(it);
         }
-        if (_cl_sockets.size() == 0)
-        {
+        if (_cl_sockets.size() == 0) {
             _cv.notify_all();
         }
     }
