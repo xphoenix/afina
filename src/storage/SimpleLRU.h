@@ -72,7 +72,7 @@ private:
     // Index of nodes from list above, allows fast random access to elements by lru_node#key
     std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<std::string>> _lru_index;
 
-    void Erase(lru_node& node);
+    void ChangeTheNode(lru_node& node, const std::string &value);
     void PopBack();
     void InsertToHead(lru_node* node);
 };

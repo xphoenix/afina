@@ -4,19 +4,22 @@
 namespace Afina {
 namespace Backend {
 
-void SimpleLRU::Erase(lru_node& node) {
+void SimpleLRU::ChangeTheNode(lru_node& node, const std::string &value) {
 
     _free_size += node.key.size() + node.value.size();
+    node.value = value;
 
     if (node.prev == nullptr) {
         _lru_head.swap(node.next);
         node.next.release();
+        InsertToHead(&node);
         return;
     }
 
     if (node.next == nullptr) {
         _lru_tail = node.prev;
         node.prev->next.release();
+        InsertToHead(&node);
         return;
      }
 
@@ -24,6 +27,8 @@ void SimpleLRU::Erase(lru_node& node) {
     node.prev->next.swap(node.next);
     node.next.release();
     node.prev = nullptr;
+
+    InsertToHead(&node);
 
 }
 
@@ -65,9 +70,7 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value) {
 
     auto it = _lru_index.find(key);
     if (it != _lru_index.end()) {
-        it->second.get().value = value;
-        Erase(it->second.get());
-        InsertToHead(&it->second.get());
+        ChangeTheNode(it->second.get(), value);
     } else {
         lru_node* node = new lru_node({key, value});
         InsertToHead(node);
@@ -82,7 +85,7 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value) {
 bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
 
     auto it = _lru_index.find(key);
-    if (it == _lru_index.end() && (key.size() + value.size()) < _max_size) {
+    if (it == _lru_index.end()) {
         lru_node* node = new lru_node({key, value});
         InsertToHead(node);
         _lru_index.insert(std::make_pair(std::ref(node->key), std::ref(*node)));
@@ -96,10 +99,8 @@ bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::Set(const std::string &key, const std::string &value) {
     auto it = _lru_index.find(key);
-    if (it != _lru_index.end() && (key.size() + value.size()) < _max_size) {
-        it->second.get().value = value;
-        Erase(it->second.get());
-        InsertToHead(&it->second.get());
+    if (it != _lru_index.end()) {
+        ChangeTheNode(it->second.get(), value);
         return true;
 
     }
@@ -110,9 +111,26 @@ bool SimpleLRU::Set(const std::string &key, const std::string &value) {
 bool SimpleLRU::Delete(const std::string &key) {
     auto it = _lru_index.find(key);
     if (it != _lru_index.end()) {
-        Erase(it->second.get());
-        delete &it->second.get();
+        lru_node& node = it->second.get();
+        _free_size += node.key.size() + node.value.size();
         _lru_index.erase(it);
+
+        if (node.prev == nullptr) {
+            _lru_head.swap(node.next);
+            node.next.reset();
+            return true;
+        }
+
+        if (node.next == nullptr) {
+            _lru_tail = node.prev;
+            node.prev->next.reset();
+            return true;
+         }
+
+        node.next->prev = node.prev;
+        node.prev->next.swap(node.next);
+        node.next.reset();
+        node.prev = nullptr;
         return true;
     }
     return false;
@@ -124,9 +142,7 @@ bool SimpleLRU::Get(const std::string &key, std::string &value) {
     if (it == _lru_index.end()) { return false; }
 
     value = it->second.get().value;
-    Erase(it->second.get());
-
-    InsertToHead(&it->second.get());
+    ChangeTheNode(it->second.get(), value);
     return true;
 
 }
