@@ -3,7 +3,6 @@
 
 #include <array>
 #include <atomic>
-#include <thread>
 #include <condition_variable>
 #include <list>
 #include <mutex>
@@ -59,12 +58,12 @@ private:
 
     // Thread to run network on
     std::thread _thread;
-    
+
     int _MAX_WORKERS_ = 256;
     int _workers_current;
     std::mutex _workers_mutex;
     std::condition_variable _close;
-    
+
     std::set<int> _openned_socks;
 };
 

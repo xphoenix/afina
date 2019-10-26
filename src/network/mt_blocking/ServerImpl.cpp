@@ -28,7 +28,8 @@ namespace Network {
 namespace MTblocking {
 
 // See Server.h
-ServerImpl::ServerImpl(std::shared_ptr<Afina::Storage> ps, std::shared_ptr<Logging::Service> pl, int max) : Server(ps, pl), _MAX_WORKERS_(max) {}
+ServerImpl::ServerImpl(std::shared_ptr<Afina::Storage> ps, std::shared_ptr<Logging::Service> pl, int max)
+    : Server(ps, pl), _MAX_WORKERS_(max) {}
 
 // See Server.h
 ServerImpl::~ServerImpl() {}
@@ -76,7 +77,6 @@ void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
     _workers_current = 0;
     _openned_socks.clear();
     _thread = std::thread(&ServerImpl::OnRun, this);
-
 }
 
 // See Server.h
@@ -100,9 +100,9 @@ void ServerImpl::Join() {
     _logger->debug("Join connections");
     std::unique_lock<std::mutex> guard(_workers_mutex);
     while (_workers_current != 0) {
-         _close.wait(guard);
+        _close.wait(guard);
     }
-    //for (auto client_socket : _openned_socks) {
+    // for (auto client_socket : _openned_socks) {
     //    close(client_socket);
     //}
     _openned_socks.clear();
@@ -154,16 +154,15 @@ void ServerImpl::OnRun() {
                 _openned_socks.insert(client_socket);
                 std::thread new_worker = std::thread(&ServerImpl::OnWork, this, client_socket);
                 new_worker.join();
-                //new_worker.detach();
-            }
-            else{
+                // new_worker.detach();
+            } else {
                 _logger->warn("No free workers for client: {}\n", client_socket);
                 static const std::string msg = "No free workers, try later\n";
                 if (send(client_socket, msg.data(), msg.size(), 0) <= 0) {
                     _logger->error("Failed to write response to client: {}", strerror(errno));
                 }
-                 close(client_socket);
-                 continue;
+                close(client_socket);
+                continue;
             }
         }
     }
@@ -171,9 +170,6 @@ void ServerImpl::OnRun() {
     // Cleanup on exit...
     _logger->warn("Network stopped");
 }
-
-
-
 
 void ServerImpl::OnWork(int client_socket) {
     // Here is connection state
@@ -253,7 +249,6 @@ void ServerImpl::OnWork(int client_socket) {
             } // while (readed_bytes)
         }
 
-
         if (readed_bytes == 0) {
             _logger->debug("Connection closed");
         } else {
@@ -270,11 +265,9 @@ void ServerImpl::OnWork(int client_socket) {
     _workers_current -= 1;
     if (_workers_current == 0) {
         _close.notify_all();
-    //    _close.notify_one();
+        //    _close.notify_one();
     }
 }
-
-
 
 } // namespace MTblocking
 } // namespace Network
