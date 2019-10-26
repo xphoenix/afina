@@ -1,7 +1,13 @@
 #ifndef AFINA_NETWORK_MT_BLOCKING_SERVER_H
 #define AFINA_NETWORK_MT_BLOCKING_SERVER_H
 
+#include <array>
 #include <atomic>
+#include <thread>
+#include <condition_variable>
+#include <list>
+#include <mutex>
+#include <set>
 #include <thread>
 
 #include <afina/network/Server.h>
@@ -20,7 +26,7 @@ namespace MTblocking {
  */
 class ServerImpl : public Server {
 public:
-    ServerImpl(std::shared_ptr<Afina::Storage> ps, std::shared_ptr<Logging::Service> pl, imt max = 256);
+    ServerImpl(std::shared_ptr<Afina::Storage> ps, std::shared_ptr<Logging::Service> pl, int max = 256);
     ~ServerImpl();
 
     // See Server.h

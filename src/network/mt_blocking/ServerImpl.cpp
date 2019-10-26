@@ -87,7 +87,7 @@ void ServerImpl::Stop() {
         if (send(client_socket, msg.data(), msg.size(), 0) <= 0) {
             _logger->error("Failed to write response to client: {}", strerror(errno));
         }
-        shutdown(client_socket, SHUT_RDWR);
+        shutdown(client_socket, SHUT_RD);
     }
     _openned_socks.clear();
 
@@ -102,9 +102,9 @@ void ServerImpl::Join() {
     while (_workers_current != 0) {
          _close.wait(guard);
     }
-    for (auto client_socket : _openned_socks) {
-        close(client_socket);
-    }
+    //for (auto client_socket : _openned_socks) {
+    //    close(client_socket);
+    //}
     _openned_socks.clear();
 
     assert(_thread.joinable());
@@ -153,7 +153,8 @@ void ServerImpl::OnRun() {
                 _workers_current += 1;
                 _openned_socks.insert(client_socket);
                 std::thread new_worker = std::thread(&ServerImpl::OnWork, this, client_socket);
-                new_worker.detach();
+                new_worker.join();
+                //new_worker.detach();
             }
             else{
                 _logger->warn("No free workers for client: {}\n", client_socket);
@@ -268,7 +269,8 @@ void ServerImpl::OnWork(int client_socket) {
     close(client_socket);
     _workers_current -= 1;
     if (_workers_current == 0) {
-        _close.notify_one();
+        _close.notify_all();
+    //    _close.notify_one();
     }
 }
 
