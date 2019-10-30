@@ -25,6 +25,7 @@ void SimpleLRU::free_memmory_for_node(const std::string &key, const std::string 
       while (p->next){
         p = p->next.get();
       }
+//      p = _lru_tail;
       while(p->prev && (_cur_size + key.size() + value.size() > _max_size)){
           std::string k = p->key;
           size_t csz = p->key.size() + p->value.size();
@@ -37,11 +38,6 @@ void SimpleLRU::free_memmory_for_node(const std::string &key, const std::string 
 }
 
 bool SimpleLRU::_PutIfAbsent(mapT::iterator it, const std::string &key, const std::string &value) {
-    // if size of new node is too big
-    if (_cur_size + key.size() + value.size() > _max_size) {
-        free_memmory_for_node(key, value);
-    }
-
     // create new node
     std::unique_ptr<lru_node> pnode(new lru_node);
     pnode->key = key;
@@ -52,11 +48,17 @@ bool SimpleLRU::_PutIfAbsent(mapT::iterator it, const std::string &key, const st
     // insert it in head
     if (_lru_head == nullptr) {
         _lru_head = std::move(pnode);
+//        _lru_tail = _lru_head.get();
     }
     else {
         pnode->next = std::move(_lru_head);
         (pnode->next)->prev = pnode.get();
         _lru_head = std::move(pnode);
+    }
+
+    // if size of new node is too big
+    if (_cur_size + key.size() + value.size() > _max_size) {
+        free_memmory_for_node(key, value);
     }
 
     _lru_index.insert(std::make_pair(std::ref(_lru_head->key), std::ref(*(_lru_head.get()))));

@@ -195,3 +195,16 @@ TEST(StorageTest, MaxTest) {
         EXPECT_FALSE(storage.Get(key, res));
     }
 }
+
+TEST(StorageTest, MyTest) {
+    const size_t length = 20;
+    SimpleLRU storage(2);
+
+    EXPECT_TRUE(storage.Put("K", "v"));
+    EXPECT_TRUE(storage.Put("M", "w"));
+    std::string value;
+
+    EXPECT_FALSE(storage.Get("K", value));
+    EXPECT_TRUE(storage.Get("M", value));
+    EXPECT_TRUE(value == "w");
+}
