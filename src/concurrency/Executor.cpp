@@ -81,8 +81,8 @@ void Executor::Stop(bool await) {
     {
         std::unique_lock<std::mutex> locker(mutex);
         state = Executor::State::kStopping;
-        empty_condition.notify_all();
     }
+    empty_condition.notify_all();
 
     {
         std::unique_lock<std::mutex> locker(mutex);
@@ -90,8 +90,8 @@ void Executor::Stop(bool await) {
             empty_condition.wait(locker);
         }
         state = Executor::State::kStopped;
-        empty_condition.notify_all();
     }
+    empty_condition.notify_all();
 
     {
         std::unique_lock<std::mutex> locker(mutex);

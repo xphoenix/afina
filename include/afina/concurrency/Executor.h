@@ -85,17 +85,6 @@ public:
     }
 
 private:
-    // // No copy/move/assign allowed
-    // Executor(const Executor &);            // = delete;
-    // Executor(Executor &&);                 // = delete;
-    // Executor &operator=(const Executor &); // = delete;
-    // Executor &operator=(Executor &&);      // = delete;
-    //
-    // /**
-    //  * Main function that all pool threads are running. It polls internal task queue and execute tasks
-    //  */
-    // friend void perform(Executor *executor);
-
     // Minimal number of threads in pool
     uint32_t _low_watermark;
 
