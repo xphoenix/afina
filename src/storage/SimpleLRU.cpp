@@ -9,32 +9,24 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value) {
         return false;
     }
     auto it = _lru_index.find(key);
-    if (it != _lru_index.end()){
+    if (it != _lru_index.end()) {
         return _Set(it, key, value);
-    }
-    else {
+    } else {
         return _PutIfAbsent(it, key, value);
     }
 }
 
 // delete nodes from tail until enough space
 // and refresh _cur_size
-void SimpleLRU::free_memmory_for_node(const std::string &key, const std::string &value){
-  lru_node *p = _lru_head.get();
-  if (p){
-      while (p->next){
-        p = p->next.get();
-      }
-//      p = _lru_tail;
-      while(p->prev && (_cur_size + key.size() + value.size() > _max_size)){
-//          std::string k = p->key;
-          size_t csz = p->key.size() + p->value.size();
-          _lru_index.erase(p->key);
-          p = p->prev;
-          p->next.reset();
-          _cur_size -= csz;
-      }
-  }
+void SimpleLRU::free_memmory_for_node(const std::string &key, const std::string &value) {
+    lru_node *p = _lru_tail;
+    while (p->prev && (_cur_size + key.size() + value.size() > _max_size)) {
+        size_t csz = p->key.size() + p->value.size();
+        _lru_index.erase(p->key);
+        p = p->prev;
+        _cur_size -= csz;
+    }
+    _lru_tail = p;
 }
 
 bool SimpleLRU::_PutIfAbsent(mapT::iterator it, const std::string &key, const std::string &value) {
@@ -44,9 +36,8 @@ bool SimpleLRU::_PutIfAbsent(mapT::iterator it, const std::string &key, const st
     // insert it in head
     if (_lru_head == nullptr) {
         _lru_head = std::move(pnode);
-//        _lru_tail = _lru_head.get();
-    }
-    else {
+        _lru_tail = _lru_head.get();
+    } else {
         pnode->next = std::move(_lru_head);
         (pnode->next)->prev = pnode.get();
         _lru_head = std::move(pnode);
@@ -65,7 +56,7 @@ bool SimpleLRU::_PutIfAbsent(mapT::iterator it, const std::string &key, const st
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
     auto it = _lru_index.find(key);
-    if (it != _lru_index.end()){
+    if (it != _lru_index.end()) {
         return false;
     }
     if (key.size() + value.size() > _max_size) {
@@ -79,7 +70,7 @@ bool SimpleLRU::_Set(mapT::iterator it, const std::string &key, const std::strin
     size_t new_size = key.size() + value.size();
     size_t old_size = it->second.get().key.size() + it->second.get().value.size();
 
-    if (it->second.get().prev){
+    if (it->second.get().prev) {
         // // move founded node to head
         // create new pnode
         std::unique_ptr<lru_node> pnode;
@@ -90,7 +81,7 @@ bool SimpleLRU::_Set(mapT::iterator it, const std::string &key, const std::strin
         _lru_head = std::move(it->second.get().prev->next);
 
         // prev.next to next & next.prev to
-        if (it->second.get().next){
+        if (it->second.get().next) {
             it->second.get().prev->next = std::move(it->second.get().next);
             it->second.get().prev->next->prev = it->second.get().prev; // 'delete' this branch for setting at last node
         } else {
@@ -137,16 +128,19 @@ bool SimpleLRU::Delete(const std::string &key) {
     // last, not first
     if (!it->second.get().next && it->second.get().prev) {
         it->second.get().prev->next = std::move(it->second.get().next);
-        _lru_index.erase(it);
-    }  // first, not last
+    } // first, not last
     else if (it->second.get().next && !it->second.get().prev) {
         std::unique_ptr<lru_node> pnode;
         pnode = std::move(_lru_head);
 
         _lru_head = std::move(it->second.get().next);
         _lru_head->prev = nullptr;
-        _lru_index.erase(it);
+    } // first == last
+    else {
+        _lru_head = nullptr;
+        _lru_tail = nullptr;
     }
+    _lru_index.erase(it);
 
     // refresh _cur_size
     _cur_size -= d_size;
