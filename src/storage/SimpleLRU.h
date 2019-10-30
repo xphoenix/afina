@@ -6,6 +6,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <utility>
 
 #include <afina/Storage.h>
 
@@ -56,10 +57,13 @@ public:
 private:
     // LRU cache node
     using lru_node = struct lru_node {
-        std::string key;
+        const std::string key;
         std::string value;
         lru_node *prev;
         std::unique_ptr<lru_node> next;
+
+        lru_node(const std::string &_key, std::string _value)
+            : key(_key), value(std::move(_value)), prev(nullptr), next(nullptr) {}
     };
 
     // Maximum number of bytes could be stored in this cache.
@@ -72,7 +76,7 @@ private:
     //
     // List owns all nodes
     std::unique_ptr<lru_node> _lru_head = nullptr;
-//    lru_node *_lru_tail = nullptr;
+    //    lru_node *_lru_tail = nullptr;
 
     // Index of nodes from list above, allows fast random access to elements by lru_node#key
     std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<std::string>>

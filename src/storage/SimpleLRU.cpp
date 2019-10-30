@@ -27,9 +27,9 @@ void SimpleLRU::free_memmory_for_node(const std::string &key, const std::string 
       }
 //      p = _lru_tail;
       while(p->prev && (_cur_size + key.size() + value.size() > _max_size)){
-          std::string k = p->key;
+//          std::string k = p->key;
           size_t csz = p->key.size() + p->value.size();
-          _lru_index.erase(k);
+          _lru_index.erase(p->key);
           p = p->prev;
           p->next.reset();
           _cur_size -= csz;
@@ -39,11 +39,7 @@ void SimpleLRU::free_memmory_for_node(const std::string &key, const std::string 
 
 bool SimpleLRU::_PutIfAbsent(mapT::iterator it, const std::string &key, const std::string &value) {
     // create new node
-    std::unique_ptr<lru_node> pnode(new lru_node);
-    pnode->key = key;
-    pnode->value = value;
-    pnode->next = nullptr;
-    pnode->prev = nullptr;
+    std::unique_ptr<lru_node> pnode(new lru_node(key, value));
 
     // insert it in head
     if (_lru_head == nullptr) {
@@ -113,7 +109,7 @@ bool SimpleLRU::_Set(mapT::iterator it, const std::string &key, const std::strin
     _lru_head->value = value;
 
     // update _cur_size
-    _cur_size += key.size() + value.size();
+    _cur_size += new_size - old_size;
     return true;
 }
 
