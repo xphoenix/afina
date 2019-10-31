@@ -23,12 +23,9 @@ public:
 
     ~SimpleLRU() {
         _lru_index.clear();
-        // _lru_head.reset(); // TODO: Here is stack overflow
-        lru_node *p = _lru_head.get();
+
+        lru_node *p = _lru_tail;
         if (p) {
-            while (p->next) {
-                p = p->next.get();
-            }
             while (p->prev) {
                 p = p->prev;
                 p->next.reset();

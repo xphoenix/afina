@@ -127,6 +127,7 @@ bool SimpleLRU::Delete(const std::string &key) {
 
     // last, not first
     if (!it->second.get().next && it->second.get().prev) {
+        _lru_tail = it->second.get().prev;
         it->second.get().prev->next = std::move(it->second.get().next);
     } // first, not last
     else if (it->second.get().next && !it->second.get().prev) {
