@@ -16,7 +16,9 @@ namespace Backend {
  * That is NOT thread safe implementaiton!!
  */
 class SimpleLRU : public Afina::Storage {
+    struct lru_node;
 public:
+
     SimpleLRU(size_t max_size = 1024) : _max_size(max_size), _free_size(max_size) {}
 
     ~SimpleLRU() {
@@ -45,7 +47,11 @@ public:
 
     // Implements Afina::Storage interface
     bool Get(const std::string &key, std::string &value) override;
+private:
 
+    void ChangeTheNode(lru_node& node, const std::string &value);
+    void PopBack();
+    void InsertToHead(lru_node* node);
 private:
     // LRU cache node
     using lru_node = struct lru_node {
@@ -72,9 +78,7 @@ private:
     // Index of nodes from list above, allows fast random access to elements by lru_node#key
     std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<std::string>> _lru_index;
 
-    void ChangeTheNode(lru_node& node, const std::string &value);
-    void PopBack();
-    void InsertToHead(lru_node* node);
+
 };
 
 } // namespace Backend

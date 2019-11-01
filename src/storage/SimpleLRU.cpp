@@ -6,15 +6,17 @@ namespace Backend {
 
 void SimpleLRU::ChangeTheNode(lru_node& node, const std::string &value) {
 
-    _free_size += node.key.size() + node.value.size();
-    node.value = value;
-
     if (node.prev == nullptr) {
-        _lru_head.swap(node.next);
-        node.next.release();
-        InsertToHead(&node);
+        _free_size += node.value.size() - value.size();
+        node.value = value;
+        while (_free_size < 0) {
+            PopBack();
+        }
+
         return;
     }
+    _free_size += node.key.size() + node.value.size();
+    node.value = value;
 
     if (node.next == nullptr) {
         _lru_tail = node.prev;
@@ -33,15 +35,23 @@ void SimpleLRU::ChangeTheNode(lru_node& node, const std::string &value) {
 }
 
 void SimpleLRU::PopBack() {
+    _free_size += _lru_tail->key.size() + _lru_tail->value.size();
+    if (_lru_tail == _lru_head.get()) {
+        _lru_index.erase(_lru_tail->key);
+        _lru_head.reset();
+        _lru_tail = nullptr;
 
+        return;
+    }
     _lru_index.erase(_lru_tail->key);
     _lru_tail = _lru_tail->prev;
     _lru_tail->next.reset();
-    _free_size += _lru_tail->key.size() + _lru_tail->value.size();
+
 
 }
 
 void SimpleLRU::InsertToHead(lru_node* node) {
+
 
     while (_free_size < (node->key.size() + node->value.size())) {
         PopBack();
@@ -54,10 +64,14 @@ void SimpleLRU::InsertToHead(lru_node* node) {
         node->prev = nullptr;
         node->next.reset(old_head);
     } else {
+
         _lru_tail = node;
+        node->prev = nullptr;
+        node->next = nullptr;
     }
 
     _lru_head.reset(node);
+
 
 
 }
