@@ -5,9 +5,9 @@
 #include <thread>
 
 #include <afina/network/Server.h>
+#include <condition_variable>
 #include <map>
 #include <mutex>
-#include <condition_variable>
 
 namespace spdlog {
 class logger;
@@ -63,7 +63,6 @@ private:
     std::condition_variable cond_var;
 
     void handle_client(int client_socket);
-
 };
 
 } // namespace MTblocking

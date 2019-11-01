@@ -92,7 +92,7 @@ void ServerImpl::Stop() {
 void ServerImpl::Join() {
     {
         std::unique_lock<std::mutex> lock(mutex_map);
-        while (!_client_workers.empty()){
+        while (!_client_workers.empty()) {
             cond_var.wait(lock);
         }
     }
@@ -273,10 +273,10 @@ void ServerImpl::handle_client(int client_socket) {
         std::lock_guard<std::mutex> lg(mutex_map);
         auto it = _client_workers.find(std::this_thread::get_id());
         if (it != _client_workers.end()) {
-//            it->second.detach();
+            //            it->second.detach();
             _client_workers.erase(it);
         }
-        if (_client_workers.empty()){
+        if (_client_workers.empty()) {
             cond_var.notify_all();
         }
     }
