@@ -95,6 +95,14 @@ void ServerImpl::Join() {
 
 // See Server.h
 void ServerImpl::OnRun() {
+    // т.к. нам не сказано сколько потоков выполняет OnRun(),
+    // но мы должны дождаться пока все они закончат свое выполнение в Join(),
+    // решено добавить в map информацию о том, сколько живых OnRun()
+    {
+        int client_socket = -1;
+        std::lock_guard<std::mutex> lg(mutex_map);
+        _client_workers.emplace(std::this_thread::get_id(), client_socket);
+    }
     // Here is connection state
     // - parser: parse state of the stream
     // - command_to_execute: last command parsed out of stream
@@ -140,15 +148,27 @@ void ServerImpl::OnRun() {
         {
             std::lock_guard<std::mutex> lg(mutex_map);
             if (_client_workers.size() < max_workers) {
-                _client_workers.emplace(client_socket, std::thread(&ServerImpl::handle_client, this, client_socket));
+                auto new_thread = std::thread(&ServerImpl::handle_client, this, client_socket);
+                _client_workers.emplace(new_thread.get_id(), client_socket);
+                new_thread.detach();
             } else {
                 static const std::string msg = "Limit_of_workers_exceeded!\n";
                 if (send(client_socket, msg.data(), msg.size(), 0) <= 0) {
                     _logger->error("Failed to write response to client: {}", strerror(errno));
                 }
-//                sleep(0.01); // иначе сокет закроется быстрее, чем мы увидим сообщение
                 close(client_socket);
             }
+        }
+    }
+    // we are done with this OnRun()
+    {
+        std::lock_guard<std::mutex> lg(mutex_map);
+        auto it = _client_workers.find(std::this_thread::get_id());
+        if (it != _client_workers.end()) {
+            _client_workers.erase(it);
+        }
+        if (_client_workers.empty()) {
+            cond_var.notify_all();
         }
     }
 }
@@ -243,9 +263,9 @@ void ServerImpl::handle_client(int client_socket) {
     // We are done with this connection
     {
         std::lock_guard<std::mutex> lg(mutex_map);
-        auto it = _client_workers.find(client_socket);
+        auto it = _client_workers.find(std::this_thread::get_id());
         if (it != _client_workers.end()) {
-            it->second.detach();
+//            it->second.detach();
             _client_workers.erase(it);
         }
         if (_client_workers.empty()){

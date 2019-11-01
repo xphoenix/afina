@@ -59,7 +59,7 @@ private:
     const int max_workers = 3;
 
     std::mutex mutex_map;
-    std::map<int, std::thread> _client_workers;
+    std::map<std::thread::id, int> _client_workers;
     std::condition_variable cond_var;
 
     void handle_client(int client_socket);
