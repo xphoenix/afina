@@ -47,68 +47,69 @@ void Connection::OnClose() {
 
 // See Connection.h
 void Connection::DoRead() {
+  // std::cout << _socket << std::endl;
     try {
         int readed_bytes = -1;
         char client_buffer[4096];
         while((readed_bytes = read(_socket, client_buffer, sizeof(client_buffer))) > 0){
-            if(readed_bytes > 0){
-                // _logger->debug("Got {} bytes from socket", readed_bytes);
-                while (readed_bytes > 0) {
-                    // _logger->debug("Process {} bytes", readed_bytes);
-                    // There is no command yet
-                    if (!_command_to_execute) {
-                        std::size_t parsed = 0;
-                        if (_parser.Parse(client_buffer, readed_bytes, parsed)) {
-                            // There is no command to be launched, continue to parse input stream
-                            // Here we are, current chunk finished some command, process it
-                            // _logger->debug("Found new command: {} in {} bytes", _parser.Name(), parsed);
-                            _command_to_execute = _parser.Build(_arg_remains);
-                            if (_arg_remains > 0) {
-                                _arg_remains += 2;
-                            }
-                        }
-
-                        // Parsed might fails to consume any bytes from input stream. In real life that could happens,
-                        // for example, because we are working with UTF-16 chars and only 1 byte left in stream
-                        if (parsed == 0) {
-                            break;
-                        } else {
-                            std::memmove(client_buffer, client_buffer + parsed, readed_bytes - parsed);
-                            readed_bytes -= parsed;
+        // if((readed_bytes = read(_socket, client_buffer, sizeof(client_buffer))) > 0){
+            // _logger->debug("Got {} bytes from socket", readed_bytes);
+            while (readed_bytes > 0) {
+                // _logger->debug("Process {} bytes", readed_bystes);
+                // There is no command yet
+                if (!_command_to_execute) {
+                    std::size_t parsed = 0;
+                    if (_parser.Parse(client_buffer, readed_bytes, parsed)) {
+                        // There is no command to be launched, continue to parse input stream
+                        // Here we are, current chunk finished some command, process it
+                        // _logger->debug("Found new command: {} in {} bytes", _parser.Name(), parsed);
+                        _command_to_execute = _parser.Build(_arg_remains);
+                        if (_arg_remains > 0) {
+                            _arg_remains += 2;
                         }
                     }
 
-                    // There is command, but we still wait for argument to arrive...
-                    if (_command_to_execute && _arg_remains > 0) {
-                        // _logger->debug("Fill argument: {} bytes of {}", readed_bytes, _arg_remains);
-                        // There is some parsed command, and now we are reading argument
-                        std::size_t to_read = std::min(_arg_remains, std::size_t(readed_bytes));
-                        _argument_for_command.append(client_buffer, to_read);
-
-                        std::memmove(client_buffer, client_buffer + to_read, readed_bytes - to_read);
-                        _arg_remains -= to_read;
-                        readed_bytes -= to_read;
+                    // Parsed might fails to consume any bytes from input stream. In real life that could happens,
+                    // for example, because we are working with UTF-16 chars and only 1 byte left in stream
+                    if (parsed == 0) {
+                        break;
+                    } else {
+                        std::memmove(client_buffer, client_buffer + parsed, readed_bytes - parsed);
+                        readed_bytes -= parsed;
                     }
+                }
 
-                    // Thre is command & argument - RUN!
-                    if (_command_to_execute && _arg_remains == 0) {
-                        // _logger->debug("Start command execution");
+                // There is command, but we still wait for argument to arrive...
+                if (_command_to_execute && _arg_remains > 0) {
+                    // _logger->debug("Fill argument: {} bytes of {}", readed_bytes, _arg_remains);
+                    // There is some parsed command, and now we are reading argument
+                    std::size_t to_read = std::min(_arg_remains, std::size_t(readed_bytes));
+                    _argument_for_command.append(client_buffer, to_read);
 
-                        std::string result;
-                        _command_to_execute->Execute(*_ps, _argument_for_command, result);
+                    std::memmove(client_buffer, client_buffer + to_read, readed_bytes - to_read);
+                    _arg_remains -= to_read;
+                    readed_bytes -= to_read;
+                }
 
-                        // Send response
-                        result += "\r\n";
-                        _answers.push_back(result);
+                // Thre is command & argument - RUN!
+                if (_command_to_execute && _arg_remains == 0) {
+                    // _logger->debug("Start command execution");
 
-                        // Prepare for the next command
-                        _command_to_execute.reset();
-                        _argument_for_command.resize(0);
-                        _parser.Reset();
-                    }
-                } // while (readed_bytes)
-            }
+                    std::string result;
+                    _command_to_execute->Execute(*_ps, _argument_for_command, result);
+
+                    // Send response
+                    result += "\r\n";
+                    _answers.push_back(result);
+
+                    // Prepare for the next command
+                    _command_to_execute.reset();
+                    _argument_for_command.resize(0);
+                    _parser.Reset();
+                }
+            } // while (readed_bytes)
         }
+
         if (readed_bytes == 0) {
             // _logger->debug("Connection closed");
             OnClose();

@@ -220,7 +220,7 @@ void ServerImpl::OnNewConnection(int epoll_descr) {
             _logger->info("Accepted connection on descriptor {} (host={}, port={})\n", infd, hbuf, sbuf);
         }
 
-        // make_socket_non_blocking(infd);
+        make_socket_non_blocking(infd);
 
         // Register the new FD to be monitored by epoll.
         Connection *pc = new(std::nothrow) Connection(infd, pStorage);
