@@ -154,7 +154,6 @@ void ServerImpl::OnRun() {
                 _openned_socks.insert(client_socket);
                 std::thread new_worker = std::thread(&ServerImpl::OnWork, this, client_socket);
                 new_worker.join();
-                // new_worker.detach();
             } else {
                 _logger->warn("No free workers for client: {}\n", client_socket);
                 static const std::string msg = "No free workers, try later\n";
@@ -262,7 +261,7 @@ void ServerImpl::OnWork(int client_socket) {
     std::lock_guard<std::mutex> guard(_workers_mutex);
     _openned_socks.erase(client_socket);
     close(client_socket);
-    _workers_current -= 1;
+    _workers_current --;
     if (!_thread.joinable()){
         _thread.join();
     }
