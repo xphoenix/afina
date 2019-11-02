@@ -83,10 +83,6 @@ void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
 void ServerImpl::Stop() {
     std::lock_guard<std::mutex> guard(_workers_mutex);
     for (auto client_socket : _openned_socks) {
-        //static const std::string msg = "Sorry, the server is shutting down\n";
-        //if (send(client_socket, msg.data(), msg.size(), 0) <= 0) {
-        //    _logger->error("Failed to write response to client: {}", strerror(errno));
-        //}
         shutdown(client_socket, SHUT_RD);
     }
     _openned_socks.clear();
@@ -102,14 +98,10 @@ void ServerImpl::Join() {
     while (_workers_current != 0) {
         _close.wait(guard);
     }
-    // for (auto client_socket : _openned_socks) {
-    //    close(client_socket);
-    //}
     _openned_socks.clear();
 
     assert(_thread.joinable());
     _thread.join();
-    close(_server_socket);
 }
 
 // See Server.h
@@ -165,7 +157,7 @@ void ServerImpl::OnRun() {
             }
         }
     }
-
+    close(_server_socket);
     // Cleanup on exit...
     _logger->warn("Network stopped");
 }
@@ -262,12 +254,8 @@ void ServerImpl::OnWork(int client_socket) {
     _openned_socks.erase(client_socket);
     close(client_socket);
     _workers_current --;
-    if (!_thread.joinable()){
-        _thread.join();
-    }
     if (_workers_current == 0) {
         _close.notify_all();
-        //    _close.notify_one();
     }
 }
 
