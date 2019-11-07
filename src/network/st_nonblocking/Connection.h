@@ -2,18 +2,18 @@
 #define AFINA_NETWORK_ST_NONBLOCKING_CONNECTION_H
 
 #include <cstring>
-#include <string>
 #include <deque>
 #include <memory>
+#include <string>
 
-#include <sys/socket.h>
 #include <sys/epoll.h>
-#include <unistd.h>
+#include <sys/socket.h>
 #include <sys/uio.h>
+#include <unistd.h>
 
+#include "protocol/Parser.h"
 #include <afina/Storage.h>
 #include <afina/execute/Command.h>
-#include "protocol/Parser.h"
 
 namespace Afina {
 namespace Network {
@@ -26,9 +26,7 @@ public:
         _event.data.ptr = this;
     }
 
-    inline bool isAlive() const {
-        return _alive;
-    }
+    inline bool isAlive() const { return _alive; }
 
     void Start();
 

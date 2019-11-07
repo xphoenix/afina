@@ -25,34 +25,33 @@ void Connection::OnError() {
     _command_to_execute.reset();
     _argument_for_command.resize(0);
     _parser.Reset();
-    if(!_answers.empty()){
+    if (!_answers.empty()) {
         _answers.clear();
     }
 }
 
 // See Connection.h
 void Connection::OnClose() {
-    if(!_answers.empty()){
+    if (!_answers.empty()) {
         _event.events = EPOLLOUT;
         shutdown(_socket, SHUT_RD);
         _command_to_execute.reset();
         _argument_for_command.resize(0);
         _parser.Reset();
         _need_to_close = true;
-    }
-    else{
+    } else {
         OnError();
     }
 }
 
 // See Connection.h
 void Connection::DoRead() {
-  // std::cout << _socket << std::endl;
+    // std::cout << _socket << std::endl;
     try {
         int readed_bytes = -1;
         char client_buffer[4096];
-        while((readed_bytes = read(_socket, client_buffer, sizeof(client_buffer))) > 0){
-        // if((readed_bytes = read(_socket, client_buffer, sizeof(client_buffer))) > 0){
+        while ((readed_bytes = read(_socket, client_buffer, sizeof(client_buffer))) > 0) {
+            // if((readed_bytes = read(_socket, client_buffer, sizeof(client_buffer))) > 0){
             // _logger->debug("Got {} bytes from socket", readed_bytes);
             while (readed_bytes > 0) {
                 // _logger->debug("Process {} bytes", readed_bystes);
@@ -113,8 +112,7 @@ void Connection::DoRead() {
         if (readed_bytes == 0) {
             // _logger->debug("Connection closed");
             OnClose();
-        }
-        else {
+        } else {
             throw std::runtime_error(std::string(strerror(errno)));
         }
     } catch (std::runtime_error &ex) {
@@ -127,7 +125,7 @@ void Connection::DoRead() {
         OnClose();
     }
 
-    if(!_answers.empty()){
+    if (!_answers.empty()) {
         _event.events = EPOLLOUT;
     }
 }
@@ -136,38 +134,35 @@ void Connection::DoRead() {
 void Connection::DoWrite() {
     int size = _answers.size() > 64 ? 64 : _answers.size();
     iovec data_to_write[size];
-    for(int i = 0; i < size; i++){
-        data_to_write[i].iov_base = (void *)_answers[i].data();//[i][0];
+    for (int i = 0; i < size; i++) {
+        data_to_write[i].iov_base = (void *)_answers[i].data(); //[i][0];
         data_to_write[i].iov_len = _answers[i].size();
     }
-    if(_off_set != 0){
+    if (_off_set != 0) {
         data_to_write[0].iov_base = &_answers[0][_off_set];
         data_to_write[0].iov_len -= _off_set;
     }
 
     int count = writev(_socket, data_to_write, size);
 
-    if(count > 0){
+    if (count > 0) {
         _off_set = 0;
-        for (int i = 0; i < size && count > 0; i++){
+        for (int i = 0; i < size && count > 0; i++) {
             count -= data_to_write[i].iov_len;
-            if(count >= 0){
+            if (count >= 0) {
                 _answers.pop_front();
-            }
-            else{
+            } else {
                 _off_set = count + data_to_write[i].iov_len;
                 count = 0;
             }
         }
-    }
-    else if (count == -1 && errno != EINTR) {
+    } else if (count == -1 && errno != EINTR) {
         OnError();
     }
 
-    if(_answers.empty() && !_need_to_close){
+    if (_answers.empty() && !_need_to_close) {
         _event.events = EPOLLIN;
-    }
-    else if(_answers.empty() && _need_to_close){
+    } else if (_answers.empty() && _need_to_close) {
         OnClose();
     }
 }

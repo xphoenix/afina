@@ -140,7 +140,6 @@ void ServerImpl::OnRun() {
             }
 
             // That is some connection!
-_logger->debug("Connection *pc");
             Connection *pc = static_cast<Connection *>(current_event.data.ptr);
 
             auto old_mask = pc->_event.events;
@@ -152,18 +151,15 @@ _logger->debug("Connection *pc");
                 // Depends on what connection wants...
                 // if (current_event.events & EPOLLIN) {
                 if (pc->_event.events & EPOLLIN) {
-_logger->debug("pc->DoRead()");
                     pc->DoRead();
                 }
                 // if (current_event.events & EPOLLOUT) {
                 if (pc->_event.events & EPOLLOUT) {
-_logger->debug("pc->DoWrite()");
                     pc->DoWrite();
                 }
             }
 
             // Does it alive?
-_logger->debug("Does it alive?");
             if (!pc->isAlive()) {
                 if (epoll_ctl(epoll_descr, EPOLL_CTL_DEL, pc->_socket, &pc->_event)) {
                     _logger->error("Failed to delete connection from epoll");
@@ -223,7 +219,7 @@ void ServerImpl::OnNewConnection(int epoll_descr) {
         make_socket_non_blocking(infd);
 
         // Register the new FD to be monitored by epoll.
-        Connection *pc = new(std::nothrow) Connection(infd, pStorage);
+        Connection *pc = new (std::nothrow) Connection(infd, pStorage);
         if (pc == nullptr) {
             throw std::runtime_error("Failed to allocate connection");
         }
