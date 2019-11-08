@@ -26,6 +26,8 @@ public:
         _event.data.ptr = this;
     }
 
+    ~Connection() { OnError(); }
+
     inline bool isAlive() const { return _alive; }
 
     void Start();
