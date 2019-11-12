@@ -2,7 +2,10 @@
 #define AFINA_NETWORK_MT_BLOCKING_SERVER_H
 
 #include <atomic>
+#include <condition_variable>
+#include <mutex>
 #include <thread>
+#include <unordered_set>
 
 #include <afina/network/Server.h>
 
@@ -38,6 +41,12 @@ protected:
      */
     void OnRun();
 
+    // Process new connection:
+    // - read commands until socket alive
+    // - execute each command
+    // - send response
+    void ProcessConnection(int client_socket);
+
 private:
     // Logger instance
     std::shared_ptr<spdlog::logger> _logger;
@@ -50,8 +59,26 @@ private:
     // Server socket to accept connections on
     int _server_socket;
 
+    // Client sockets
+    std::unordered_set<int> _cl_sockets;
+
     // Thread to run network on
     std::thread _thread;
+
+    // Maximum number of connections
+    uint32_t _max_accept;
+
+    // Mutex for queue with closed connections threads' id
+    std::mutex _worker_mutex;
+
+    // Indicate that all workers are closed
+    std::condition_variable _cv;
+
+    // Indicate that workers can be joined
+    std::condition_variable _cv_join;
+
+    // Indicate that all existing connections are stopped
+    bool _connections_stopped;
 };
 
 } // namespace MTblocking
