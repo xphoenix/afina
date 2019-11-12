@@ -24,10 +24,11 @@ void perform(Executor *executor) {
             }
             if (executor->tasks.empty() && executor->state == Executor::State::kRun) {
                 continue;
-            } else if (executor->tasks.empty() && executor->state == Executor::State::kStopping) {
-                // executor->empty_condition.notify_all();
-                break;
-            } else if (executor->state == Executor::State::kStopped) {
+                // } else if (executor->tasks.empty() && executor->state == Executor::State::kStopping) {
+                //     // executor->empty_condition.notify_all();
+                //     break;
+            } else if ((executor->tasks.empty() && executor->state == Executor::State::kStopping) ||
+                       executor->state == Executor::State::kStopped) {
                 break;
             }
             task = executor->tasks.front();
