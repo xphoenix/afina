@@ -270,7 +270,7 @@ void ServerImpl::ProcessConnection(int client_socket) {
         if (it != _cl_sockets.end()) {
             _cl_sockets.erase(it);
         }
-        if (_cl_sockets.size() == 0) {
+        if ((_cl_sockets.size() == 0) && !running.load()) {
             _cv.notify_all();
         }
     }
