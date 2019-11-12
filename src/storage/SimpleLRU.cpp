@@ -67,7 +67,9 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value)
         put_size += key.size();
     }
     // if necessary will be free size in cache
-    DropNodes(put_size - out_size);
+    if((put_size - out_size) > 0){
+        DropNodes(put_size - out_size);
+    }
 
     _cur_size += put_size;
     _cur_size -= out_size;
@@ -122,7 +124,9 @@ bool SimpleLRU::Set(const std::string &key, const std::string &value)
     MoveNodeToHead(map_it->second.get());
     out_size = map_it->second.get().value.size();
     // if necessary will be free size in cache
-    DropNodes(put_size - out_size);
+    if((put_size - out_size) > 0){
+        DropNodes(put_size - out_size);
+    }
 
     _cur_size += put_size;
     _cur_size -= out_size;
