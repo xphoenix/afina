@@ -69,7 +69,7 @@ public:
         // Prepare "task"
         auto exec = std::bind(std::forward<F>(func), std::forward<Types>(args)...);
 
-        std::unique_lock<std::mutex> lock(this->mutex);
+        std::unique_lock<std::mutex> lock(this->_mutex);
         if ((state != State::kRun) || (tasks.size() >= _max_queue_size)) {
             return false;
         }
@@ -106,7 +106,7 @@ private:
     /**
      * Mutex to protect state below from concurrent modification
      */
-    std::mutex mutex;
+    std::mutex _mutex;
 
     /**
      * Conditional variable to await new data in case of empty queue
