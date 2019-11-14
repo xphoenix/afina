@@ -7,4 +7,4 @@
 # Result printed to stdout which in turn gets parsed by cquery. To use simple pass that
 # script path (relative to project root) as cquery compilationDatabaseCommand parameter
 
-compdb -p "$1/build" list
+compdb -p "./build" list
