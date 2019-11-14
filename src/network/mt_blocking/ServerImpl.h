@@ -5,6 +5,9 @@
 #include <thread>
 
 #include <afina/network/Server.h>
+#include <condition_variable>
+#include <map>
+#include <mutex>
 
 namespace spdlog {
 class logger;
@@ -52,6 +55,14 @@ private:
 
     // Thread to run network on
     std::thread _thread;
+
+    const int max_workers = 3;
+
+    std::mutex mutex_map;
+    std::map<std::thread::id, int> _client_workers;
+    std::condition_variable cond_var;
+
+    void handle_client(int client_socket);
 };
 
 } // namespace MTblocking
