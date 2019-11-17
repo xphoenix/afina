@@ -100,9 +100,6 @@ private:
     // Current number of awaiting threads for tasks
     uint32_t _free_threads;
 
-    // Current number of awaiting threads to be stopped
-    uint32_t _threads_to_stop;
-
     /**
      * Mutex to protect state below from concurrent modification
      */
@@ -113,10 +110,10 @@ private:
      */
     std::condition_variable empty_condition;
 
-    /**
-     * Conditional variable to await threads to be joined
-     */
-    std::condition_variable join_condition;
+    // /**
+    //  * Conditional variable to await all threads to be stopped
+    //  */
+    // std::condition_variable stop_condition;
 
     /**
      * Vector of actual threads that perorm execution

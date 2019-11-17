@@ -118,7 +118,8 @@ void ServerImpl::OnRun() {
         int client_socket;
         struct sockaddr client_addr;
         socklen_t client_addr_len = sizeof(client_addr);
-        if (!running.load() || ((client_socket = accept(_server_socket, (struct sockaddr *)&client_addr, &client_addr_len)) == -1)) {
+        if (!running.load() ||
+            ((client_socket = accept(_server_socket, (struct sockaddr *)&client_addr, &client_addr_len)) == -1)) {
             continue;
         }
 
