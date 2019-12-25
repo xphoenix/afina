@@ -68,17 +68,20 @@ private:
     // Maximum number of connections
     uint32_t _max_accept;
 
-    // Mutex for queue with closed connections threads' id
-    std::mutex _worker_mutex;
+    // Maximum number of threads
+    uint32_t _max_workers;
 
-    // Indicate that all workers are closed
-    std::condition_variable _cv;
+    // Minimum number of threads
+    uint32_t _min_workers;
+
+    // Time in milliseconds for thread to wait task
+    uint32_t _idle_time;
+
+    // Mutex for queue with closed connections threads' id
+    std::mutex _thread_pool_mutex;
 
     // Indicate that workers can be joined
     std::condition_variable _cv_join;
-
-    // Indicate that all existing connections are stopped
-    bool _connections_stopped;
 };
 
 } // namespace MTblocking

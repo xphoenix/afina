@@ -18,6 +18,7 @@
 #include <spdlog/logger.h>
 
 #include <afina/Storage.h>
+#include <afina/concurrency/Executor.h>
 #include <afina/execute/Command.h>
 #include <afina/logging/Service.h>
 
@@ -39,7 +40,10 @@ void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
     _logger->info("Start mt_blocking network service");
 
     _max_accept = n_accept;
-    _connections_stopped = false;
+    _max_workers = n_workers;
+    _min_workers = (n_workers / 2) > 1 ? n_workers / 2 : 2;
+    _idle_time = 5;
+
 
     sigset_t sig_mask;
     sigemptyset(&sig_mask);
@@ -83,7 +87,7 @@ void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
 void ServerImpl::Stop() {
     running.store(false);
     {
-        std::unique_lock<std::mutex> locker(_worker_mutex);
+        std::unique_lock<std::mutex> locker(_thread_pool_mutex);
         for (auto cl_socket : _cl_sockets) {
             shutdown(cl_socket, SHUT_RD);
         }
@@ -94,8 +98,8 @@ void ServerImpl::Stop() {
 // See Server.h
 void ServerImpl::Join() {
     {
-        std::unique_lock<std::mutex> locker(_worker_mutex);
-        while (!_connections_stopped) {
+        std::unique_lock<std::mutex> locker(_thread_pool_mutex);
+        while (_cl_sockets.size() != 0) {
             _cv_join.wait(locker);
         }
         if (_thread.joinable()) {
@@ -106,6 +110,8 @@ void ServerImpl::Join() {
 
 // See Server.h
 void ServerImpl::OnRun() {
+    Concurrency::Executor thread_pool(_min_workers, _max_workers, _max_accept, _idle_time);
+
     while (running.load()) {
         _logger->debug("waiting for connection...");
 
@@ -113,7 +119,8 @@ void ServerImpl::OnRun() {
         int client_socket;
         struct sockaddr client_addr;
         socklen_t client_addr_len = sizeof(client_addr);
-        if ((client_socket = accept(_server_socket, (struct sockaddr *)&client_addr, &client_addr_len)) == -1) {
+        if (!running.load() ||
+            ((client_socket = accept(_server_socket, (struct sockaddr *)&client_addr, &client_addr_len)) == -1)) {
             continue;
         }
 
@@ -146,23 +153,20 @@ void ServerImpl::OnRun() {
             tv.tv_usec = 0;
             setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
         }
+
+        if (!thread_pool.Execute(&ServerImpl::ProcessConnection, this, client_socket)) {
+            close(client_socket);
+        }
         {
-            std::unique_lock<std::mutex> locker(_worker_mutex);
+            std::unique_lock<std::mutex> locker(_thread_pool_mutex);
             _cl_sockets.insert(client_socket);
-            std::thread th(&ServerImpl::ProcessConnection, this, client_socket);
-            th.detach();
         }
     }
 
     // Cleanup on exit...
     _logger->warn("Network stopped");
-    {
-        std::unique_lock<std::mutex> locker(_worker_mutex);
-        while (_cl_sockets.size() > 0) {
-            _cv.wait(locker);
-        }
-        _connections_stopped = true;
-    }
+    bool await = true;
+    thread_pool.Stop(await);
     _cv_join.notify_all();
     close(_server_socket);
 }
@@ -263,15 +267,13 @@ void ServerImpl::ProcessConnection(int client_socket) {
             _logger->error("Failed to write response to client: {}", strerror(errno));
         }
     }
+
     // We are done with this connection
     {
-        std::unique_lock<std::mutex> locker(_worker_mutex);
+        std::unique_lock<std::mutex> locker(_thread_pool_mutex);
         auto it = _cl_sockets.find(client_socket);
         if (it != _cl_sockets.end()) {
             _cl_sockets.erase(it);
-        }
-        if ((_cl_sockets.size() == 0) && !running.load()) {
-            _cv.notify_all();
         }
     }
     close(client_socket);

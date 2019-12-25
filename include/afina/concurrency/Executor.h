@@ -6,16 +6,33 @@
 #include <memory>
 #include <mutex>
 #include <queue>
-#include <string>
+// #include <string>
 #include <thread>
 
 namespace Afina {
 namespace Concurrency {
 
+class Executor;
+
+void perform(Executor *executor);
+
 /**
  * # Thread pool
  */
 class Executor {
+private:
+    // No copy/move/assign allowed
+    Executor(const Executor &);            // = delete;
+    Executor(Executor &&);                 // = delete;
+    Executor &operator=(const Executor &); // = delete;
+    Executor &operator=(Executor &&);      // = delete;
+
+    /**
+     * Main function that all pool threads are running. It polls internal task queue and execute tasks
+     */
+    friend void perform(Executor *executor);
+
+public:
     enum class State {
         // Threadpool is fully operational, tasks could be added and get executed
         kRun,
@@ -28,7 +45,9 @@ class Executor {
         kStopped
     };
 
-    Executor(std::string name, int size);
+    // Executor(std::string name, int size);
+    Executor(uint32_t low_watermark, uint32_t hight_watermark, uint32_t max_queue_size, uint32_t idle_time);
+
     ~Executor();
 
     /**
@@ -50,9 +69,14 @@ class Executor {
         // Prepare "task"
         auto exec = std::bind(std::forward<F>(func), std::forward<Types>(args)...);
 
-        std::unique_lock<std::mutex> lock(this->mutex);
-        if (state != State::kRun) {
+        std::unique_lock<std::mutex> lock(this->_mutex);
+        if ((state != State::kRun) || (tasks.size() >= _max_queue_size)) {
             return false;
+        }
+        if ((_free_threads == 0) && (_threads_count < _hight_watermark)) {
+            std::thread(&perform, this).detach();
+            _threads_count++;
+            _free_threads++;
         }
 
         // Enqueue new task
@@ -62,21 +86,25 @@ class Executor {
     }
 
 private:
-    // No copy/move/assign allowed
-    Executor(const Executor &);            // = delete;
-    Executor(Executor &&);                 // = delete;
-    Executor &operator=(const Executor &); // = delete;
-    Executor &operator=(Executor &&);      // = delete;
+    // Minimal number of threads in pool
+    uint32_t _low_watermark;
 
-    /**
-     * Main function that all pool threads are running. It polls internal task queue and execute tasks
-     */
-    friend void perform(Executor *executor);
+    // Maximal number of threads in pool
+    uint32_t _hight_watermark;
+
+    // Maximal size of task queue
+    uint32_t _max_queue_size;
+
+    // Waiting time for new task for every thread
+    uint32_t _idle_time;
+
+    // Current number of awaiting threads for tasks
+    uint32_t _free_threads;
 
     /**
      * Mutex to protect state below from concurrent modification
      */
-    std::mutex mutex;
+    std::mutex _mutex;
 
     /**
      * Conditional variable to await new data in case of empty queue
@@ -84,9 +112,14 @@ private:
     std::condition_variable empty_condition;
 
     /**
-     * Vector of actual threads that perorm execution
+     * Conditional variable to await all threads to be stopped
      */
-    std::vector<std::thread> threads;
+    std::condition_variable stop_condition;
+
+    /**
+     * Number of actual threads that perorm execution
+     */
+    uint32_t _threads_count;
 
     /**
      * Task queue
