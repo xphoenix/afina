@@ -44,6 +44,7 @@ void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
     _min_workers = (n_workers / 2) > 1 ? n_workers / 2 : 2;
     _idle_time = 5;
 
+
     sigset_t sig_mask;
     sigemptyset(&sig_mask);
     sigaddset(&sig_mask, SIGPIPE);
@@ -134,6 +135,15 @@ void ServerImpl::OnRun() {
                 port = sbuf;
             }
             _logger->debug("Accepted connection on descriptor {} (host={}, port={})\n", client_socket, host, port);
+        }
+
+        {
+            std::unique_lock<std::mutex> locker(_worker_mutex);
+            if (_cl_sockets.size() >= _max_accept) {
+                _logger->debug("Connection limit exceeded");
+                close(client_socket);
+                continue;
+            }
         }
 
         // Configure read timeout
