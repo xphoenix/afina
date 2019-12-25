@@ -11,7 +11,9 @@ void Engine::Store(context &ctx) {}
 
 void Engine::Restore(context &ctx) {}
 
-void Engine::yield() {}
+void Engine::yield() {
+    
+}
 
 void Engine::sched(void *routine_) {}
 

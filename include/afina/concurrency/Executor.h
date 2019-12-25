@@ -73,8 +73,9 @@ public:
         if ((state != State::kRun) || (tasks.size() >= _max_queue_size)) {
             return false;
         }
-        if ((_free_threads == 0) && (threads.size() < _hight_watermark)) {
-            threads.emplace_back(&perform, this);
+        if ((_free_threads == 0) && (_threads_count < _hight_watermark)) {
+            std::thread(&perform, this).detach();
+            _threads_count++;
             _free_threads++;
         }
 
@@ -100,9 +101,6 @@ private:
     // Current number of awaiting threads for tasks
     uint32_t _free_threads;
 
-    // Current number of awaiting threads to be stopped
-    uint32_t _threads_to_stop;
-
     /**
      * Mutex to protect state below from concurrent modification
      */
@@ -114,14 +112,14 @@ private:
     std::condition_variable empty_condition;
 
     /**
-     * Conditional variable to await threads to be joined
+     * Conditional variable to await all threads to be stopped
      */
-    std::condition_variable join_condition;
+    std::condition_variable stop_condition;
 
     /**
-     * Vector of actual threads that perorm execution
+     * Number of actual threads that perorm execution
      */
-    std::vector<std::thread> threads;
+    uint32_t _threads_count;
 
     /**
      * Task queue
