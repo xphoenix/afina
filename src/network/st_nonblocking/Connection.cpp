@@ -1,5 +1,5 @@
 #include "Connection.h"
-
+#include <cassert>
 #include <iostream>
 
 namespace Afina {
@@ -16,22 +16,23 @@ void Connection::Start() {
     _argument_for_command = "";
     _command_to_execute = nullptr;
     _off_set = 0;
+    readed_bytes = 0;
 }
 
 // See Connection.h
 void Connection::OnError() {
+    std::cout << "void Connection::OnError()" << std::endl;
     _alive = false;
     shutdown(_socket, SHUT_RDWR);
     _command_to_execute.reset();
     _argument_for_command.resize(0);
     _parser.Reset();
-    if (!_answers.empty()) {
-        _answers.clear();
-    }
+    _answers.clear();
 }
 
 // See Connection.h
 void Connection::OnClose() {
+    std::cout << "void Connection::OnClose()" << std::endl;
     if (!_answers.empty()) {
         _event.events = EPOLLOUT;
         shutdown(_socket, SHUT_RD);
@@ -46,12 +47,12 @@ void Connection::OnClose() {
 
 // See Connection.h
 void Connection::DoRead() {
+    bool got_smth_to_write = false;
     // std::cout << _socket << std::endl;
     try {
-        int readed_bytes = -1;
-        char client_buffer[4096];
-        while ((readed_bytes = read(_socket, client_buffer, sizeof(client_buffer))) > 0) {
-            // if((readed_bytes = read(_socket, client_buffer, sizeof(client_buffer))) > 0){
+        int cur_readed_bytes = -1;
+        while ((cur_readed_bytes = read(_socket, client_buffer + readed_bytes, sizeof(client_buffer) - readed_bytes)) > 0) {
+            readed_bytes += cur_readed_bytes;
             // _logger->debug("Got {} bytes from socket", readed_bytes);
             while (readed_bytes > 0) {
                 // _logger->debug("Process {} bytes", readed_bystes);
@@ -99,6 +100,9 @@ void Connection::DoRead() {
 
                     // Send response
                     result += "\r\n";
+                    if (_answers.empty()){
+                        got_smth_to_write = true;
+                    }
                     _answers.push_back(result);
 
                     // Prepare for the next command
@@ -112,50 +116,51 @@ void Connection::DoRead() {
         if (readed_bytes == 0) {
             // _logger->debug("Connection closed");
             OnClose();
-        } else {
-            throw std::runtime_error(std::string(strerror(errno)));
         }
+        // else {
+            // throw std::runtime_error(std::string(strerror(errno)));
+        // }
     } catch (std::runtime_error &ex) {
         // _logger->error("Failed to process connection on descriptor {}: {}", _socket, ex.what());
         // SERVER_ERROR <описание>\r\n
         std::string msg = "SERVER_ERROR ";
         msg += ex.what();
         msg += "\r\n";
+        if (_answers.empty()){
+            got_smth_to_write = true;
+        }
         _answers.push_back(msg);
         OnClose();
     }
 
-    if (!_answers.empty()) {
+    if (got_smth_to_write) {
         _event.events = EPOLLOUT;
     }
 }
 
 // See Connection.h
 void Connection::DoWrite() {
-    int size = _answers.size() > 64 ? 64 : _answers.size();
+    assert(_answers.size() > 0);
+    std::size_t size = _answers.size() > 64 ? 64 : _answers.size();
     iovec data_to_write[size];
-    for (int i = 0; i < size; i++) {
+    for (std::size_t i = 0; i < size; i++) {
         data_to_write[i].iov_base = (void *)_answers[i].data(); //[i][0];
         data_to_write[i].iov_len = _answers[i].size();
     }
-    if (_off_set != 0) {
-        data_to_write[0].iov_base = &_answers[0][_off_set];
-        data_to_write[0].iov_len -= _off_set;
-    }
+    data_to_write[0].iov_base = &_answers[0][_off_set];
+    data_to_write[0].iov_len -= _off_set;
 
-    int count = writev(_socket, data_to_write, size);
+    std::size_t count = writev(_socket, data_to_write, size);
 
     if (count > 0) {
-        _off_set = 0;
-        for (int i = 0; i < size && count > 0; i++) {
-            count -= data_to_write[i].iov_len;
-            if (count >= 0) {
-                _answers.pop_front();
-            } else {
-                _off_set = count + data_to_write[i].iov_len;
-                count = 0;
-            }
+        std::size_t writed_bytes = _off_set + count;
+        auto it = _answers.begin();
+        while (((*it).size() <= writed_bytes) && (it != _answers.end())){
+            writed_bytes -= (*it).size();
+            it++;
         }
+        _off_set = writed_bytes;
+        _answers.erase(_answers.begin(), it);
     } else if (count == -1 && errno != EINTR) {
         OnError();
     }

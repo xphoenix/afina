@@ -51,12 +51,12 @@ private:
     Protocol::Parser _parser;
     std::string _argument_for_command;
     std::unique_ptr<Execute::Command> _command_to_execute;
-    //
-    // char client_buffer[4096];
-    // int readed_bytes;
+
+    char client_buffer[4096];
+    int readed_bytes;
 
     std::deque<std::string> _answers;
-    int _off_set;
+    std::size_t _off_set;
 };
 
 } // namespace STnonblock
