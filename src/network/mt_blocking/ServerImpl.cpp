@@ -138,7 +138,7 @@ void ServerImpl::OnRun() {
         }
 
         {
-            std::unique_lock<std::mutex> locker(_worker_mutex);
+            std::unique_lock<std::mutex> locker(_thread_pool_mutex);
             if (_cl_sockets.size() >= _max_accept) {
                 _logger->debug("Connection limit exceeded");
                 close(client_socket);
