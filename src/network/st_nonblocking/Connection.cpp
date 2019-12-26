@@ -51,7 +51,8 @@ void Connection::DoRead() {
     // std::cout << _socket << std::endl;
     try {
         int cur_readed_bytes = -1;
-        while ((cur_readed_bytes = read(_socket, client_buffer + readed_bytes, sizeof(client_buffer) - readed_bytes)) > 0) {
+        while ((cur_readed_bytes = read(_socket, client_buffer + readed_bytes, sizeof(client_buffer) - readed_bytes)) >
+               0) {
             readed_bytes += cur_readed_bytes;
             // _logger->debug("Got {} bytes from socket", readed_bytes);
             while (readed_bytes > 0) {
@@ -100,7 +101,7 @@ void Connection::DoRead() {
 
                     // Send response
                     result += "\r\n";
-                    if (_answers.empty()){
+                    if (_answers.empty()) {
                         got_smth_to_write = true;
                     }
                     _answers.push_back(result);
@@ -118,7 +119,7 @@ void Connection::DoRead() {
             OnClose();
         }
         // else {
-            // throw std::runtime_error(std::string(strerror(errno)));
+        // throw std::runtime_error(std::string(strerror(errno)));
         // }
     } catch (std::runtime_error &ex) {
         // _logger->error("Failed to process connection on descriptor {}: {}", _socket, ex.what());
@@ -126,7 +127,7 @@ void Connection::DoRead() {
         std::string msg = "SERVER_ERROR ";
         msg += ex.what();
         msg += "\r\n";
-        if (_answers.empty()){
+        if (_answers.empty()) {
             got_smth_to_write = true;
         }
         _answers.push_back(msg);
@@ -155,7 +156,7 @@ void Connection::DoWrite() {
     if (count > 0) {
         std::size_t writed_bytes = _off_set + count;
         auto it = _answers.begin();
-        while (((*it).size() <= writed_bytes) && (it != _answers.end())){
+        while (((*it).size() <= writed_bytes) && (it != _answers.end())) {
             writed_bytes -= (*it).size();
             it++;
         }
