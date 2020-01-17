@@ -41,6 +41,8 @@ protected:
 private:
     friend class ServerImpl;
 
+    static constexpr int ERR = EPOLLRDHUP | EPOLLERR | EPOLLHUP | EPOLLET;
+
     int _socket;
     struct epoll_event _event;
     bool _alive;
@@ -53,7 +55,7 @@ private:
     std::unique_ptr<Execute::Command> _command_to_execute;
 
     char client_buffer[4096];
-    int readed_bytes;
+    int _readed_bytes;
 
     std::deque<std::string> _answers;
     std::size_t _off_set;
