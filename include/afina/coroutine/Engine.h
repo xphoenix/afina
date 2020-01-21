@@ -73,7 +73,7 @@ protected:
     /**
      * Suspend current coroutine execution and execute given context
      */
-    // void Enter(context& ctx);
+    void Enter(context& ctx);
 
 public:
     Engine() : StackBottom(0), cur_routine(nullptr), alive(nullptr) {}
