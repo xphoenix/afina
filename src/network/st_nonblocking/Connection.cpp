@@ -48,18 +48,14 @@ void Connection::DoRead() {
         int readed_bytes_current = -1;
         while ((readed_bytes_current =
                     read(_socket, _client_buffer + _readed_bytes, sizeof(_client_buffer) - _readed_bytes)) > 0) {
-            //            _logger->debug("Got {} bytes from socket", _readed_bytes);
             _readed_bytes += readed_bytes_current;
             while (_readed_bytes > 0) {
-                //                _logger->debug("Process {} bytes", _readed_bytes);
                 // There is no command yet
                 if (!_command_to_execute) {
                     std::size_t parsed = 0;
                     if (_parser.Parse(_client_buffer, _readed_bytes, parsed)) {
                         // There is no command to be launched, continue to parse input stream
                         // Here we are, current chunk finished some command, process it
-                        //                        _logger->debug("Found new command: {} in {} bytes", _parser.Name(),
-                        //                        parsed);
                         _command_to_execute = _parser.Build(_arg_remains);
                         if (_arg_remains > 0) {
                             _arg_remains += 2;
@@ -78,7 +74,6 @@ void Connection::DoRead() {
 
                 // There is command, but we still wait for argument to arrive...
                 if (_command_to_execute && _arg_remains > 0) {
-                    //                    _logger->debug("Fill argument: {} bytes of {}", _readed_bytes, _arg_remains);
                     // There is some parsed command, and now we are reading argument
                     std::size_t to_read = std::min(_arg_remains, std::size_t(_readed_bytes));
                     _argument_for_command.append(_client_buffer, to_read);
@@ -88,15 +83,14 @@ void Connection::DoRead() {
                     _readed_bytes -= to_read;
                 }
 
-                // Thre is command & argument - RUN!
+                // There is command & argument - RUN!
                 if (_command_to_execute && _arg_remains == 0) {
-                    //                    _logger->debug("Start command execution");
-
                     std::string result;
                     _command_to_execute->Execute(*_pStorage, _argument_for_command, result);
 
                     // Send response
                     result += "\r\n";
+
                     _responses.push_back(result);
                     _event.events |= EVENT_WRITE;
 
@@ -108,16 +102,13 @@ void Connection::DoRead() {
             } // while (_readed_bytes)
         }
         if ((!_is_alive) || (_readed_bytes == 0)) {
-            // _logger->debug("Connection closed");
             _is_alive = false;
-            // CleanOnClose();
             _command_to_execute.reset();
             _argument_for_command.resize(0);
             _parser.Reset();
         }
 
     } catch (std::runtime_error &ex) {
-        //        _logger->error("Failed to process connection on descriptor {}: {}", _socket, ex.what());
         _command_to_execute.reset();
         _argument_for_command.resize(0);
         _parser.Reset();
