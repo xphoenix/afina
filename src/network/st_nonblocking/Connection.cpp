@@ -13,7 +13,7 @@ void Connection::Start() {
     _is_alive = true;
     _readed_bytes = 0;
     _command_to_execute = nullptr;
-    _parser = Protocol::Parser{};
+    _parser = Protocol::Parser();
     _argument_for_command = "";
     _responses.clear();
     _arg_remains = 0;
@@ -122,10 +122,10 @@ void Connection::DoWrite() {
     std::size_t resp_size = _responses.size() > 64 ? 64 : _responses.size();
     iovec resp_data[resp_size];
     auto iter = _responses.begin();
-    for (auto &&data : resp_data) {
+    for (auto i = 0; i < resp_size; i++) {
         if (iter != _responses.end()) {
-            data.iov_base = (void *)iter->data();
-            data.iov_len = iter->size();
+            resp_data[i].iov_base = (void *)iter->data();
+            resp_data[i].iov_len = iter->size();
             iter++;
         }
     }
