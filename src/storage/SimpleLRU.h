@@ -80,7 +80,8 @@ private:
 
     lru_node *add_node_to_tail(std::string key, std::string value);
     void delete_oldest_node();
-
+    void move_to_tail(std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>,
+            std::less<std::string>>::iterator &it);
 };
 
 } // namespace Backend

@@ -17,11 +17,14 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value) {
 	}
 
 	auto it = _lru_index.find(std::reference_wrapper<const std::string>(key));
-	lru_node *new_node = add_node_to_tail(key, value);
 
 	if (it != _lru_index.end()) {
-        _lru_index.at(std::reference_wrapper<const std::string>(new_node->key)) = std::reference_wrapper<lru_node>(*new_node);
+        _cur_size += value.size() - it->second.get().value.size();
+        it->second.get().value = value;
+        it->second.get().key = key;
+        move_to_tail(it);
 	} else {
+        lru_node *new_node = add_node_to_tail(key, value);
         _lru_index.insert({std::reference_wrapper<const std::string>(new_node->key),
                            std::reference_wrapper<lru_node>(*new_node)});
 	}
@@ -60,11 +63,12 @@ bool SimpleLRU::Set(const std::string &key, const std::string &value) {
         return false;
     }
     while (value.size() - it->second.get().value.size() + _cur_size > _max_size) {
-        delete_oldest_node(); // if elem with key deleted
+        delete_oldest_node(); // TODO if elem with key deleted
     }
-
-    lru_node *new_node = add_node_to_tail(key, value);
-    _lru_index.at(std::reference_wrapper<const std::string>(new_node->key)) = std::ref(*new_node);
+    _cur_size += value.size() - it->second.get().value.size();
+    it->second.get().value = value;
+    it->second.get().key = key;
+    move_to_tail(it);
     return true;
 }
 
@@ -75,11 +79,11 @@ bool SimpleLRU::Delete(const std::string &key) {
         return false;
     }
 
-    swap(it->second.get().prev->next, it->second.get().next);
-    std::swap(it->second.get().next->prev, it->second.get().prev);
-    //it->second.get().next = nullptr;
-    _lru_index.at(std::reference_wrapper<const std::string>(key));
+    lru_node &del_node = it->second.get();
     _lru_index.erase(key);
+    swap(del_node.prev->next, del_node.next);
+    del_node.next->prev = del_node.prev;
+    del_node.next = nullptr;
     return true;
 }
 
@@ -95,12 +99,9 @@ bool SimpleLRU::Get(const std::string &key, std::string &value) {
 
 SimpleLRU::lru_node *SimpleLRU::add_node_to_tail(std::string key, std::string value) {
     _cur_size += key.size() + value.size();
-    auto *new_node = new lru_node;
-    new_node->key = std::move(key);
-    new_node->value = std::move(value);
-    new_node->prev = _lru_tail->prev;
+    auto *new_node = new lru_node {std::move(key), std::move(value), _lru_tail->prev, nullptr};
     new_node->next = std::unique_ptr<lru_node>(new_node);
-    std::swap(new_node->next, new_node->prev->next);
+    std::swap(new_node->next, _lru_tail->prev->next);
     _lru_tail->prev = new_node;
     return new_node;
 }
@@ -116,6 +117,16 @@ void SimpleLRU::delete_oldest_node() {
     swap(_lru_head->next, old_node->next);
     old_node->next = nullptr;
 }
+
+void SimpleLRU::move_to_tail(
+        std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<std::string>>::iterator &it) {
+    it->second.get().next->prev = it->second.get().prev;
+    swap(it->second.get().prev->next, it->second.get().next);
+    it->second.get().prev = _lru_tail->prev;
+    swap(it->second.get().next, _lru_tail->prev->next);
+    _lru_tail->prev = &it->second.get();
+}
+
 
 } // namespace Backend
 } // namespace Afina
