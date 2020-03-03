@@ -19,8 +19,13 @@ namespace Backend {
 class SimpleLRU : public Afina::Storage {
 public:
     explicit SimpleLRU(size_t max_size = 1024) : _max_size(max_size), _cur_size(0) {
-        _lru_head = nullptr;
-        _lru_tail = nullptr;
+        // it's two additional nodes for more comfortable deleting
+        _lru_head = std::unique_ptr<lru_node>(new lru_node);
+        _lru_tail = new lru_node;
+        _lru_head->prev = nullptr;
+        _lru_head->next = std::unique_ptr<lru_node>(_lru_tail);
+        _lru_tail->prev = _lru_head.get();
+        _lru_tail->next = nullptr;
     }
 
     ~SimpleLRU() {
@@ -74,7 +79,7 @@ private:
     std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<std::string>> _lru_index;
 
     lru_node *add_node_to_tail(std::string key, std::string value);
-    void delete_node(lru_node &node);
+    void delete_oldest_node();
 
 };
 
