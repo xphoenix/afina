@@ -75,15 +75,16 @@ private:
     std::unique_ptr<lru_node> _lru_head;
     lru_node *const _lru_tail = new lru_node;
     // Index of nodes from list above, allows fast random access to elements by lru_node#key
-    std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<std::string>> _lru_index;
+    std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<std::string>>
+        _lru_index;
 
     lru_node *add_node_to_tail(std::string key, std::string value);
     void delete_oldest_node();
     void move_to_tail(std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>,
-            std::less<std::string>>::iterator &it);
+                               std::less<std::string>>::iterator &it);
     std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>,
-            std::less<std::string>>::iterator
-            put_if_absent(const std::string &key, const std::string &value);
+             std::less<std::string>>::iterator
+    put_if_absent(const std::string &key, const std::string &value);
 };
 
 } // namespace Backend
