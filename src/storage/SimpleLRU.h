@@ -21,7 +21,6 @@ public:
     explicit SimpleLRU(size_t max_size = 1024) : _max_size(max_size), _cur_size(0) {
         // it's two additional nodes for more comfortable deleting
         _lru_head = std::unique_ptr<lru_node>(new lru_node);
-        _lru_tail = new lru_node;
         _lru_head->prev = nullptr;
         _lru_head->next = std::unique_ptr<lru_node>(_lru_tail);
         _lru_tail->prev = _lru_head.get();
@@ -74,7 +73,7 @@ private:
     //
     // List owns all nodes
     std::unique_ptr<lru_node> _lru_head;
-    lru_node *_lru_tail;
+    lru_node *const _lru_tail = new lru_node;
     // Index of nodes from list above, allows fast random access to elements by lru_node#key
     std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<std::string>> _lru_index;
 
@@ -82,6 +81,9 @@ private:
     void delete_oldest_node();
     void move_to_tail(std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>,
             std::less<std::string>>::iterator &it);
+    std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>,
+            std::less<std::string>>::iterator
+            put_if_absent(const std::string &key, const std::string &value);
 };
 
 } // namespace Backend

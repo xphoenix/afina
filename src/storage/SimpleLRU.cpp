@@ -12,44 +12,29 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value) {
 		return false;
 	}
 
-	while (key.size() + value.size()  + _cur_size > _max_size) {
+	auto it =  put_if_absent(key, value);
+	if (it == _lru_index.end()) {
+	    return true;
+	}
+
+	while (value.size() - it->second.get().value.size()  + _cur_size > _max_size) {
         delete_oldest_node();
 	}
 
-	auto it = _lru_index.find(std::reference_wrapper<const std::string>(key));
-
-	if (it != _lru_index.end()) {
-        _cur_size += value.size() - it->second.get().value.size();
-        it->second.get().value = value;
-        it->second.get().key = key;
-        move_to_tail(it);
-	} else {
-        lru_node *new_node = add_node_to_tail(key, value);
-        _lru_index.insert({std::reference_wrapper<const std::string>(new_node->key),
-                           std::reference_wrapper<lru_node>(*new_node)});
-	}
+    _cur_size += value.size() - it->second.get().value.size();
+    it->second.get().value = value;
+    it->second.get().key = key;
+    move_to_tail(it);
 	return true;
 }
 
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
-    auto it = _lru_index.find(std::reference_wrapper<const std::string>(key));
-
-	if (it != _lru_index.end()) {
-        return false;
-    }
     if (key.size() + value.size() > _max_size) {
         return false;
     }
 
-    while (key.size() + value.size()  + _cur_size > _max_size) {
-        delete_oldest_node();
-    }
-
-    lru_node *new_node = add_node_to_tail(key, value);
-    _lru_index.insert({std::reference_wrapper<const std::string>(new_node->key),
-            std::reference_wrapper<lru_node>(*new_node)});
-    return true;
+    return put_if_absent(key, value) == _lru_index.end();
 }
 
 // See MapBasedGlobalLockImpl.h
@@ -125,6 +110,25 @@ void SimpleLRU::move_to_tail(
     it->second.get().prev = _lru_tail->prev;
     swap(it->second.get().next, _lru_tail->prev->next);
     _lru_tail->prev = &it->second.get();
+}
+
+std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<SimpleLRU::lru_node>,
+std::less<std::string>>::iterator
+SimpleLRU::put_if_absent(const std::string &key, const std::string &value) {
+    auto it = _lru_index.find(std::reference_wrapper<const std::string>(key));
+
+    if (it != _lru_index.end()) {
+        return it;
+    }
+
+    while (key.size() + value.size()  + _cur_size > _max_size) {
+        delete_oldest_node();
+    }
+
+    lru_node *new_node = add_node_to_tail(key, value);
+    _lru_index.emplace(std::reference_wrapper<const std::string>(new_node->key),
+                       std::reference_wrapper<lru_node>(*new_node));
+    return _lru_index.end();
 }
 
 
