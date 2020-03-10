@@ -5,6 +5,7 @@
 #include <thread>
 
 #include <afina/network/Server.h>
+#include <condition_variable>
 
 namespace spdlog {
 class logger;
@@ -43,7 +44,7 @@ private:
     std::shared_ptr<spdlog::logger> _logger;
 
     // Atomic flag to notify threads when it is time to stop. Note that
-    // flag must be atomic in order to safely publisj changes cross thread
+    // flag must be atomic in order to safely publish changes cross thread
     // bounds
     std::atomic<bool> running;
 
@@ -52,6 +53,14 @@ private:
 
     // Thread to run network on
     std::thread _thread;
+
+    std::atomic<int> cnt_workers;
+    const int max_workers = 5;
+
+    std::condition_variable check_current_workers;
+    std::mutex one_thread_stopped;
+
+    void worker(int socket);
 };
 
 } // namespace MTblocking
