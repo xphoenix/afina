@@ -94,6 +94,7 @@ bool SimpleLRU::Set(const std::string &key, const std::string &value) {
 		}
 	}
 	cur_node.value = value;
+	current_size += difference;
 	return true;
 }
 
