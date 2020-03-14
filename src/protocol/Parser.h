@@ -23,9 +23,9 @@ public:
     Parser() { Reset(); }
     /**
      * Push given string into parser input. Method returns true if it was a command parsed out
-     * from comulative input. In a such case method Build will return new command
+     * from cumulative input. In a such case method Build will return new command
      *
-     * @param input sttring to be added to the parsed input
+     * @param input string to be added to the parsed input
      * @param parsed output parameter tells how many bytes was consumed from the string
      * @return true if command has been parsed out
      */
@@ -33,7 +33,7 @@ public:
 
     /**
      * Push given string into parser input. Method returns true if it was a command parsed out
-     * from comulative input. In a such case method Build will return new command
+     * from cumulative input. In a such case method Build will return new command
      *
      * @param input string to be added to the parsed input
      * @param size number of bytes in the input buffer that could be read
@@ -43,7 +43,7 @@ public:
     bool Parse(const char *input, const size_t size, size_t &parsed);
 
     /**
-     * Builds new command from parsed input. In case if it wasn't enough input to prse command out
+     * Builds new command from parsed input. In case if it wasn't enough input to parse command out
      * method return nullptr
      */
     std::unique_ptr<Execute::Command> Build(size_t &body_size) const;
@@ -67,7 +67,7 @@ private:
     // Current parser state
     State state;
 
-    // vrious fields of the command
+    // various fields of the command
     std::string name;
     std::vector<std::string> keys;
 

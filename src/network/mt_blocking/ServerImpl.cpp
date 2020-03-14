@@ -102,16 +102,6 @@ void ServerImpl::Join() {
 
 // See Server.h
 void ServerImpl::OnRun() {
-    // Here is connection state
-    // - parser: parse state of the stream
-    // - command_to_execute: last command parsed out of stream
-    // - arg_remains: how many bytes to read from stream to get command argument
-    // - argument_for_command: buffer stores argument
-//    std::size_t arg_remains;
-//    Protocol::Parser parser;
-//    std::string argument_for_command;
-//    std::unique_ptr<Execute::Command> command_to_execute;
-
     cnt_workers = 0;
     while (running.load()) {
         _logger->debug("waiting for connection...");
@@ -145,7 +135,7 @@ void ServerImpl::OnRun() {
             setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
         }
 
-//        // TODO: Start new thread and process data from/to connection
+// TODO: Start new thread and process data from/to connection
 //        {
 //            static const std::string msg = "TODO: start new thread and process memcached protocol instead";
 //            if (send(client_socket, msg.data(), msg.size(), 0) <= 0) {
@@ -153,10 +143,14 @@ void ServerImpl::OnRun() {
 //            }
 //            close(client_socket);
 //        }
+
         if (cnt_workers < max_workers) {
             ++cnt_workers;
+            std::cout << cnt_workers << std::endl;
+            // running new worker
             std::thread(&ServerImpl::worker, this, client_socket).detach();
         }
+        // add new descriptor to the set
         {
             std::lock_guard<std::mutex> l1(set_is_blocked);
             client_descriptors.emplace(client_socket);
@@ -168,7 +162,6 @@ void ServerImpl::OnRun() {
 }
 
 void ServerImpl::worker(int client_socket) {
-
     // Here is connection state
     // - parser: parse state of the stream
     // - command_to_execute: last command parsed out of stream
@@ -184,21 +177,21 @@ void ServerImpl::worker(int client_socket) {
     // - execute each command
     // - send response
     try {
-        int readed_bytes = -1;
+        int read_bytes = -1;
         char client_buffer[4096];
-        while ((readed_bytes = read(client_socket, client_buffer, sizeof(client_buffer))) > 0) {
-            _logger->debug("Got {} bytes from socket", readed_bytes);
+        while ((read_bytes = read(client_socket, client_buffer, sizeof(client_buffer))) > 0) {
+            _logger->debug("Got {} bytes from socket", read_bytes);
 
-            // Single block of data readed from the socket could trigger inside actions a multiple times,
+            // Single block of data read from the socket could trigger inside actions a multiple times,
             // for example:
             // - read#0: [<command1 start>]
             // - read#1: [<command1 end> <argument> <command2> <argument for command 2> <command3> ... ]
-            while (readed_bytes > 0) {
-                _logger->debug("Process {} bytes", readed_bytes);
+            while (read_bytes > 0) {
+                _logger->debug("Process {} bytes", read_bytes);
                 // There is no command yet
                 if (!command_to_execute) {
                     std::size_t parsed = 0;
-                    if (parser.Parse(client_buffer, readed_bytes, parsed)) {
+                    if (parser.Parse(client_buffer, read_bytes, parsed)) {
                         // There is no command to be launched, continue to parse input stream
                         // Here we are, current chunk finished some command, process it
                         _logger->debug("Found new command: {} in {} bytes", parser.Name(), parsed);
@@ -213,24 +206,24 @@ void ServerImpl::worker(int client_socket) {
                     if (parsed == 0) {
                         break;
                     } else {
-                        std::memmove(client_buffer, client_buffer + parsed, readed_bytes - parsed);
-                        readed_bytes -= parsed;
+                        std::memmove(client_buffer, client_buffer + parsed, read_bytes - parsed);
+                        read_bytes -= parsed;
                     }
                 }
 
                 // There is command, but we still wait for argument to arrive...
                 if (command_to_execute && arg_remains > 0) {
-                    _logger->debug("Fill argument: {} bytes of {}", readed_bytes, arg_remains);
+                    _logger->debug("Fill argument: {} bytes of {}", read_bytes, arg_remains);
                     // There is some parsed command, and now we are reading argument
-                    std::size_t to_read = std::min(arg_remains, std::size_t(readed_bytes));
+                    std::size_t to_read = std::min(arg_remains, std::size_t(read_bytes));
                     argument_for_command.append(client_buffer, to_read);
 
-                    std::memmove(client_buffer, client_buffer + to_read, readed_bytes - to_read);
+                    std::memmove(client_buffer, client_buffer + to_read, read_bytes - to_read);
                     arg_remains -= to_read;
-                    readed_bytes -= to_read;
+                    read_bytes -= to_read;
                 }
 
-                // Thre is command & argument - RUN!
+                // There is command & argument - RUN!
                 if (command_to_execute && arg_remains == 0) {
                     _logger->debug("Start command execution");
 
@@ -248,10 +241,10 @@ void ServerImpl::worker(int client_socket) {
                     argument_for_command.resize(0);
                     parser.Reset();
                 }
-            } // while (readed_bytes)
+            } // while (read_bytes)
         }
 
-        if (readed_bytes == 0) {
+        if (read_bytes == 0) {
             _logger->debug("Connection closed");
         } else {
             throw std::runtime_error(std::string(strerror(errno)));
@@ -265,7 +258,7 @@ void ServerImpl::worker(int client_socket) {
 
     {
         std::lock_guard<std::mutex> l1(set_is_blocked);
-        client_descriptors.emplace(client_socket);
+        client_descriptors.erase(client_socket);
     }
 
     --cnt_workers;

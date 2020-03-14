@@ -23,7 +23,7 @@ public:
 
     /**
      * Starts network service. After method returns process should
-     * listen on the given interface/port pair to process  incomming
+     * listen on the given interface/port pair to process  incoming
      * data in workers number of threads
      */
     virtual void Start(uint16_t port, uint32_t acceptors = 1, uint32_t workers = 1) = 0;
@@ -46,7 +46,7 @@ public:
 
 protected:
     /**
-     * Instance of backing storeage on which current server should execute
+     * Instance of backing storage on which current server should execute
      * each command
      */
     std::shared_ptr<Afina::Storage> pStorage;
