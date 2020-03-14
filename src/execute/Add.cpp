@@ -2,6 +2,7 @@
 #include <afina/execute/Add.h>
 
 #include <iostream>
+#include <unistd.h>
 
 namespace Afina {
 namespace Execute {
@@ -11,6 +12,8 @@ namespace Execute {
 void Add::Execute(Storage &storage, const std::string &args, std::string &out) {
     std::cout << "Add(" << _key << ")" << args << std::endl;
     out = storage.PutIfAbsent(_key, args) ? "STORED" : "NOT_STORED";
+    sleep(30);
+
 }
 
 } // namespace Execute
