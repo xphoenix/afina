@@ -6,7 +6,8 @@
 #include <mutex>
 #include <string>
 
-#include <afina/Storage.h>
+// #include <afina/Storage.h>
+#include "../../include/afina/Storage.h"
 
 namespace Afina {
 namespace Backend {
@@ -20,6 +21,10 @@ public:
     SimpleLRU(size_t max_size = 1024) : _max_size(max_size) {}
 
     ~SimpleLRU() {
+        // Правильно ли я понял, что вот этот код мог бы быть и не нужен -
+        // вся память бы очистилась и сама?
+        // Но есть проблема, что слишком глубокая рекурсия деструкторов
+        // может случиться?
         _lru_index.clear();
         _lru_head.reset(); // TODO: Here is stack overflow
     }
@@ -42,10 +47,15 @@ public:
 private:
     // LRU cache node
     using lru_node = struct lru_node {
-        std::string key;
+        const std::string key;
         std::string value;
-        std::unique_ptr<lru_node> prev;
+
         std::unique_ptr<lru_node> next;
+
+        // Я не совсем понял, нормально ли так делать, ведь этим указателем
+        // уже владеет какой-то unique_ptr?
+        // Но если так писать не стоит, то как еще?
+        lru_node *prev;
     };
 
     // Maximum number of bytes could be stored in this cache.
@@ -59,7 +69,10 @@ private:
     std::unique_ptr<lru_node> _lru_head;
 
     // Index of nodes from list above, allows fast random access to elements by lru_node#key
-    std::map<std::reference_wrapper<std::string>, std::reference_wrapper<lru_node>, std::less<std::string>> _lru_index;
+    std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<std::string>> _lru_index;
+
+
+    void setHead(lru_node &node);
 };
 
 } // namespace Backend
