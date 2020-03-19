@@ -6,8 +6,8 @@
 #include <mutex>
 #include <string>
 
-// #include <afina/Storage.h>
-#include "../../include/afina/Storage.h"
+#include <afina/Storage.h>
+// #include "../../include/afina/Storage.h
 
 namespace Afina {
 namespace Backend {
@@ -18,7 +18,12 @@ namespace Backend {
  */
 class SimpleLRU : public Afina::Storage {
 public:
-    SimpleLRU(size_t max_size = 1024) : _max_size(max_size) {}
+    SimpleLRU(size_t max_size = 1024)
+        : _max_size(max_size)
+        , _remains(max_size)
+        , _lru_head(nullptr)
+        , _lru_tail(nullptr)
+    {}
 
     ~SimpleLRU() {
         // Правильно ли я понял, что вот этот код мог бы быть и не нужен -
@@ -26,7 +31,15 @@ public:
         // Но есть проблема, что слишком глубокая рекурсия деструкторов
         // может случиться?
         _lru_index.clear();
-        _lru_head.reset(); // TODO: Here is stack overflow
+
+        if (_lru_tail) {
+            _lru_tail = _lru_tail->prev;
+            while (_lru_tail) {
+                _lru_tail->next.reset();
+                _lru_tail = _lru_tail->prev;
+            }
+            _lru_head.reset();
+        }
     }
 
     // Implements Afina::Storage interface
@@ -51,28 +64,36 @@ private:
         std::string value;
 
         std::unique_ptr<lru_node> next;
-
-        // Я не совсем понял, нормально ли так делать, ведь этим указателем
-        // уже владеет какой-то unique_ptr?
-        // Но если так писать не стоит, то как еще?
         lru_node *prev;
+
+        lru_node(const std::string &k, const std::string &v)
+            : key(k)
+            , value(v)
+            , next(nullptr)
+            , prev(nullptr)
+        {}
     };
 
     // Maximum number of bytes could be stored in this cache.
     // i.e all (keys+values) must be less the _max_size
     std::size_t _max_size;
+    std::ptrdiff_t _remains;
 
     // Main storage of lru_nodes, elements in this list ordered descending by "freshness": in the head
     // element that wasn't used for longest time.
     //
     // List owns all nodes
     std::unique_ptr<lru_node> _lru_head;
+    lru_node *_lru_tail;
 
     // Index of nodes from list above, allows fast random access to elements by lru_node#key
     std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<std::string>> _lru_index;
 
 
+    void insertValue(const std::string &key, const std::string &value);
+    void resetValue(lru_node &node, const std::string &value);
     void setHead(lru_node &node);
+    void dropTail();
 };
 
 } // namespace Backend
