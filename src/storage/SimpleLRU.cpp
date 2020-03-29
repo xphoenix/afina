@@ -17,17 +17,15 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value) {
         return true;
     }
 
+    move_to_tail(it);
+
     while (value.size() - it->second.get().value.size() + _cur_size > _max_size) {
-        if (&it->second.get() == _lru_head->next.get()){
-            continue;
-        }
         delete_oldest_node();
     }
 
     _cur_size += value.size() - it->second.get().value.size();
     it->second.get().value = value;
     it->second.get().key = key;
-    move_to_tail(it);
     return true;
 }
 
@@ -50,16 +48,15 @@ bool SimpleLRU::Set(const std::string &key, const std::string &value) {
     if (key.size() + value.size() > _max_size) {
         return false;
     }
+
+    move_to_tail(it);
+
     while (value.size() - it->second.get().value.size() + _cur_size > _max_size) {
-        if (&it->second.get() == _lru_head->next.get()){
-            continue;
-        }
         delete_oldest_node();
     }
     _cur_size += value.size() - it->second.get().value.size();
     it->second.get().value = value;
     it->second.get().key = key;
-    move_to_tail(it);
     return true;
 }
 

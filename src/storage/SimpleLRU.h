@@ -73,7 +73,7 @@ private:
     //
     // List owns all nodes
     std::unique_ptr<lru_node> _lru_head;
-    lru_node *const _lru_tail = new lru_node;
+    lru_node *_lru_tail = new lru_node;
     // Index of nodes from list above, allows fast random access to elements by lru_node#key
     std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<std::string>>
         _lru_index;
