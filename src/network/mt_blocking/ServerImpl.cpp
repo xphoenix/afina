@@ -24,9 +24,6 @@
 
 #include "protocol/Parser.h"
 
-std::mutex set_is_blocked;
-std::set<int> client_descriptors;
-
 namespace Afina {
 namespace Network {
 namespace MTblocking {
@@ -133,15 +130,6 @@ void ServerImpl::OnRun() {
             tv.tv_usec = 0;
             setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
         }
-
-// TODO: Start new thread and process data from/to connection
-//        {
-//            static const std::string msg = "TODO: start new thread and process memcached protocol instead";
-//            if (send(client_socket, msg.data(), msg.size(), 0) <= 0) {
-//                _logger->error("Failed to write response to client: {}", strerror(errno));
-//            }
-//            close(client_socket);
-//        }
 
         if (cnt_workers < max_workers) {
             ++cnt_workers;

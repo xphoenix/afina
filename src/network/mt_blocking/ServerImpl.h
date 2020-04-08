@@ -61,6 +61,9 @@ private:
     std::mutex one_thread_stopped;
 
     void worker(int socket);
+
+    std::mutex set_is_blocked;
+    std::set<int> client_descriptors;
 };
 
 } // namespace MTblocking
