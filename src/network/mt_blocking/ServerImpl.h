@@ -3,7 +3,7 @@
 
 #include <atomic>
 #include <thread>
-
+#include <set>
 #include <afina/network/Server.h>
 #include <condition_variable>
 

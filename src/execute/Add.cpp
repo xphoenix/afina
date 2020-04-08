@@ -12,7 +12,7 @@ namespace Execute {
 void Add::Execute(Storage &storage, const std::string &args, std::string &out) {
     std::cout << "Add(" << _key << ")" << args << std::endl;
     out = storage.PutIfAbsent(_key, args) ? "STORED" : "NOT_STORED";
-    sleep(30);
+    //sleep(30);
 
 }
 

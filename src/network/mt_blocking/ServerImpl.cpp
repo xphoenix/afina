@@ -20,7 +20,6 @@
 #include <afina/Storage.h>
 #include <afina/execute/Command.h>
 #include <afina/logging/Service.h>
-#include <set>
 
 #include "protocol/Parser.h"
 
