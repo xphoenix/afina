@@ -2,10 +2,12 @@
 #define AFINA_COROUTINE_ENGINE_H
 
 #include <cstdint>
+#include <functional>
 #include <iostream>
 #include <map>
-#include <setjmp.h>
 #include <tuple>
+
+#include <setjmp.h>
 
 namespace Afina {
 namespace Coroutine {
@@ -15,6 +17,9 @@ namespace Coroutine {
  * Allows to run coroutine and schedule its execution. Not threadsafe
  */
 class Engine final {
+public:
+    using unblock_func = std::function<void(Engine &)>;
+
 private:
     /**
      * A single coroutine instance which could be scheduled for execution
@@ -55,9 +60,19 @@ private:
     context *alive;
 
     /**
+     * List of corountines that sleep and can't be executed
+     */
+    context *blocked;
+
+    /**
      * Context to be returned finally
      */
     context *idle_ctx;
+
+    /**
+     * Call when all coroutines are blocked
+     */
+    unblock_func _unblock;
 
 protected:
     /**
@@ -70,13 +85,11 @@ protected:
      */
     void Restore(context &ctx);
 
-    /**
-     * Suspend current coroutine execution and execute given context
-     */
-    // void Enter(context& ctx);
+    static void no_unblock(Engine &) {}
 
 public:
-    Engine() : StackBottom(0), cur_routine(nullptr), alive(nullptr) {}
+    Engine(unblock_func unblock = no_unblock)
+        : StackBottom(0), cur_routine(nullptr), alive(nullptr), _unblock(unblock) {}
     Engine(Engine &&) = delete;
     Engine(const Engine &) = delete;
 
@@ -100,6 +113,18 @@ public:
     void sched(void *routine);
 
     /**
+     * Put coroutine to sleep.
+     * If it was current corountine, then do yield to select new one to be run instead. If argument is nullptr
+     * then block current coroutine
+     */
+    void block(void *coro);
+
+    /**
+     * Put coroutine back to list of alive, so that it could be scheduled later
+     */
+    void unblock(void *coro);
+
+    /**
      * Entry point into the engine. Prepare all internal mechanics and starts given function which is
      * considered as main.
      *
@@ -116,9 +141,13 @@ public:
 
         // Start routine execution
         void *pc = run(main, std::forward<Ta>(args)...);
-        idle_ctx = new context();
 
+        idle_ctx = new context();
         if (setjmp(idle_ctx->Environment) > 0) {
+            if (alive == nullptr) {
+                _unblock(*this);
+            }
+
             // Here: correct finish of the coroutine section
             yield();
         } else if (pc != nullptr) {
