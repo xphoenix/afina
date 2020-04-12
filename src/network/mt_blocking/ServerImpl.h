@@ -58,7 +58,7 @@ private:
     const int max_workers = 5;
 
     std::condition_variable check_current_workers;
-    std::mutex one_thread_stopped;
+    std::mutex _thread_stopped;
 
     void worker(int socket);
 

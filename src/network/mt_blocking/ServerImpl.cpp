@@ -80,6 +80,7 @@ void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
 void ServerImpl::Stop() {
     running.store(false);
     shutdown(_server_socket, SHUT_RDWR);
+    std::unique_lock<std::mutex> lock(set_is_blocked);
     for (auto descriptor : client_descriptors) {
         shutdown(descriptor, SHUT_RD);
     }
@@ -91,13 +92,13 @@ void ServerImpl::Join() {
     _thread.join();
     close(_server_socket);
 
-    std::unique_lock<std::mutex> l(one_thread_stopped);
+    std::unique_lock<std::mutex> l(_thread_stopped);
     check_current_workers.wait(l, [this] { return this->cnt_workers == 0; });
 }
 
 // See Server.h
 void ServerImpl::OnRun() {
-    cnt_workers = 0;
+    cnt_workers.store(0);
     while (running.load()) {
         _logger->debug("waiting for connection...");
 
@@ -132,12 +133,12 @@ void ServerImpl::OnRun() {
 
         if (cnt_workers < max_workers) {
             ++cnt_workers;
-            std::cout << cnt_workers << std::endl;
+
+            std::lock_guard<std::mutex> l1(set_is_blocked);
             // running new worker
             std::thread(&ServerImpl::worker, this, client_socket).detach();
             // add new descriptor to the set
             {
-                std::lock_guard<std::mutex> l1(set_is_blocked);
                 client_descriptors.emplace(client_socket);
             }
         }
@@ -153,7 +154,7 @@ void ServerImpl::worker(int client_socket) {
     // - command_to_execute: last command parsed out of stream
     // - arg_remains: how many bytes to read from stream to get command argument
     // - argument_for_command: buffer stores argument
-    std::size_t arg_remains;
+    std::size_t arg_remains = 0;
     Protocol::Parser parser;
     std::string argument_for_command;
     std::unique_ptr<Execute::Command> command_to_execute;
@@ -240,16 +241,16 @@ void ServerImpl::worker(int client_socket) {
     }
 
     // We are done with this connection
-    close(client_socket);
 
     {
         std::lock_guard<std::mutex> l1(set_is_blocked);
+        close(client_socket);
         client_descriptors.erase(client_socket);
     }
 
     --cnt_workers;
     if (cnt_workers == 0) {
-        check_current_workers.notify_one();
+        check_current_workers.notify_all();
     }
 }
 
