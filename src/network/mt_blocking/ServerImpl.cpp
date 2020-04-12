@@ -72,16 +72,16 @@ void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
         throw std::runtime_error("Socket listen() failed");
     }
 
-    running.store(true);
+    _running.store(true);
     _thread = std::thread(&ServerImpl::OnRun, this);
 }
 
 // See Server.h
 void ServerImpl::Stop() {
-    running.store(false);
+    _running.store(false);
     shutdown(_server_socket, SHUT_RDWR);
-    std::unique_lock<std::mutex> lock(set_is_blocked);
-    for (auto descriptor : client_descriptors) {
+    std::unique_lock<std::mutex> lock(_set_is_blocked);
+    for (auto descriptor : _client_descriptors) {
         shutdown(descriptor, SHUT_RD);
     }
 }
@@ -93,13 +93,13 @@ void ServerImpl::Join() {
     close(_server_socket);
 
     std::unique_lock<std::mutex> l(_thread_stopped);
-    check_current_workers.wait(l, [this] { return this->cnt_workers == 0; });
+    check_current_workers.wait(l, [this] { return this->_cnt_workers == 0; });
 }
 
 // See Server.h
 void ServerImpl::OnRun() {
-    cnt_workers.store(0);
-    while (running.load()) {
+    _cnt_workers.store(0);
+    while (_running.load()) {
         _logger->debug("waiting for connection...");
 
         // The call to accept() blocks until the incoming connection arrives
@@ -131,15 +131,15 @@ void ServerImpl::OnRun() {
             setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
         }
 
-        if (cnt_workers < max_workers) {
-            ++cnt_workers;
+        if (_cnt_workers < _max_workers && _running.load()) {
+            ++_cnt_workers;
 
-            std::lock_guard<std::mutex> l1(set_is_blocked);
-            // running new worker
-            std::thread(&ServerImpl::worker, this, client_socket).detach();
-            // add new descriptor to the set
             {
-                client_descriptors.emplace(client_socket);
+                std::lock_guard<std::mutex> l1(_set_is_blocked);
+                // running new worker
+                std::thread(&ServerImpl::worker, this, client_socket).detach();
+                // add new descriptor to the set
+                _client_descriptors.emplace(client_socket);
             }
         }
     }
@@ -165,7 +165,7 @@ void ServerImpl::worker(int client_socket) {
     // - send response
     try {
         int read_bytes = -1;
-        char client_buffer[4096];
+        char client_buffer[4096] = "";
         while ((read_bytes = read(client_socket, client_buffer, sizeof(client_buffer))) > 0) {
             _logger->debug("Got {} bytes from socket", read_bytes);
 
@@ -243,14 +243,14 @@ void ServerImpl::worker(int client_socket) {
     // We are done with this connection
 
     {
-        std::lock_guard<std::mutex> l1(set_is_blocked);
+        std::lock_guard<std::mutex> l1(_set_is_blocked);
         close(client_socket);
-        client_descriptors.erase(client_socket);
+        _client_descriptors.erase(client_socket);
     }
 
-    --cnt_workers;
-    if (cnt_workers == 0) {
-        check_current_workers.notify_all();
+    --_cnt_workers;
+    if (_cnt_workers == 0) {
+        _check_current_workers.notify_all();
     }
 }
 
