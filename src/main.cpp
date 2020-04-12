@@ -39,7 +39,7 @@ public:
         console.color = true;
 
         Logging::Logger &logger = logConfig->loggers["root"];
-        logger.level = Logging::Logger::Level::WARNING;
+        logger.level = Logging::Logger::Level::DEBUG;
         logger.appenders.push_back("console");
         logger.format = "[%H:%M:%S %z] [thread %t] [%n] [%l] %v";
         logService.reset(new Logging::ServiceImpl(logConfig));
