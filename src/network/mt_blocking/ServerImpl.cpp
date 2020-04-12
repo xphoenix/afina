@@ -93,7 +93,7 @@ void ServerImpl::Join() {
     close(_server_socket);
 
     std::unique_lock<std::mutex> l(_thread_stopped);
-    check_current_workers.wait(l, [this] { return this->_cnt_workers == 0; });
+    _check_current_workers.wait(l, [this] { return this->_cnt_workers == 0; });
 }
 
 // See Server.h
