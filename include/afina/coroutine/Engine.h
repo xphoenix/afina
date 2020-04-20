@@ -107,8 +107,8 @@ public:
      * Suspend current routine and transfers control to the given one, resumes its execution from the point
      * when it has been suspended previously.
      *
-     * If routine to pass execution to is not specified runtime will try to transfer execution back to caller
-     * of the current routine, if there is no caller then this method has same semantics as yield
+     * If routine to pass execution to is not specified (nullptr) then method should behaves like yield. In case
+     * if passed routine is the current one method does nothing
      */
     void sched(void *routine);
 
