@@ -118,7 +118,7 @@ public:
      *
      * If argument is nullptr then block current coroutine
      */
-    void block(void *coro == nullptr);
+    void block(void *coro = nullptr);
 
     /**
      * Put coroutine back to list of alive, so that it could be scheduled later
