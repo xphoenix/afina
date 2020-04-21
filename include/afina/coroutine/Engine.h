@@ -18,7 +18,7 @@ namespace Coroutine {
  */
 class Engine final {
 public:
-    using unblock_func = std::function<void(Engine &)>;
+    using unblocker_func = std::function<void(Engine &)>;
 
 private:
     /**
@@ -72,7 +72,7 @@ private:
     /**
      * Call when all coroutines are blocked
      */
-    unblock_func _unblock;
+    unblocker_func _unblocker;
 
 protected:
     /**
@@ -85,11 +85,11 @@ protected:
      */
     void Restore(context &ctx);
 
-    static void no_unblock(Engine &) {}
+    static void null_unblocker(Engine &) {}
 
 public:
-    Engine(unblock_func unblock = no_unblock)
-        : StackBottom(0), cur_routine(nullptr), alive(nullptr), _unblock(unblock) {}
+    Engine(unblocker_func unblocker = null_unblocker)
+        : StackBottom(0), cur_routine(nullptr), alive(nullptr), _unblocker(unblock) {}
     Engine(Engine &&) = delete;
     Engine(const Engine &) = delete;
 
@@ -113,11 +113,12 @@ public:
     void sched(void *routine);
 
     /**
-     * Put coroutine to sleep.
-     * If it was current corountine, then do yield to select new one to be run instead. If argument is nullptr
-     * then block current coroutine
+     * Blocks current routine so that is can't be scheduled anymore
+     * If it was a currently running corountine, then do yield to select new one to be run instead.
+     *
+     * If argument is nullptr then block current coroutine
      */
-    void block(void *coro);
+    void block(void *coro == nullptr);
 
     /**
      * Put coroutine back to list of alive, so that it could be scheduled later
@@ -145,7 +146,7 @@ public:
         idle_ctx = new context();
         if (setjmp(idle_ctx->Environment) > 0) {
             if (alive == nullptr) {
-                _unblock(*this);
+                _unblocker(*this);
             }
 
             // Here: correct finish of the coroutine section
