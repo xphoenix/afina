@@ -7,6 +7,10 @@ set(SOURCE_FILES
     st_nonblocking/Connection.cpp
     st_nonblocking/Utils.cpp
 
+    st_coroutine/ServerImpl.cpp
+    st_coroutine/Connection.cpp
+    st_coroutine/Utils.cpp
+
     mt_nonblocking/ServerImpl.cpp
     mt_nonblocking/Connection.cpp
     mt_nonblocking/Worker.cpp
@@ -14,4 +18,4 @@ set(SOURCE_FILES
 )
 
 add_library(Network ${SOURCE_FILES})
-target_link_libraries(Network pthread Logging Protocol Execute ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(Network pthread Logging Protocol Execute Coroutine ${CMAKE_THREAD_LIBS_INIT})
