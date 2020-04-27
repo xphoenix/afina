@@ -8,8 +8,7 @@ namespace Coroutine {
 
 void Engine::Store(context &ctx) {
     char storeBeginAddress;
-    ctx.Low = ctx.Hight = StackBottom;
-
+    ctx.Hight = ctx.Low = StackBottom;
     // this condition used for different architectures,
     // where stack low addresses can be greater than high addresses
     if (&storeBeginAddress > StackBottom) {
@@ -17,28 +16,20 @@ void Engine::Store(context &ctx) {
     } else {
         ctx.Low = &storeBeginAddress;
     }
-
-    std::cout << "Store func here, ctx.Low = " << std::hex <<  (long) ctx.Low
-              << " ctx.Higth = " << std::hex << (long) ctx.Hight << std::endl;
-
     auto stackSize = ctx.Hight - ctx.Low;
-    char *&buffer = std::get<0>(ctx.Stack);
-    uint32_t &prevSize = std::get<1>(ctx.Stack);
-
     // we should allocate memory for new stack copy if it was't allocated yet
     // or current stack size isn't big enough or current stack size is too big
-    if (stackSize > prevSize || stackSize * 2 < prevSize) {
-        delete[] buffer;
-        buffer = new char[stackSize];
-        prevSize = stackSize;
+    if (stackSize > std::get<1>(ctx.Stack) || stackSize * 2 < std::get<1>(ctx.Stack)) {
+        delete[] std::get<0>(ctx.Stack);
+        std::get<0>(ctx.Stack) = new char[stackSize];
+        std::get<1>(ctx.Stack) = stackSize;
     }
-    std::cout << "buf address = " << std::hex << (long) buffer << std::endl;
-    memcpy(buffer, ctx.Low, stackSize);
+    memcpy(std::get<0>(ctx.Stack), ctx.Low, stackSize);
 }
 
 void Engine::Restore(context &ctx) {
     char restoreBeginAddress;
-
+    // used for saving stack of restored coroutine
     while (&restoreBeginAddress <= ctx.Hight && &restoreBeginAddress >= ctx.Low) {
         Restore(ctx);
     }
@@ -50,22 +41,20 @@ void Engine::Restore(context &ctx) {
 }
 
 void Engine::yield() {
-    // we have no alive coroutines or we have only one alive coroutine
-    if (alive == nullptr || alive->next == nullptr) return;
-
-    // run the next alive routine
+    // we have no alive coroutines or we have only one alive coroutine, that is current
+    if (alive == nullptr || (cur_routine == alive && alive->next == nullptr)) return;
+    // choose the next coroutine
     context *nextCoro;
     if (cur_routine == alive) {
         nextCoro = alive->next;
     } else {
         nextCoro = alive;
     }
-
+    // run the next alive coroutine
     if (cur_routine != nullptr && cur_routine != idle_ctx) {
         if (setjmp(cur_routine->Environment) > 0) {
             return;
         }
-
         Store(*cur_routine);
     }
     Restore(*nextCoro);
@@ -73,11 +62,14 @@ void Engine::yield() {
 
 void Engine::sched(void *coro) {
     auto nextCoro = static_cast<context *>(coro);
-    if (nextCoro == cur_routine) return;
-    if (nextCoro == nullptr) yield();
-
-    // if coro is blocked???
-
+    if (nextCoro == nullptr) {
+        yield();
+    }
+    // we will do nothing if the next coroutine is blocked
+    if (nextCoro == cur_routine || nextCoro->isBlocked) {
+        return;
+    }
+    // run the next coroutine
     if (cur_routine != nullptr && cur_routine != idle_ctx) {
         if (setjmp(cur_routine->Environment) > 0) {
             return;
@@ -89,14 +81,17 @@ void Engine::sched(void *coro) {
 
 void Engine::block(void *coro) {
     context *blockedCoro;
+    // if argument coro == nullptr, then we should block current coroutine
     if (coro == nullptr) {
         blockedCoro = cur_routine;
     } else {
         blockedCoro = static_cast<context *>(coro);
     }
-
-    if (blocked == blockedCoro) return;
-
+    // we shouldn't block coroutine if it's already blocked
+    if (blockedCoro == nullptr || blockedCoro->isBlocked) {
+        return;
+    }
+    blockedCoro->isBlocked = true;
     // delete coroutine from the list of alive coroutines
     if (blockedCoro->prev != nullptr) {
         blockedCoro->prev->next = blockedCoro->next;
@@ -104,7 +99,6 @@ void Engine::block(void *coro) {
     if (blockedCoro->next != nullptr) {
         blockedCoro->next->prev = blockedCoro->prev;
     }
-
     // add coroutine to the list of blocked coroutines
     blockedCoro->prev = nullptr;
     blockedCoro->next = blocked;
@@ -113,7 +107,6 @@ void Engine::block(void *coro) {
         blocked->next->prev = blockedCoro;
     }
     if (blockedCoro == cur_routine) {
-//        yield();
         if (cur_routine != nullptr && cur_routine != idle_ctx) {
             if (setjmp(cur_routine->Environment) > 0) {
                 return;
@@ -127,8 +120,10 @@ void Engine::block(void *coro) {
 
 void Engine::unblock(void *coro) {
     auto unblockedCoro = static_cast<context *>(coro);
-    if (unblockedCoro == cur_routine || unblockedCoro == alive) return;
-
+    // we shouldn't unblock coroutine if it's already unblocked
+    if (unblockedCoro == nullptr || !unblockedCoro->isBlocked) {
+        return;
+    }
     // delete coroutine from the list of blocked coroutines
     if (unblockedCoro->prev != nullptr) {
         unblockedCoro->prev->next = unblockedCoro->next;
@@ -136,7 +131,6 @@ void Engine::unblock(void *coro) {
     if (unblockedCoro->next != nullptr) {
         unblockedCoro->next->prev = unblockedCoro->prev;
     }
-
     // add coroutine to the list of alive coroutines
     unblockedCoro->prev = nullptr;
     unblockedCoro->next = alive;
