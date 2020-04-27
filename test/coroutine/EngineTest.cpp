@@ -1,7 +1,6 @@
 #include "gtest/gtest.h"
 
 #include <iostream>
-#include <sstream>
 
 #include <afina/coroutine/Engine.h>
 

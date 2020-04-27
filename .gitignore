@@ -1,5 +1,6 @@
 .idea
 generated/*
+*.DS_Store
 
 # local cmake builds
 /build

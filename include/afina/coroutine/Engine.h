@@ -7,13 +7,13 @@
 #include <map>
 #include <tuple>
 
-#include <setjmp.h>
+#include <csetjmp>
 
 namespace Afina {
 namespace Coroutine {
 
 /**
- * # Entry point of coroutine library
+ * Entry point of coroutine library
  * Allows to run coroutine and schedule its execution. Not threadsafe
  */
 class Engine final {
@@ -49,7 +49,7 @@ private:
      */
     char *StackBottom;
 
-    /**const int&
+    /**
      * Current coroutine
      */
     context *cur_routine;
@@ -60,7 +60,7 @@ private:
     context *alive;
 
     /**
-     * List of corountines that sleep and can't be executed
+     * List of coroutines that sleep and can't be executed
      */
     context *blocked;
 
@@ -81,22 +81,23 @@ protected:
     void Store(context &ctx);
 
     /**
-     * Restore stack of the given context and pass control to coroutinne
+     * Restore stack of the given context and pass control to coroutine
      */
     void Restore(context &ctx);
 
     static void null_unblocker(Engine &) {}
 
 public:
-    Engine(unblocker_func unblocker = null_unblocker)
-        : StackBottom(0), cur_routine(nullptr), alive(nullptr), _unblocker(unblocker) {}
+    explicit Engine(unblocker_func unblocker = null_unblocker)
+        : StackBottom(nullptr), cur_routine(nullptr), alive(nullptr), _unblocker(std::move(unblocker)),
+        blocked(nullptr), idle_ctx(nullptr) {}
     Engine(Engine &&) = delete;
     Engine(const Engine &) = delete;
 
     /**
      * Gives up current routine execution and let engine to schedule other one. It is not defined when
      * routine will get execution back, for example if there are no other coroutines then executing could
-     * be trasferred back immediately (yield turns to be noop).
+     * be transferred back immediately (yield turns to be noop).
      *
      * Also there are no guarantee what coroutine will get execution, it could be caller of the current one or
      * any other which is ready to run
@@ -114,7 +115,7 @@ public:
 
     /**
      * Blocks current routine so that is can't be scheduled anymore
-     * If it was a currently running corountine, then do yield to select new one to be run instead.
+     * If it was a currently running coroutine, then do yield to select new one to be run instead.
      *
      * If argument is nullptr then block current coroutine
      */
@@ -158,22 +159,21 @@ public:
 
         // Shutdown runtime
         delete idle_ctx;
-        this->StackBottom = 0;
+        this->StackBottom = nullptr;
     }
 
     /**
-     * Register new coroutine. It won't receive control until scheduled explicitely or implicitly. In case of some
+     * Register new coroutine. It won't receive control until scheduled explicitly or implicitly. In case of some
      * errors function returns -1
      */
     template <typename... Ta> void *run(void (*func)(Ta...), Ta &&... args) {
-        if (this->StackBottom == 0) {
+        if (this->StackBottom == nullptr) {
             // Engine wasn't initialized yet
             return nullptr;
         }
 
         // New coroutine context that carries around all information enough to call function
-        context *pc = new context();
-
+        auto *pc = new context();
         // Store current state right here, i.e just before enter new coroutine, later, once it gets scheduled
         // execution starts here. Note that we have to acquire stack of the current function call to ensure
         // that function parameters will be passed along
@@ -211,9 +211,8 @@ public:
             // just give up and ask scheduler code to select someone else, control will never returns to this one
             Restore(*idle_ctx);
         }
-
         // setjmp remembers position from which routine could starts execution, but to make it correctly
-        // it is neccessary to save arguments, pointer to body function, pointer to context, e.t.c - i.e
+        // it is necessary to save arguments, pointer to body function, pointer to context, e.t.c - i.e
         // save stack.
         Store(*pc);
 
