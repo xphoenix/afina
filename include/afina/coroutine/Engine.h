@@ -18,9 +18,8 @@ namespace Coroutine {
  */
 class Engine final {
 public:
-    using unblocker_func = std::function<void(Engine &)>;
+    using unblocker_func = std::function<void()>;
 
-private:
     /**
      * A single coroutine instance which could be scheduled for execution
      * should be allocated on heap
@@ -47,6 +46,7 @@ private:
         struct context *next = nullptr;
     } context;
 
+private:
     /**
      * Where coroutines stack begins
      */
@@ -88,7 +88,7 @@ protected:
      */
     void Restore(context &ctx);
 
-    static void null_unblocker(Engine &) {}
+    static void null_unblocker() {}
 
 public:
     explicit Engine(unblocker_func unblocker = null_unblocker)
@@ -97,6 +97,19 @@ public:
     Engine(Engine &&) = delete;
     Engine(const Engine &) = delete;
 
+    bool is_all_blocked() {
+        return !alive && blocked;
+    }
+
+    void unblock_all() {
+        for (auto coro = blocked; coro != nullptr; coro = blocked) {
+            unblock(coro);
+        }
+    }
+
+    context *get_cur_routine() {
+        return cur_routine;
+    }
     /**
      * Gives up current routine execution and let engine to schedule other one. It is not defined when
      * routine will get execution back, for example if there are no other coroutines then executing could
@@ -149,7 +162,7 @@ public:
         idle_ctx = new context();
         if (setjmp(idle_ctx->Environment) > 0) {
             if (alive == nullptr) {
-                _unblocker(*this);
+                _unblocker();
             }
             cur_routine = idle_ctx;
 

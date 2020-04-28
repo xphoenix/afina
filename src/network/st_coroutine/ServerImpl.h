@@ -3,8 +3,11 @@
 
 #include <thread>
 #include <vector>
+#include <arpa/inet.h>
 
 #include <afina/network/Server.h>
+#include <afina/coroutine/Engine.h>
+#include "Connection.h"
 
 namespace spdlog {
 class logger;
@@ -13,9 +16,6 @@ class logger;
 namespace Afina {
 namespace Network {
 namespace STcoroutine {
-
-// Forward declaration, see Worker.h
-class Worker;
 
 /**
  * # Network resource manager implementation
@@ -37,7 +37,8 @@ public:
 
 protected:
     void OnRun();
-    void OnNewConnection(int);
+
+    void Worker(int fd);
 
 private:
     // logger to use
@@ -54,8 +55,24 @@ private:
     // Curstom event "device" used to wakeup workers
     int _event_fd;
 
+    int _epoll_descr;
+
     // IO thread
     std::thread _work_thread;
+
+    Afina::Coroutine::Engine _engine;
+
+    Connection *connections;
+
+    bool _running;
+
+    void unblocker();
+
+    ssize_t _read(int fd, void *buf, size_t count, Connection *pc);
+
+    ssize_t _write(int fd, const void *buf, size_t count, Connection *pc);
+
+    int _accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen, Connection *pc);
 };
 
 } // namespace STcoroutine

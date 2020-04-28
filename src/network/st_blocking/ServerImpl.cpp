@@ -212,7 +212,7 @@ void ServerImpl::OnRun() {
                         readed_bytes -= to_read;
                     }
 
-                    // Thre is command & argument - RUN!
+                    // There is command & argument - RUN!
                     if (command_to_execute && arg_remains == 0) {
                         _logger->debug("Start command execution");
 

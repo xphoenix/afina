@@ -3,6 +3,7 @@
 
 #include <cstring>
 
+#include <afina/coroutine/Engine.h>
 #include <sys/epoll.h>
 
 namespace Afina {
@@ -14,6 +15,8 @@ public:
     Connection(int s) : _socket(s) {
         std::memset(&_event, 0, sizeof(struct epoll_event));
         _event.data.ptr = this;
+        _ctx = nullptr;
+        _running = false;
     }
 
     inline bool isAlive() const { return true; }
@@ -31,6 +34,11 @@ private:
 
     int _socket;
     struct epoll_event _event;
+    Afina::Coroutine::Engine::context *_ctx;
+    bool _running;
+    uint32_t _events;
+    Connection *_prev;
+    Connection *_next;
 };
 
 } // namespace STcoroutine
