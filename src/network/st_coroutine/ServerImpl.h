@@ -38,7 +38,7 @@ public:
 protected:
     void OnRun();
 
-    void Worker(int fd);
+    void OnNewConnection(int epoll_descr);
 
 private:
     // logger to use
@@ -62,17 +62,8 @@ private:
 
     Afina::Coroutine::Engine _engine;
 
-    Connection *connections;
-
-    bool _running;
-
     void unblocker();
 
-    ssize_t _read(int fd, void *buf, size_t count, Connection *pc);
-
-    ssize_t _write(int fd, const void *buf, size_t count, Connection *pc);
-
-    int _accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen, Connection *pc);
 };
 
 } // namespace STcoroutine

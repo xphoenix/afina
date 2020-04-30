@@ -3,7 +3,10 @@
 
 #include <cstring>
 
+#include <afina/Storage.h>
 #include <afina/coroutine/Engine.h>
+#include <protocol/Parser.h>
+#include <spdlog/logger.h>
 #include <sys/epoll.h>
 
 namespace Afina {
@@ -12,14 +15,10 @@ namespace STcoroutine {
 
 class Connection {
 public:
-    Connection(int s) : _socket(s) {
-        std::memset(&_event, 0, sizeof(struct epoll_event));
-        _event.data.ptr = this;
-        _ctx = nullptr;
-        _running = false;
-    }
+    Connection(int s, std::shared_ptr<Afina::Storage> &ps, std::shared_ptr<spdlog::logger> &pl) : _socket(s), _is_alive(false),
+    _read_ctx(nullptr), _write_ctx(nullptr), _pStorage(ps), _logger(pl), _end_reading(false), _head_written_count(0) {}
 
-    inline bool isAlive() const { return true; }
+    inline bool isAlive() const { return _is_alive; }
 
     void Start();
 
@@ -33,14 +32,22 @@ private:
     friend class ServerImpl;
 
     int _socket;
-    struct epoll_event _event;
-    Afina::Coroutine::Engine::context *_ctx;
-    bool _running;
-    uint32_t _events;
-    Connection *_prev;
-    Connection *_next;
-};
 
+    bool _is_alive;
+
+    bool _end_reading;
+
+    Afina::Coroutine::Engine::context *_read_ctx;
+
+    Afina::Coroutine::Engine::context *_write_ctx;
+
+    std::vector<std::string> _output_queue;
+    struct epoll_event _event;
+    int _head_written_count;
+    std::shared_ptr<spdlog::logger> _logger;
+    std::shared_ptr<Afina::Storage> _pStorage;
+
+};
 } // namespace STcoroutine
 } // namespace Network
 } // namespace Afina
