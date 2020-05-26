@@ -3,6 +3,7 @@
 namespace Afina {
 namespace Backend {
 
+
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::Put(const std::string &key, const std::string &value) { return false; }
 
