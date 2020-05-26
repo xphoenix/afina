@@ -195,31 +195,3 @@ TEST(StorageTest, MaxTest) {
         EXPECT_FALSE(storage.Get(key, res));
     }
 }
-
-TEST(StorageTest, DeleteByChanceOnSetTest) {
-    SimpleLRU storage(16);
-
-    EXPECT_TRUE(storage.Put("KEY1", "king"));
-    EXPECT_TRUE(storage.Put("KEY2", "kong"));
-    
-    std::string value = "longlong";
-    EXPECT_TRUE(storage.Set("KEY1", value));
-    std::string res;
-    EXPECT_TRUE(storage.Get("KEY1", res));
-    EXPECT_TRUE(res == "longlong");
-}
-
-TEST(StorageTest, PutIfAbsentEndlessLoop) {
-    SimpleLRU storage(16);
-
-    EXPECT_TRUE(storage.Put("KEY1", "king"));
-    EXPECT_FALSE(storage.PutIfAbsent("KEY2", "longlonglong1"));
-}
-
-TEST(StorageTest, PutOverwriteCustom) {
-    SimpleLRU storage(12);
-
-    EXPECT_TRUE(storage.Put("KEY1", "king"));
-    EXPECT_TRUE(storage.Put("00", "11"));
-    EXPECT_TRUE(storage.Put("KEY1", "longlong"));
-}
