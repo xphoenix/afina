@@ -101,7 +101,7 @@ public:
         log->warn("Stop application");
         server->Stop();
         server->Join();
-
+ 
         storage->Stop();
         logService->Stop();
     }
