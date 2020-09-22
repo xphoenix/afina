@@ -17,7 +17,8 @@ namespace Backend {
  */
 class SimpleLRU : public Afina::Storage {
 public:
-    SimpleLRU(size_t max_size = 1024) : _max_size(max_size), _cur_size(0) 
+    SimpleLRU(size_t max_size = 1024) : 
+    _max_size(max_size), _cur_size(0), _lru_head(nullptr), _lru_tail(nullptr)
     {
     }
 
@@ -60,6 +61,7 @@ private:
     //
     // List owns all nodes
     std::unique_ptr<lru_node> _lru_head;
+    lru_node * _lru_tail;
 
     // Index of nodes from list above, allows fast random access to elements by lru_node#key
     std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<std::string>> _lru_index;
