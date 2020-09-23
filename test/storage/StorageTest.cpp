@@ -147,15 +147,7 @@ std::string pad_space(const std::string &s, size_t length) {
 }
 
 TEST(StorageTest, BigTest) {
-/*    const size_t length = 64 * 10;
-    SimpleLRU storage(length);
 
-    for (long i = 0; i < 12; ++i) {
-        auto key = pad_space("Key " + std::to_string(i), length);
-        auto val = pad_space("Val " + std::to_string(i), length);
-        EXPECT_TRUE(storage.Put(key, val));
-    }
-*/
     const size_t length = 20;
     SimpleLRU storage(2 * 100000 * length);
 
@@ -166,7 +158,6 @@ TEST(StorageTest, BigTest) {
         EXPECT_TRUE(storage.Put(key, val));
     }
     
-/*
     for (long i = 99999; i >= 0; --i) {
         auto key = pad_space("Key " + std::to_string(i), length);
         auto val = pad_space("Val " + std::to_string(i), length);
@@ -176,9 +167,8 @@ TEST(StorageTest, BigTest) {
 
         EXPECT_TRUE(val == res);
     }
-    */
 }
-/*
+
 TEST(StorageTest, MaxTest) {
     const size_t length = 20;
     SimpleLRU storage(2 * 1000 * length);
@@ -209,4 +199,3 @@ TEST(StorageTest, MaxTest) {
     }
     
 }
-*/

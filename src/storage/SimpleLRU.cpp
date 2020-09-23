@@ -27,7 +27,7 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value)
         }
         else
         {   
-            if (data_size + _cur_size < _max_size)
+            if (data_size + _cur_size <=  _max_size)
             { 
                 _lru_tail->next = std::move(std::unique_ptr<lru_node>(new lru_node{key, value, _lru_tail, nullptr}));
                 _lru_tail = _lru_tail->next.get();
@@ -37,7 +37,7 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value)
             }    
             else
             {
-                while(data_size + _cur_size >= _max_size)
+                while(data_size + _cur_size > _max_size)
                 {
                     if (_lru_head.get() != nullptr)
                     {
@@ -53,6 +53,25 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value)
                 _lru_tail->next = std::move(std::unique_ptr<lru_node>(new lru_node{key, value, _lru_tail, nullptr}));
                 _lru_tail = _lru_tail->next.get();
                 _lru_index.insert({std::ref(_lru_tail->key), std::ref(*_lru_tail)});
+                _cur_size += data_size;
+
+
+                auto ter = &_lru_head;
+                int flag = 0;
+                while (ter!= nullptr)
+                {
+                        flag ++;
+                        if (ter->get()->next != nullptr)
+                            ter = &(ter->get()->next);
+                        else
+                        {
+                            break;
+                        }
+                        
+                }
+//                std::cout << "Size : " << flag << "\n";
+
+
                 return true;
             }
             
@@ -148,12 +167,12 @@ bool SimpleLRU::Set(const std::string &key, const std::string &value)
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::Delete(const std::string &key)
 {
-    std::cout << "delete------------------------------------------------------------------------------------------------------\n";
+//    std::cout << "delete------------------------------------------------------------------------------------------------------\n";
     auto it =_lru_index.find(key);
     if (it != _lru_index.end())
     {
         lru_node & elem = it->second.get();
-        std::cout << "Elem : " << elem.key << " " << elem.value << "\n";
+//        std::cout << "Elem : " << elem.key << " " << elem.value << "\n";
         _cur_size = _cur_size - sizeof(elem.value) - sizeof(elem.key);
         _lru_index.erase(key);
        if (elem.next.get() == nullptr)

@@ -24,7 +24,12 @@ public:
 
     ~SimpleLRU() {
         _lru_index.clear();
-        _lru_head.reset(); // TODO: Here is stack overflow
+        while (_lru_tail != _lru_head.get())
+        {
+            _lru_tail = _lru_tail->prev;
+            _lru_tail->next = nullptr;
+        }
+        _lru_head = nullptr;
     }
 
     // Implements Afina::Storage interface
