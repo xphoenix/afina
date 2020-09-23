@@ -22,7 +22,7 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value)
             _lru_index.insert({std::ref(_lru_head->key), std::ref(*_lru_head.get())});
             _lru_tail = _lru_head.get();
             _cur_size += data_size;
- //           return true;
+            return true;
         }
         else
         {   
@@ -32,7 +32,7 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value)
                 _lru_tail = _lru_tail->next.get();
                 _lru_index.insert({std::ref(_lru_tail->key), std::ref(*_lru_tail)});
                 _cur_size += data_size;  
-//                return true;  
+                return true;  
             }    
             else
             {
@@ -66,8 +66,50 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value)
         _cur_size = _cur_size - sizeof(elem.value);
         elem.value = value;
        _cur_size = _cur_size + sizeof(elem.value);
+       if (elem.next.get() == nullptr)
+       {
+
+       }
+       else if (elem.prev == nullptr)
+       {
+           _lru_tail->next = std::move(_lru_head);
+           elem.prev = _lru_tail;
+           _lru_tail = _lru_tail->next.get();
+           _lru_head = std::move(elem.next);
+           _lru_head->prev = nullptr;
+       }
+       else
+       {
+           std::unique_ptr<lru_node> tmp = std::move(elem.prev->next);
+           elem.next.get()->prev = elem.prev;
+           elem.prev->next = std::move(elem.next);
+           _lru_tail->next = std::move(tmp);
+           elem.prev = _lru_tail;
+           _lru_tail = _lru_tail->next.get();
+       }
+       
     }
-    print();
+        std::cout << "\n\n Map:\n";
+    it = _lru_index.begin();
+    for(it; it != _lru_index.end(); it++)
+    {
+        std::cout << it->second.get().key << " " << it->second.get().value << std:: endl;
+    }
+ //   return true;
+    std::cout << "\n List\n";
+   auto ter = &_lru_head;
+   while (ter!= nullptr)
+   {
+        std::cout << ter->get()->key << " " << ter->get()->value << " | ";
+        if (ter->get()->next != nullptr)
+            ter = &(ter->get()->next);
+        else
+        {
+            break;
+        }
+        
+   }
+   std::cout << "\n";
     return true;
 }
 
@@ -107,13 +149,58 @@ bool SimpleLRU::Delete(const std::string &key)
     auto it =_lru_index.find(key);
     if (it != _lru_index.end())
     {
-        lru_node& temp = it->second.get();
-        auto it_temp = it--;
-        auto ref_for = std::move(temp.next);
-        delete it_temp->second.get().next.get();
-        it_temp->second.get().next = std::move(ref_for);
-        it_temp->second.get().next.get()->prev = &it_temp->second.get();
+        lru_node & elem = it->second.get();
+        _cur_size = _cur_size - sizeof(elem.value) - sizeof(elem.key);
         _lru_index.erase(key);
+       if (elem.next.get() == nullptr)
+       {
+           if (_lru_index.size() >1)
+           {
+               _lru_tail = _lru_tail->prev;
+               _lru_tail->next = nullptr;
+           }
+           else
+           {
+               _lru_head = nullptr;
+           }
+           
+       }
+       else if (elem.prev == nullptr)
+       {
+           _lru_head = std::move(_lru_head->next);
+       }
+       else
+       {
+           std::unique_ptr<lru_node> tmp = std::move(elem.prev->next);
+           elem.next.get()->prev = elem.prev;
+           elem.prev->next = std::move(elem.next);
+           tmp = nullptr;
+       }
+
+
+                std::cout << "\n\n Map:\n";
+    it = _lru_index.begin();
+    for(it; it != _lru_index.end(); it++)
+    {
+        std::cout << it->second.get().key << " " << it->second.get().value << std:: endl;
+    }
+ //   return true;
+    std::cout << "\n List\n";
+   auto ter = &_lru_head;
+   while (ter!= nullptr)
+   {
+        std::cout << ter->get()->key << " " << ter->get()->value << " | ";
+        if (ter->get()->next != nullptr)
+            ter = &(ter->get()->next);
+        else
+        {
+            break;
+        }
+        
+   }
+   std::cout << "\n";
+
+
         return true;
     }
     else
@@ -187,7 +274,7 @@ bool SimpleLRU::Get(const std::string &key, std::string &value)
     return true;
 }
 
-void SimpleLRU::print()
+/*void SimpleLRU::print()
 {
     std::cout << "Map:\n";
     auto it = _lru_index.begin();
@@ -211,6 +298,7 @@ void SimpleLRU::print()
    }
    std::cout << "\n_______________________________\n";
 }
+*/
 
 } // namespace Backend
 } // namespace Afina
