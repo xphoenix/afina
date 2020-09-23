@@ -7,10 +7,9 @@ namespace Backend {
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::Put(const std::string &key, const std::string &value) 
 { 
-    std::cout << "\nIn put";
+    std::cout << "In put\n";
     auto it = _lru_index.find(key);
     size_t data_size = sizeof(key) + sizeof(value);
-    std::cout << "\n" << data_size << "\n";
     if (data_size > _max_size)
     {
         return false;
@@ -68,44 +67,43 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value)
         elem.value = value;
        _cur_size = _cur_size + sizeof(elem.value);
     }
-    std::cout << "\n\n Map:\n";
-    it = _lru_index.begin();
-    for(it; it != _lru_index.end(); it++)
-    {
-        std::cout << it->second.get().key << " " << it->second.get().value << std:: endl;
-    }
- //   return true;
-    std::cout << "\n List\n";
-   auto ter = &_lru_head;
-   while (ter!= nullptr)
-   {
-        std::cout << ter->get()->key << " " << ter->get()->value << " | ";
-        if (ter->get()->next != nullptr)
-            ter = &(ter->get()->next);
-        else
-        {
-            break;
-        }
-        
-   }
-   std::cout << "\n";
+    print();
+    return true;
 }
 
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value)
 {
-    return false;
+    auto it = _lru_index.find(key);
+    if (it == _lru_index.end())
+    {
+        return Put(key, value);
+    }
+    else
+    {
+        return false;
+    }
+    
 }
 
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::Set(const std::string &key, const std::string &value)
 {
-    return false;
+    auto it = _lru_index.find(key);
+    if (it != _lru_index.end())
+    {
+        return Put(key, value);
+    }
+    else
+    {
+        return false;
+    }
 }
 
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::Delete(const std::string &key)
 {
+    std::cout << "delete\n";
     auto it =_lru_index.find(key);
     if (it != _lru_index.end())
     {
@@ -120,7 +118,7 @@ bool SimpleLRU::Delete(const std::string &key)
     }
     else
     {
-        return true;    
+        return false;    
     }
     
 }
@@ -187,6 +185,31 @@ bool SimpleLRU::Get(const std::string &key, std::string &value)
    std::cout << "\n";
    
     return true;
+}
+
+void SimpleLRU::print()
+{
+    std::cout << "Map:\n";
+    auto it = _lru_index.begin();
+    for(it; it != _lru_index.end(); it++)
+    {
+        std::cout << it->second.get().key << " " << it->second.get().value << std:: endl;
+    }
+ //   return true;
+    std::cout << "\nList\n";
+   auto ter = &_lru_head;
+   while (ter!= nullptr)
+   {
+        std::cout << ter->get()->key << " " << ter->get()->value << " | ";
+        if (ter->get()->next != nullptr)
+            ter = &(ter->get()->next);
+        else
+        {
+            break;
+        }
+        
+   }
+   std::cout << "\n_______________________________\n";
 }
 
 } // namespace Backend
