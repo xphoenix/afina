@@ -128,7 +128,7 @@ TEST(StorageTest, DeleteHeadAndTailNode)
     EXPECT_TRUE(storage.Put("KEY4", "val4"));
 
 
-    EXPECT_TRUE(storage.Put("KEY2", "val22"));
+    EXPECT_TRUE(storage.Set("KEY2", "val22"));
     EXPECT_TRUE(storage.Set("KEY3", "val23"));
     EXPECT_TRUE(storage.Set("KEY1", "val21"));
     EXPECT_TRUE(storage.Set("KEY1", "val31"));
@@ -154,10 +154,9 @@ TEST(StorageTest, BigTest) {
     for (long i = 0; i < 100000; ++i) {
         auto key = pad_space("Key " + std::to_string(i), length);
         auto val = pad_space("Val " + std::to_string(i), length);
-        std::cout << i << std::endl;
         EXPECT_TRUE(storage.Put(key, val));
     }
-    
+ 
     for (long i = 99999; i >= 0; --i) {
         auto key = pad_space("Key " + std::to_string(i), length);
         auto val = pad_space("Val " + std::to_string(i), length);
