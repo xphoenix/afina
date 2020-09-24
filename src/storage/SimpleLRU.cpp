@@ -23,52 +23,62 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value)
             _lru_tail = _lru_head.get();
             _cur_size += data_size;
             return true;
-        }
+        } 
+        if (data_size + _cur_size <=  _max_size)
+        { 
+            _lru_tail->next = std::move(std::unique_ptr<lru_node>(new lru_node{key, value, _lru_tail, nullptr}));
+            _lru_tail = _lru_tail->next.get();
+            _lru_index.insert({std::ref(_lru_tail->key), std::ref(*_lru_tail)});
+            _cur_size += data_size;  
+            return true;  
+        }    
         else
-        {   
-            if (data_size + _cur_size <=  _max_size)
-            { 
-                _lru_tail->next = std::move(std::unique_ptr<lru_node>(new lru_node{key, value, _lru_tail, nullptr}));
-                _lru_tail = _lru_tail->next.get();
-                _lru_index.insert({std::ref(_lru_tail->key), std::ref(*_lru_tail)});
-                _cur_size += data_size;  
-                return true;  
-            }    
-            else
+        {
+            while(data_size + _cur_size > _max_size)
             {
-                while(data_size + _cur_size > _max_size)
+                if (_lru_head.get() != nullptr)
                 {
-                    if (_lru_head.get() != nullptr)
-                    {
-                        const std::string & str = _lru_head->key;
-                        Delete(str);
-                    }
-                    else
-                    {
-                        break;                     
-                    }
-                                        
+                    const std::string & str = _lru_head->key;
+                    Delete(str);
                 }
+                else
+                {
+                    break;                     
+                }
+                                    
+            }
+            if (_lru_head.get() != nullptr)
+            {
                 _lru_tail->next = std::move(std::unique_ptr<lru_node>(new lru_node{key, value, _lru_tail, nullptr}));
                 _lru_tail = _lru_tail->next.get();
                 _lru_index.insert({std::ref(_lru_tail->key), std::ref(*_lru_tail)});
                 _cur_size += data_size;
                 return true;
             }
+            else
+            {
+                _lru_head = std::move(std::unique_ptr<lru_node>(new lru_node{key, value, _lru_tail, nullptr}));
+                _lru_tail = _lru_head.get();
+                _lru_index.insert({std::ref(_lru_tail->key), std::ref(*_lru_tail)});
+                _cur_size += data_size;
+                return true;
+
+            }
             
-        }   
+        }
+           
     }
     else
     {
         lru_node & elem = it->second.get();
-        _cur_size = _cur_size - sizeof(elem.value);
+        _cur_size = _cur_size - elem.value.length();
         elem.value = value;
-       _cur_size = _cur_size + sizeof(elem.value);
+       _cur_size = _cur_size + elem.value.length();
        if (elem.next.get() == nullptr)
        {
            return true;
        }
-       else if (elem.prev == nullptr)
+       if (elem.prev == nullptr)
        {
            _lru_tail->next = std::move(_lru_head);
            elem.prev = _lru_tail;
@@ -142,9 +152,10 @@ bool SimpleLRU::Delete(const std::string &key)
            {
                _lru_head = nullptr;
            }
+           return true;
            
        }
-       else if (elem.prev == nullptr)
+       if (elem.prev == nullptr)
        {
            _lru_head = std::move(_lru_head->next);
            _lru_head->prev = nullptr;
