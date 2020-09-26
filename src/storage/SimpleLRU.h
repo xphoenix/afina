@@ -16,12 +16,56 @@ namespace Backend {
  * That is NOT thread safe implementaiton!!
  */
 class SimpleLRU : public Afina::Storage {
+
+    // LRU cache node
+    using lru_node = struct lru_node {
+        const std::string key;
+        std::string value;
+        lru_node* prev;
+        std::unique_ptr<lru_node> next;
+    };
+
+    //add new element to the storage
+    bool putElement(const std::string &key, const std::string &value);
+
+    //update the value of an exisiting element of the storage
+    bool updateValue(SimpleLRU::lru_node &node, const std::string &value);
+
+    //delete existing node
+    void deleteNode(SimpleLRU::lru_node &node);
+
+    //move existing node to the tail of the deletion queue
+    //(make it the most recently used element)
+    void toTail(SimpleLRU::lru_node &node);
+
+    // Maximum number of bytes could be stored in this cache.
+    // i.e all (keys+values) must be less the _max_size
+    std::size_t _max_size;
+    std::size_t _cur_size;
+
+    // Main storage of lru_nodes, elements in this list ordered descending by "freshness": in the head
+    // element that wasn't used for longest time.
+    //
+    // List owns all nodes
+    std::unique_ptr<lru_node> _lru_head;
+    lru_node* _lru_tail;
+
+    // Index of nodes from list above, allows fast random access to elements by lru_node#key
+    std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<const std::string>> _lru_index;
+
 public:
-    SimpleLRU(size_t max_size = 1024) : _max_size(max_size) {}
+    SimpleLRU(size_t max_size = 1024) : _max_size(max_size), _cur_size(0), 
+                                        _lru_head(nullptr), _lru_tail(nullptr) {}
 
     ~SimpleLRU() {
         _lru_index.clear();
-        _lru_head.reset(); // TODO: Here is stack overflow
+
+        while (_lru_head != nullptr) {
+            auto next = std::move(_lru_head->next);
+            _lru_head.reset(nullptr);
+            _lru_head = std::move(next);
+        }
+
     }
 
     // Implements Afina::Storage interface
@@ -39,27 +83,8 @@ public:
     // Implements Afina::Storage interface
     bool Get(const std::string &key, std::string &value) override;
 
-private:
-    // LRU cache node
-    using lru_node = struct lru_node {
-        std::string key;
-        std::string value;
-        std::unique_ptr<lru_node> prev;
-        std::unique_ptr<lru_node> next;
-    };
 
-    // Maximum number of bytes could be stored in this cache.
-    // i.e all (keys+values) must be less the _max_size
-    std::size_t _max_size;
 
-    // Main storage of lru_nodes, elements in this list ordered descending by "freshness": in the head
-    // element that wasn't used for longest time.
-    //
-    // List owns all nodes
-    std::unique_ptr<lru_node> _lru_head;
-
-    // Index of nodes from list above, allows fast random access to elements by lru_node#key
-    std::map<std::reference_wrapper<std::string>, std::reference_wrapper<lru_node>, std::less<std::string>> _lru_index;
 };
 
 } // namespace Backend
