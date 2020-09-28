@@ -24,7 +24,7 @@ TEST(StorageTest, PutGet) {
 
     EXPECT_TRUE(storage.Put("KEY1", "val1"));
     EXPECT_TRUE(storage.Put("KEY2", "val2"));
-
+    
     std::string value;
     EXPECT_TRUE(storage.Get("KEY1", value));
     EXPECT_TRUE(value == "val1");
@@ -147,15 +147,16 @@ std::string pad_space(const std::string &s, size_t length) {
 
 TEST(StorageTest, BigTest) {
     const size_t length = 20;
-    SimpleLRU storage(2 * 100000 * length);
+    const size_t count_tests = 30000;
+    SimpleLRU storage(2 * count_tests * length);
 
-    for (long i = 0; i < 100000; ++i) {
+    for (long i = 0; i < count_tests; ++i) {
         auto key = pad_space("Key " + std::to_string(i), length);
         auto val = pad_space("Val " + std::to_string(i), length);
         EXPECT_TRUE(storage.Put(key, val));
     }
 
-    for (long i = 99999; i >= 0; --i) {
+    for (long i = count_tests - 1; i >= 0; --i) {
         auto key = pad_space("Key " + std::to_string(i), length);
         auto val = pad_space("Val " + std::to_string(i), length);
 
@@ -168,17 +169,19 @@ TEST(StorageTest, BigTest) {
 
 TEST(StorageTest, MaxTest) {
     const size_t length = 20;
-    SimpleLRU storage(2 * 1000 * length);
+    const size_t count_tests = 1000;
+    const size_t bias = 100;
+    SimpleLRU storage(2 * count_tests * length);
 
     std::stringstream ss;
 
-    for (long i = 0; i < 1100; ++i) {
+    for (long i = 0; i < count_tests + bias; ++i) {
         auto key = pad_space("Key " + std::to_string(i), length);
         auto val = pad_space("Val " + std::to_string(i), length);
         EXPECT_TRUE(storage.Put(key, val));
     }
 
-    for (long i = 100; i < 1100; ++i) {
+    for (long i = bias; i < count_tests + bias; ++i) {
         auto key = pad_space("Key " + std::to_string(i), length);
         auto val = pad_space("Val " + std::to_string(i), length);
 
@@ -188,7 +191,7 @@ TEST(StorageTest, MaxTest) {
         EXPECT_TRUE(val == res);
     }
 
-    for (long i = 0; i < 100; ++i) {
+    for (long i = 0; i < bias; ++i) {
         auto key = pad_space("Key " + std::to_string(i), length);
 
         std::string res;
