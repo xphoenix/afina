@@ -108,8 +108,6 @@ bool SimpleLRU::push(const std::string &key, const std::string &value) {
 }
 
 bool SimpleLRU::pop(lru_node& node) {
-	_lru_index.erase(node.key);
-	
 	if (node.next) {
 		if (node.prev) {
 			node.next->prev = std::move(node.prev);
@@ -127,15 +125,8 @@ bool SimpleLRU::pop(lru_node& node) {
 			node.prev->next.reset();
 		}
 	}
-	// else {
-	// 	if (node.next) {
-	// 		_lru_head = std::move(node.next);
-	// 	}
-	// 	else {
-	// 		_lru_head.reset();
-	// 	}
-	// }
 
+	_lru_index.erase(node.key);
 	_curr_size -= node.key.size() + node.value.size();
 
 	return true;
