@@ -16,39 +16,7 @@ namespace Backend {
  * That is NOT thread safe implementaiton!!
  */
 class SimpleLRU : public Afina::Storage {
-public:
-    SimpleLRU(size_t max_size = 1024) : 
-    _max_size(max_size), _cur_size(0), _lru_head(nullptr), _lru_tail(nullptr)
-    {
-    }
-
-    ~SimpleLRU() {
-        _lru_index.clear();
-        while (_lru_tail != _lru_head.get())
-        {
-            _lru_tail = _lru_tail->prev;
-            _lru_tail->next = nullptr;
-        }
-        _lru_head = nullptr;
-    }
-
-    // Implements Afina::Storage interface
-    bool Put(const std::string &key, const std::string &value) override;
-
-    // Implements Afina::Storage interface
-    bool PutIfAbsent(const std::string &key, const std::string &value) override;
-
-    // Implements Afina::Storage interface
-    bool Set(const std::string &key, const std::string &value) override;
-
-    // Implements Afina::Storage interface
-    bool Delete(const std::string &key) override;
-
-    // Implements Afina::Storage interface
-    bool Get(const std::string &key, std::string &value) override;
-
 //    void print();
-private:
     // LRU cache node
     using lru_node = struct lru_node {
         const std::string key;
@@ -71,6 +39,40 @@ private:
 
     // Index of nodes from list above, allows fast random access to elements by lru_node#key
     std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<std::string>> _lru_index;
+public:
+    SimpleLRU(size_t max_size = 1024) : 
+    _max_size(max_size), _cur_size(0), _lru_head(nullptr), _lru_tail(nullptr)
+    {
+    }
+
+    ~SimpleLRU() {
+        _lru_index.clear();
+        while (_lru_tail != _lru_head.get())
+        {
+            _lru_tail = _lru_tail->prev;
+            _lru_tail->next = nullptr;
+        }
+        _lru_head = nullptr;
+    }
+
+    // Implements Afina::Storage interface
+    bool Put(const std::string &key, const std::string &value) override;
+    bool _PutSet(const std::string &key, const std::string &value, lru_node & elem);
+    bool _PutAbsent(const std::string &key, const std::string &value);
+
+    // Implements Afina::Storage interface
+    bool PutIfAbsent(const std::string &key, const std::string &value) override;
+
+    // Implements Afina::Storage interface
+    bool Set(const std::string &key, const std::string &value) override;
+
+    // Implements Afina::Storage interface
+    bool Delete(const std::string &key) override;
+    bool _Delete(lru_node &);
+
+    // Implements Afina::Storage interface
+    bool Get(const std::string &key, std::string &value) override;
+    void moveToTail(lru_node & node);
 };
 
 } // namespace Backend
