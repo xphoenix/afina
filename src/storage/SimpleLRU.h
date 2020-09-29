@@ -19,20 +19,24 @@ namespace Backend {
 class SimpleLRU : public Afina::Storage {
 public:
     SimpleLRU(size_t max_size = 1024) : _max_size(max_size) {
-    	_lru_head = nullptr;
-    	_curr_size = 0;
+        _lru_head.reset();
+        _curr_size = 0;
     }
 
     ~SimpleLRU() {
         _lru_index.clear();
 
-        auto curr = std::move(_lru_head);
-        while (curr && curr->next) {
-        	curr = std::move(curr->next);
-        	curr->prev.reset();
+        auto* tail = _lru_head.get();
+        while (tail && tail->next) {
+            tail = tail->next.get();
         }
 
-        curr.reset(); // TODO: Here is stack overflow
+        while (tail) {
+            tail->next.reset();
+            tail = tail->prev;
+        }
+
+        _lru_head.reset(); // TODO: Here is stack overflow
     }
 
     // Implements Afina::Storage interface
@@ -55,7 +59,7 @@ private:
     using lru_node = struct lru_node {
         std::string key;
         std::string value;
-        std::unique_ptr<lru_node> prev;
+        lru_node* prev;
         std::unique_ptr<lru_node> next;
     };
 
