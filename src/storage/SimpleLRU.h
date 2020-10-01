@@ -19,10 +19,10 @@ class SimpleLRU : public Afina::Storage {
 
     // LRU cache node
     using lru_node = struct lru_node {
-        const std::string key;
-        std::string value;
-        lru_node* prev;
-        std::unique_ptr<lru_node> next;
+      const std::string key;
+      std::string value;
+      lru_node* prev;
+    std::unique_ptr<lru_node> next;
     };
 
     //add new element to the storage
@@ -61,11 +61,10 @@ public:
         _lru_index.clear();
 
         while (_lru_head != nullptr) {
-            auto next = std::move(_lru_head->next);
-            _lru_head.reset(nullptr);
-            _lru_head = std::move(next);
+          auto next = std::move(_lru_head->next);
+          _lru_head.reset(nullptr);
+          _lru_head = std::move(next);
         }
-
     }
 
     // Implements Afina::Storage interface
