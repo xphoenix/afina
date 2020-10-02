@@ -5,59 +5,69 @@ namespace Backend {
 
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::Put(const std::string &key, const std::string &value) { 
-if ((key.size() + value.size()) > _max_size)
+if ((key.size() + value.size()) > _max_size){
         return false;
-    mapT::iterator it = _lru_index.find(key);
-    if (it != _lru_index.end())
+    }
+    map_type::iterator it = _lru_index.find(key);
+    if (it != _lru_index.end()){
         return update_node(it, value);
-    else
+    }
+    else{
         return put_node(key, value);
+    }
  }
 
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
-    if ((key.size() + value.size()) > _max_size)
+    if ((key.size() + value.size()) > _max_size){
         return false;
-mapT::iterator it=_lru_index.find(key);
-    if (it == _lru_index.end())
+    }
+map_type::iterator it=_lru_index.find(key);
+    if (it == _lru_index.end()){
         return put_node(key, value);
-    else
+    }
+    else{
         return false;
+    }
 }
 
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::Set(const std::string &key, const std::string &value) {
-    if ((key.size() + value.size()) > _max_size)
+    if ((key.size() + value.size()) > _max_size){
         return false;
-    mapT::iterator it = _lru_index.find(key);
-    if (it != _lru_index.end())
+    }
+    map_type::iterator it = _lru_index.find(key);
+    if (it != _lru_index.end()){
         return update_node(it, value);
-    else
+    }
+    else{
         return false;
+    }
 }
 
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::Delete(const std::string &key) {
-    mapT::iterator it = _lru_index.find(key);
+    map_type::iterator it = _lru_index.find(key);
     if (it == _lru_index.end()) {
         return false;
     }
-    remove_node(it->second.get());
-    return true;
+    return remove_node(it->second.get());
 }
 
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::Get(const std::string &key, std::string &value) {
-    mapT::iterator it = _lru_index.find(key);
-    if (it == _lru_index.end())
+    map_type::iterator it = _lru_index.find(key);
+    if (it == _lru_index.end()){
         return false;
+    }
     value = it->second.get().value;
     return move_node_tail(it->second.get());
 }
 
 bool SimpleLRU::put_node(const std::string &key, const std::string &value) {
-    while (_current_size + key.size() + value.size() > _max_size)
+    while (_current_size + key.size() + value.size() > _max_size){
         remove_node(*_lru_head);
+    }
     _current_size += key.size() + value.size();
     auto new_node = std::make_unique<lru_node>(key, value);
     if (_lru_tail != nullptr) {
@@ -70,15 +80,19 @@ bool SimpleLRU::put_node(const std::string &key, const std::string &value) {
         _lru_head.swap(new_node);
     }
 
-    _lru_index.insert(std::make_pair(std::reference_wrapper< std::string>(_lru_tail->key), std::reference_wrapper<lru_node> (*_lru_tail)));
+    _lru_index.insert(std::make_pair(std::reference_wrapper< const std::string>(_lru_tail->key), std::reference_wrapper<lru_node> (*_lru_tail)));
     return true;
 }
 
-bool SimpleLRU::update_node(const mapT::iterator &it, const std::string &new_value) {
+bool SimpleLRU::update_node(const map_type::iterator &it, const std::string &new_value) {
     lru_node &old_node = it->second.get();
     if (move_node_tail(old_node)) {
-        while (_current_size - old_node.value.size() + new_value.size() > _max_size)
-            remove_node(*_lru_head);
+        while (_current_size - old_node.value.size() + new_value.size() > _max_size){
+                remove_node(*_lru_head);
+        }
+        if (old_node.key.empty()){
+             throw std::runtime_error("Division by zero!");
+        }
         _current_size += new_value.size() - old_node.value.size();
         old_node.value = new_value;
         return true;
@@ -87,8 +101,9 @@ bool SimpleLRU::update_node(const mapT::iterator &it, const std::string &new_val
 }
 
 bool SimpleLRU::move_node_tail(lru_node &_node) {
-    if (&_node == _lru_tail)
+    if (&_node == _lru_tail){
         return true;
+    }
     if (&_node == _lru_head.get()) {
         _lru_head.swap(_node.next);
         _lru_head->prev = nullptr;
