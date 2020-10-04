@@ -101,12 +101,12 @@ void ServerImpl::Join() {
     close(_server_socket);
 
     std::unique_lock<std::mutex> l(_thread_stopped);
-    _check_current_workers.wait(l, [this] { return this->_cnt_workers == 0; });
+    _check_current_workers.wait(l, [this] { return this->_n_workers == 0; });
 }
 
 // See Server.h
 void ServerImpl::OnRun() {
-    _cnt_workers.store(0);
+    _n_workers.store(0);
     while (_running.load()) {
         _logger->debug("Waiting for connection...");
 
@@ -139,8 +139,8 @@ void ServerImpl::OnRun() {
             setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
         }
 
-        if (_cnt_workers < _max_workers && _running.load()) {
-            ++_cnt_workers;
+        if (_n_workers < _max_workers && _running.load()) {
+            ++_n_workers;
 
             {
                 std::lock_guard<std::mutex> l1(_socks_blocked);
@@ -165,30 +165,28 @@ void ServerImpl::worker(int client_socket) {
     std::size_t arg_remains = 0;
     Protocol::Parser parser;
     std::string argument_for_command;
+    std::string response;
     std::unique_ptr<Execute::Command> command_to_execute;
 
     // Process new connection:
     // 1) Read commands while socket is alive
-    // 2) Execute each command
+    // 2) Execute commands
     // 3) Send response
     try {
-        int read_bytes = -1;
-        char client_buffer[4096] = "";
-        while ((read_bytes = read(client_socket, client_buffer, sizeof(client_buffer))) > 0) {
-            _logger->debug("Got {} bytes from socket", read_bytes);
+        int bytes_read;
+        char buf[4096] = "";
+        while ((bytes_read = read(client_socket, buf, sizeof(buf))) > 0) {
+            _logger->debug("Got {} bytes from socket", bytes_read);
 
-            // Single block of data read from the socket may invoke multiple actions,
-            // for example:
-            // - read#0: [<command1 start>]
-            // - read#1: [<command1 end> <argument> <command2> <argument for command 2> <command3> ... ]
-            while (read_bytes > 0) {
-                _logger->debug("Processing {} bytes", read_bytes);
-                // There is no command yet
+            // Single block of data read from the socket may invoke multiple actions
+            while (bytes_read > 0) {
+                _logger->debug("Processing {} bytes", bytes_read);
+                
+                // No command yet
                 if (!command_to_execute) {
                     std::size_t parsed = 0;
-                    if (parser.Parse(client_buffer, read_bytes, parsed)) {
-                        // There is no command to be launched, continue to parse input stream
-                        // Here we are, current chunk finished some command, process it
+                    if (parser.Parse(buf, bytes_read, parsed)) {
+                        // Command found
                         _logger->debug("Found new command: {} in {} bytes", parser.Name(), parsed);
                         command_to_execute = parser.Build(arg_remains);
                         if (arg_remains > 0) {
@@ -201,45 +199,45 @@ void ServerImpl::worker(int client_socket) {
                     if (parsed == 0) {
                         break;
                     } else {
-                        std::memmove(client_buffer, client_buffer + parsed, read_bytes - parsed);
-                        read_bytes -= parsed;
+                        std::memmove(buf, buf + parsed, bytes_read - parsed);
+                        bytes_read -= parsed;
                     }
                 }
 
-                // There is command, but we still wait for argument to arrive
+                // Reading remaining arguments
                 if (command_to_execute && arg_remains > 0) {
-                    _logger->debug("Receiving arguments: {} bytes of {}", read_bytes, arg_remains);
-                    // There is some parsed command, and now we are reading argument
-                    std::size_t to_read = std::min(arg_remains, std::size_t(read_bytes));
-                    argument_for_command.append(client_buffer, to_read);
+                    _logger->debug("Receiving arguments: {} bytes of {}", bytes_read, arg_remains);
+                    
+                    std::size_t to_read = std::min(arg_remains, std::size_t(bytes_read));
+                    argument_for_command.append(buf, to_read);
 
-                    std::memmove(client_buffer, client_buffer + to_read, read_bytes - to_read);
+                    std::memmove(buf, buf + to_read, bytes_read - to_read);
                     arg_remains -= to_read;
-                    read_bytes -= to_read;
+                    bytes_read -= to_read;
                 }
 
-                // command and arguments received. Running
+                // Command and arguments received. Running
                 if (command_to_execute && arg_remains == 0) {
                     _logger->debug("Starting command execution");
 
-                    std::string result;
-                    command_to_execute->Execute(*pStorage, argument_for_command, result);
+                    command_to_execute->Execute(*pStorage, argument_for_command, response);
+                    response += "\r\n";
 
-                    // Send response
-                    result += "\r\n";
-                    if (send(client_socket, result.data(), result.size(), 0) <= 0) {
+                    if (send(client_socket, response.data(), response.size(), 0) <= 0) {
                         throw std::runtime_error("Failed to send response");
                     }
 
                     // Prepare for the next command
                     command_to_execute.reset();
                     argument_for_command.resize(0);
+                    response.resize(0);
                     parser.Reset();
                 }
-            } // while (read_bytes)
+
+            } // while (bytes_read > 0)
         }
 
-        if (read_bytes == 0) {
+        if (bytes_read == 0) {
             _logger->debug("Connection closed");
         } else {
             throw std::runtime_error(std::string(strerror(errno)));
@@ -248,7 +246,7 @@ void ServerImpl::worker(int client_socket) {
         _logger->error("Failed to process connection on descriptor {}: {}", client_socket, ex.what());
     }
 
-    // We are done with this connection
+    // Closing connection
 
     {
         std::lock_guard<std::mutex> lock(_socks_blocked);
@@ -256,8 +254,8 @@ void ServerImpl::worker(int client_socket) {
         _sockets.erase(client_socket);
     }
 
-    --_cnt_workers;
-    if (_cnt_workers == 0) {
+    --_n_workers;
+    if (_n_workers == 0) {
         _check_current_workers.notify_all();
     }
 }

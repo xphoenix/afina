@@ -54,7 +54,7 @@ private:
     // Thread to run network on
     std::thread _thread;
 
-    std::atomic<int> _cnt_workers;
+    std::atomic<int> _n_workers;
     const int _max_workers = 5;
 
     std::condition_variable _check_current_workers;
