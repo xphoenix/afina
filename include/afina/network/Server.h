@@ -46,7 +46,7 @@ public:
 
 protected:
     /**
-     * Instance of backing storeage on which current server should execute
+     * Instance of backing storage on which current server should execute
      * each command
      */
     std::shared_ptr<Afina::Storage> pStorage;
