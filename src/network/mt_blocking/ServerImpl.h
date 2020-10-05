@@ -2,8 +2,12 @@
 #define AFINA_NETWORK_MT_BLOCKING_SERVER_H
 
 #include <atomic>
+#include <condition_variable>
+#include <list>
 #include <thread>
 
+#include "protocol/Parser.h"
+#include <afina/execute/Command.h>
 #include <afina/network/Server.h>
 
 namespace spdlog {
@@ -39,6 +43,7 @@ protected:
     void OnRun();
 
 private:
+    void worker(int client_socket);
     // Logger instance
     std::shared_ptr<spdlog::logger> _logger;
 
@@ -52,6 +57,12 @@ private:
 
     // Thread to run network on
     std::thread _thread;
+
+    std::list<int> sockets;
+    std::condition_variable stop;
+    std::mutex mutex;
+    uint32_t n_accept;
+    uint32_t n_workers;
 };
 
 } // namespace MTblocking
