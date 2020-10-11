@@ -33,14 +33,14 @@ public:
     	}
 
         for (size_t i = 0; i < n_shards - 1; i++) {
-            shards.push_back(std::unique_ptr<SimpleLRU> (new SimpleLRU(shard_limit));
+            shards.push_back(std::unique_ptr<SimpleLRU> (new SimpleLRU(shard_limit)));
         }
 
         if (remainder != 0) {
         	shard_limit = remainder;
         }
 
-        shards.push_back(std::unique_ptr<SimpleLRU> (new SimpleLRU(shard_limit));
+        shards.push_back(std::unique_ptr<SimpleLRU> (new SimpleLRU(shard_limit)));
     }
 
     ~StripedLRU() {}
