@@ -5,7 +5,6 @@
 #include "SimpleLRU.h"
 
 #include <vector>
-#include <mutex>
 #include <functional>
 
 namespace Afina {
