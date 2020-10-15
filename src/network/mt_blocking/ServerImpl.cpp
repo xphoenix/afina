@@ -36,6 +36,8 @@ ServerImpl::~ServerImpl() {}
 // See Server.h
 void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
 
+	_max_workers = n_workers;
+
 	_logger = pLogging->select("network");
 	_logger->info("Start mt_blocking network service");
 
@@ -84,12 +86,10 @@ void ServerImpl::Stop() {
 	_running.store(false);
 	shutdown(_server_socket, SHUT_RDWR);
 	
-	std::unique_lock<std::mutex> lock(_socks_blocked);
+	std::unique_lock<std::mutex> lock(mut);
 	for (auto descriptor : _sockets) {
 		shutdown(descriptor, SHUT_RD);
 	}
-
-	_sockets.clear();
 
 	_logger->debug("Stopping executor");
 }
@@ -98,15 +98,10 @@ void ServerImpl::Stop() {
 void ServerImpl::Join() {
 	assert(_thread.joinable());
 	_thread.join();
-	close(_server_socket);
-
-	std::unique_lock<std::mutex> l(_thread_stopped);
-	_check_current_workers.wait(l, [this] { return this->_n_workers == 0; });
 }
 
 // See Server.h
 void ServerImpl::OnRun() {
-	_n_workers.store(0);
 	while (_running.load()) {
 		_logger->debug("Waiting for connection...");
 
@@ -139,20 +134,35 @@ void ServerImpl::OnRun() {
 			setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
 		}
 
-		if (_n_workers < _max_workers && _running.load()) {
-			++_n_workers;
 
-			{
-				std::lock_guard<std::mutex> l1(_socks_blocked);
-				// running new worker
-				std::thread(&ServerImpl::worker, this, client_socket).detach();
-				// add new descriptor to the set
-				_sockets.emplace(client_socket);
+		{
+			std::unique_lock<std::mutex> l(mut);
+			if (_sockets.size() < _max_workers && _running.load()) {
+				try {
+					// running new worker
+					std::thread(&ServerImpl::worker, this, client_socket).detach();
+					// add new descriptor to the set
+					_sockets.emplace(client_socket);
+
+				} catch (...) {
+					close(client_socket);
+					throw std::runtime_error("Unable to start worker. Closing client socket");
+				}
 			}
 		}
 	}
 
 	// Cleanup on exit...
+
+	close(_server_socket);
+	std::unique_lock<std::mutex> l(mut);
+	_check_current_workers.wait(l, 
+		[this] { 
+			return this->_sockets.empty(); 
+		}
+
+	);
+
 	_logger->warn("Network stopped");
 }
 
@@ -248,20 +258,16 @@ void ServerImpl::worker(int client_socket) {
 
 	// Closing connection
 
-	{
-		std::lock_guard<std::mutex> lock(_socks_blocked);
-		close(client_socket);
-		_sockets.erase(client_socket);
+	std::lock_guard<std::mutex> lock(mut);
+	close(client_socket);
+	_sockets.erase(client_socket);
+	
+	if (!_running.load() && _sockets.empty()) {
+		_check_current_workers.notify_one();
 	}
-
-	--_n_workers;
-	if (_n_workers == 0) {
-		_check_current_workers.notify_all();
-	}
+	
 }
-
 
 } // namespace MTblocking
 } // namespace Network
 } // namespace Afina
-

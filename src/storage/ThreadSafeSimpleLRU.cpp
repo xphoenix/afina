@@ -1,10 +1,10 @@
-#include "SimpleLRU.h"
+#include "ThreadSafeSimpleLRU.h"
 
 namespace Afina {
 namespace Backend {
 
   //add new element to the storage
-  bool SimpleLRU::putElement(const std::string &key, const std::string &value) {
+  bool ThreadSafeSimpleLRU::putElement(const std::string &key, const std::string &value) {
 
     std::size_t newsz = key.size() + value.size();
     if (newsz > _max_size) {
@@ -40,7 +40,7 @@ namespace Backend {
   }
 
   //update the value of an exisiting element of the storage
-  bool SimpleLRU::updateValue(SimpleLRU::lru_node &node, const std::string &value) {
+  bool ThreadSafeSimpleLRU::updateValue(ThreadSafeSimpleLRU::lru_node &node, const std::string &value) {
     std::size_t oldsz = node.value.size();
     std::size_t newsz = value.size();
 
@@ -63,7 +63,7 @@ namespace Backend {
   }
 
   //delete existing node
-  void SimpleLRU::deleteNode(SimpleLRU::lru_node &node) {
+  void ThreadSafeSimpleLRU::deleteNode(ThreadSafeSimpleLRU::lru_node &node) {
 
     _cur_size -= node.key.size() + node.value.size();
     _lru_index.erase(node.key);
@@ -96,7 +96,7 @@ namespace Backend {
 
   //move existing node to the tail of the deletion queue
   //(make it the most recently used element)
-  void SimpleLRU::toTail(SimpleLRU::lru_node &node) {
+  void ThreadSafeSimpleLRU::toTail(ThreadSafeSimpleLRU::lru_node &node) {
     if (node.next != nullptr) { //not already tail
 
       auto ptr = node.next->prev;
@@ -117,20 +117,24 @@ namespace Backend {
   }
 
   // See MapBasedGlobalLockImpl.h
-  bool SimpleLRU::Put(const std::string &key, const std::string &value) {
+  bool ThreadSafeSimpleLRU::Put(const std::string &key, const std::string &value) {
+        
+  	std::lock_guard<std::mutex> lock(storage_available);
         
     auto found = _lru_index.find(key);
     if (found == _lru_index.end()) {
       return putElement(key, value);
     } else {
-      SimpleLRU::lru_node &node = found->second.get();
+      ThreadSafeSimpleLRU::lru_node &node = found->second.get();
       return updateValue(node, value);
       }
     }
 
   // See MapBasedGlobalLockImpl.h
-  bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
+  bool ThreadSafeSimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
         
+  	std::lock_guard<std::mutex> lock(storage_available);
+
     auto found = _lru_index.find(key);
     if (found == _lru_index.end()) {
       return putElement(key, value); 
@@ -140,26 +144,30 @@ namespace Backend {
   }
 
   // See MapBasedGlobalLockImpl.h
-  bool SimpleLRU::Set(const std::string &key, const std::string &value) {
+  bool ThreadSafeSimpleLRU::Set(const std::string &key, const std::string &value) {
+
+  	std::lock_guard<std::mutex> lock(storage_available);
 
     auto found = _lru_index.find(key);
     if (found == _lru_index.end()) { 
       return false; //not found
     }
 
-    SimpleLRU::lru_node &node = found->second.get();
+    ThreadSafeSimpleLRU::lru_node &node = found->second.get();
     return updateValue(node, value);
   }
 
   // See MapBasedGlobalLockImpl.h
-  bool SimpleLRU::Delete(const std::string &key) {
+  bool ThreadSafeSimpleLRU::Delete(const std::string &key) {
         
+  	std::lock_guard<std::mutex> lock(storage_available);
+
     auto found = _lru_index.find(key);
     if (found == _lru_index.end()) {
       return false; //not found
     }
 
-    SimpleLRU::lru_node &node = found->second.get();
+    ThreadSafeSimpleLRU::lru_node &node = found->second.get();
 
     deleteNode(node);
 
@@ -167,14 +175,16 @@ namespace Backend {
   }
 
   // See MapBasedGlobalLockImpl.h
-  bool SimpleLRU::Get(const std::string &key, std::string &value) {
+  bool ThreadSafeSimpleLRU::Get(const std::string &key, std::string &value) {
+
+  	std::lock_guard<std::mutex> lock(storage_available);
 
     auto found = _lru_index.find(key);
     if (found == _lru_index.end()) { 
       return false; //not found
     }
 
-    SimpleLRU::lru_node &node = found->second.get();
+    ThreadSafeSimpleLRU::lru_node &node = found->second.get();
     value = node.value;
     toTail(node); //this element is now the most recently used
                   //moving it to the end of the deletion queue

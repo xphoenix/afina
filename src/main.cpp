@@ -55,7 +55,7 @@ public:
         if (storage_type == "st_lru") {
             storage = std::make_shared<Afina::Backend::SimpleLRU>();
         } else if (storage_type == "mt_lru") {
-            storage = std::make_shared<Afina::Backend::ThreadSafeSimplLRU>();
+            storage = std::make_shared<Afina::Backend::ThreadSafeSimpleLRU>();
         } else if (storage_type == "mt_slru") {
             storage = std::make_shared<Afina::Backend::StripedLRU>();
         } else {

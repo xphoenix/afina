@@ -54,16 +54,14 @@ private:
     // Thread to run network on
     std::thread _thread;
 
-    std::atomic<int> _n_workers;
-    const int _max_workers = 5;
+    int _max_workers = 5;
 
+    std::mutex mut;
     std::condition_variable _check_current_workers;
-    std::mutex _thread_stopped;
+    std::set<int> _sockets;
 
     void worker(int socket);
 
-    std::mutex _socks_blocked;
-    std::set<int> _sockets;
 };
 
 } // namespace MTblocking
