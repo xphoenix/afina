@@ -17,29 +17,15 @@ public:
     
     StripedLRU(std::size_t n_shards = 10, std::size_t memory_limit = 1024 * 1024 * 10) {
 
-    	if (n_shards < 2) {
-    		throw std::runtime_error("Too few shards. Use SimpleLRU instead.");
-    	}
-    	if (memory_limit < n_shards) {
-    		throw std::runtime_error("Too few memory for each shard. Use SimpleLRU instead.");
-    	}
-
     	std::size_t shard_limit = memory_limit / n_shards;
-    	std::size_t remainder = memory_limit % n_shards;
 
-    	if (shard_limit < 2 || remainder == 1) {
-			throw std::runtime_error("Too few memory for each shard. Use SimpleLRU instead.");	
+    	if (shard_limit < 1024 * 1024) { //less than 1 MB
+			throw std::runtime_error("Too few memory for each shard.");	
     	}
 
-        for (size_t i = 0; i < n_shards - 1; i++) {
+        for (size_t i = 0; i < n_shards; i++) {
             shards.push_back(std::unique_ptr<SimpleLRU> (new SimpleLRU(shard_limit)));
         }
-
-        if (remainder != 0) {
-        	shard_limit = remainder;
-        }
-
-        shards.push_back(std::unique_ptr<SimpleLRU> (new SimpleLRU(shard_limit)));
     }
 
     ~StripedLRU() {}
