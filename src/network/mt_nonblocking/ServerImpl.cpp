@@ -109,6 +109,7 @@ void ServerImpl::Start(uint16_t port, uint32_t n_acceptors, uint32_t n_workers) 
 
 // See Server.h
 void ServerImpl::Stop() {
+    std::unique_lock<std::mutex> lock(mutex);
     _logger->warn("Stop network service");
     // Said workers to stop
     for (auto &w : _workers) {
@@ -119,11 +120,12 @@ void ServerImpl::Stop() {
     if (eventfd_write(_event_fd, 1)) {
         throw std::runtime_error("Failed to wakeup workers");
     }
+    if (_workers.size() == 1){
     for(auto &it: _connections)
     {
         close(it->_socket);
         delete it;
-    }
+    }}
     //close(_server_socket);
 }
 

@@ -94,12 +94,10 @@ void Worker::OnRun() {
             Connection *pconn = static_cast<Connection *>(current_event.data.ptr);
             if ((current_event.events & EPOLLERR) || (current_event.events & EPOLLHUP)) {
                 _logger->debug("Got EPOLLERR or EPOLLHUP, value of returned events: {}", current_event.events);
-                pconn->DoRead();
                 pconn->DoWrite();
                 pconn->OnError();
             } else if (current_event.events & EPOLLRDHUP) {
                 _logger->debug("Got EPOLLRDHUP, value of returned events: {}", current_event.events);
-                pconn->DoRead();
                 pconn->DoWrite();
                 pconn->OnClose();
             } else {
