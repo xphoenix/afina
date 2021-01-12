@@ -91,11 +91,11 @@ void Connection::DoRead() {
 
                     std::string result;
                     command_to_execute->Execute(*pStorage, argument_for_command, result);
-                    bool fuckingflag = _results.empty();
+                    bool stupflag = _results.empty();
                     // Send response
                     result += "\r\n";
                     _results.push_back(result);
-                    if (fuckingflag) {
+                    if (stupflag) {
                         _event.events |= EPOLLOUT;
                     };
 
@@ -106,15 +106,26 @@ void Connection::DoRead() {
                 }
             } // while (readed_bytes)
         }
-        // EAGAIN - Resource temporarily unvailable
-        _logger->debug("Client stop to write to connection on descriptor {}", client_socket);
-        if (errno == EAGAIN) {
+        if (arg_remains == 0) {
+            _logger->debug("Connection closed");
+        } else {
             throw std::runtime_error(std::string(strerror(errno)));
         }
     } catch (std::runtime_error &ex) {
-        _logger->error("failed to read from connection on descriptor {}: {}", client_socket, ex.what());
+        if (errno != EAGAIN) {
+            _logger->error("Failed to read connection on descriptor {}: {}", _socket, ex.what());
+        }
     }
 }
+        // EAGAIN - Resource temporarily unvailable
+        //_logger->debug("Client stop to write to connection on descriptor {}", client_socket);
+        //if (errno == EAGAIN) {
+            //throw std::runtime_error(std::string(strerror(errno)));
+       // }
+    //} catch (std::runtime_error &ex) {
+      //  _logger->error("failed to read from connection on descriptor {}: {}", client_socket, ex.what());
+    //}
+//}
 
 // See Connection.h
 void Connection::DoWrite() {
