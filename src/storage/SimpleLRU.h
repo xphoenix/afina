@@ -11,10 +11,6 @@
 
 #include <afina/Storage.h>
 
-using data_t = std::pair<std::string, std::string>;
-using lru_list_iterator = std::list<std::pair<std::string, std::string>>::iterator;
-using lru_index_iterator = std::map<std::reference_wrapper<const std::string>, lru_list_iterator, std::less<std::string>>::iterator;
-
 namespace Afina {
 namespace Backend {
 /**
@@ -29,7 +25,7 @@ public:
 
     ~SimpleLRU() {
         _lru_index.clear();
-        _lru_cash_list.clear();
+        _lru_cashe_list.clear();
          // TODO: Here is stack overflow
     }
 
@@ -50,9 +46,13 @@ public:
 
 private:
 
+    using data_t = std::pair<std::string, std::string>;
+    using lru_list_iterator = std::list<std::pair<const std::string, std::string>>::iterator;
+    using lru_index_iterator = std::map<std::reference_wrapper<const std::string>, lru_list_iterator, std::less<std::string>>::iterator;
+
     // Main storage of lru_nodes, elements in this list ordered descending by "freshness": in the head
     // element that wasn't used for longest time.
-    std::list<std::pair<std::string, std::string>> _lru_cash_list; 
+    std::list<std::pair<const std::string, std::string>> _lru_cashe_list; 
 
     // Maximum number of bytes could be stored in this cache.
     // i.e all (keys+values) must be less the _max_size
@@ -64,7 +64,7 @@ private:
     // Index of nodes from list above, allows fast random access to elements by lru_node#key
     std::map<std::reference_wrapper<const std::string>, lru_list_iterator, std::less<std::string>> _lru_index;
 
-    void cache_list_trim(size_t size);
+    void CacheListTrim(size_t size);
 
     bool ForcedPut(const std::string &key, const std::string &value);
     bool Set(lru_index_iterator it, const std::string &value);
