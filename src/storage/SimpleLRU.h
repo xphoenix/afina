@@ -7,57 +7,16 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <list>
 
 #include <afina/Storage.h>
 
-#define PRINTL std::cout << __LINE__ << std::endl;
+using data_t = std::pair<std::string, std::string>;
+using lru_list_iterator = std::list<std::pair<std::string, std::string>>::iterator;
+using lru_index_iterator = std::map<std::reference_wrapper<const std::string>, lru_list_iterator, std::less<std::string>>::iterator;
 
 namespace Afina {
 namespace Backend {
-
-class Lru_cash_list {
-    public:
-        // LRU cache node
-        struct lru_node {
-            const std::string key;
-            std::string value;
-            lru_node* prev;
-            std::unique_ptr<lru_node> next;
-            
-            lru_node() = default;
-            lru_node(std::string key_, std::string value_)
-            : key(key_),
-              value(value_)
-              {}
-        };
-
-    private:
-
-        std::unique_ptr<lru_node> _lru_head = nullptr;
-
-    public:
-        // Insert new element to begining of lru list
-        void push_front(const std::string &key, const std::string &value);
-
-        //  Return pointer to the last element
-        lru_node* back() const;
-
-        //  Return pointer to the first element
-        lru_node* front() const;
-
-        // Delete last elements from lru list
-        void pop_back();
-
-        // Delete first elements from lru list
-        void pop_front();
-
-        //Erase element on reference
-        void erase(lru_node* node);
-        
-        // Clear list
-        void reset();
-};
-
 /**
  * # Map based implementation
  * That is NOT thread safe implementaiton!!
@@ -70,7 +29,8 @@ public:
 
     ~SimpleLRU() {
         _lru_index.clear();
-        _lru_cash_list.reset(); // TODO: Here is stack overflow
+        _lru_cash_list.clear();
+         // TODO: Here is stack overflow
     }
 
     // Implements Afina::Storage interface
@@ -92,8 +52,7 @@ private:
 
     // Main storage of lru_nodes, elements in this list ordered descending by "freshness": in the head
     // element that wasn't used for longest time.
-    // List owns all nodes
-    Lru_cash_list _lru_cash_list;
+    std::list<std::pair<std::string, std::string>> _lru_cash_list; 
 
     // Maximum number of bytes could be stored in this cache.
     // i.e all (keys+values) must be less the _max_size
@@ -103,9 +62,12 @@ private:
     std::size_t _current_size = 0;
 
     // Index of nodes from list above, allows fast random access to elements by lru_node#key
-    std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<Lru_cash_list::lru_node>, std::less<std::string>> _lru_index;
+    std::map<std::reference_wrapper<const std::string>, lru_list_iterator, std::less<std::string>> _lru_index;
 
-    bool cache_list_trim(size_t size);
+    void cache_list_trim(size_t size);
+
+    bool ForcedPut(const std::string &key, const std::string &value);
+    bool Set(lru_index_iterator it, const std::string &value);
 };
 
 } // namespace Backend
