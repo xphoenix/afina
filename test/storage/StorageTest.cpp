@@ -33,6 +33,7 @@ TEST(StorageTest, PutGet) {
     EXPECT_TRUE(value == "val2");
 }
 
+
 TEST(StorageTest, PutOverwrite) {
     SimpleLRU storage;
 
@@ -118,6 +119,7 @@ TEST(StorageTest, DeleteIfAbsent)
     EXPECT_FALSE(storage.Delete("KEY3"));
 }
 
+
 TEST(StorageTest, DeleteHeadAndTailNode)
 {
     SimpleLRU storage;
@@ -133,6 +135,7 @@ TEST(StorageTest, DeleteHeadAndTailNode)
     EXPECT_TRUE(storage.Set("KEY1", "val21"));
     EXPECT_TRUE(storage.Set("KEY1", "val31"));
     EXPECT_TRUE(storage.Set("KEY1", "val41"));
+    
     // After that, KEY1 should be first in the rating.
     // And KEY4 should be the last.
     EXPECT_TRUE(storage.Delete("KEY4"));
@@ -195,3 +198,4 @@ TEST(StorageTest, MaxTest) {
         EXPECT_FALSE(storage.Get(key, res));
     }
 }
+
