@@ -35,7 +35,7 @@ ServerImpl::ServerImpl(std::shared_ptr<Afina::Storage> ps,
 ServerImpl::~ServerImpl() {}
 
 // See Server.h
-void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers = 1) {
+void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers = 4) {
     _max_workers_cnt = n_workers;
     _logger = pLogging->select("network");
     _logger->info("Start mt_blocking network service");
@@ -75,7 +75,7 @@ void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers = 1)
     }
 
     running.store(true);
-    _thread = std::thread(&ServerImpl::OnRun, this);
+    _thread = std::thread(&ServerImpl::OnRun, this, 60, 0);
 }
 
 // See Server.h
@@ -86,13 +86,13 @@ void ServerImpl::Stop() {
     for (auto socket : _client_sockets) {
         shutdown(socket, SHUT_RD); // not RDWR
     }
+    close(_server_socket);
 }
 
 // See Server.h
 void ServerImpl::Join() {
     assert(_thread.joinable());
     _thread.join();
-    close(_server_socket);
     std::unique_lock<std::mutex> ul(_mutex);
     while (_cur_workers_cnt != 0) {
         condvar.wait(ul);
