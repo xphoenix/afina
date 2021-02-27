@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <thread>
+#include <unordered_set>
 
 #include <afina/network/Server.h>
 
@@ -20,7 +21,8 @@ namespace MTblocking {
  */
 class ServerImpl : public Server {
 public:
-    ServerImpl(std::shared_ptr<Afina::Storage> ps, std::shared_ptr<Logging::Service> pl);
+    ServerImpl(std::shared_ptr<Afina::Storage> ps,
+               std::shared_ptr<Logging::Service> pl);
     ~ServerImpl();
 
     // See Server.h
@@ -36,7 +38,7 @@ protected:
     /**
      * Method is running in the connection acceptor thread
      */
-    void OnRun();
+    void OnRun(size_t tv_sec, size_t tv_usec);
 
 private:
     // Logger instance
@@ -52,6 +54,15 @@ private:
 
     // Thread to run network on
     std::thread _thread;
+
+    int _cur_workers_cnt;
+    int _max_workers_cnt;
+    std::unordered_set<int> _client_sockets;
+
+    void Worker(int client_socket);
+
+    std::mutex _mutex;
+    std::condition_variable condvar;
 };
 
 } // namespace MTblocking
