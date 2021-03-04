@@ -1,4 +1,5 @@
 #include "SimpleLRU.h"
+#include "iostream"
 
 namespace Afina {
 namespace Backend {
@@ -23,7 +24,7 @@ void SimpleLRU::LRU_move(lru_node* moved_node) {
 	{
 		return;
 	}
-	if (!moved_node->next.get())
+	if (!moved_node->next.get()) //move the last node
 	{
 		_lru_tail = moved_node->prev;
 		_lru_head.get()->prev = moved_node;
@@ -47,6 +48,7 @@ void SimpleLRU::PutIn(const std::string &key, const std::string &value, std::siz
 		LRU_delete();
 	}
 	lru_node *new_node = new lru_node{key, value, nullptr, nullptr};
+	//insert
 	if (_lru_head.get())
 	{
 		_lru_head.get()->prev = new_node;
@@ -58,12 +60,13 @@ void SimpleLRU::PutIn(const std::string &key, const std::string &value, std::siz
 	new_node->prev = nullptr;
 	new_node->next = std::move(_lru_head);
 	_lru_head.reset(new_node);
+	//end of insert
 	_lru_index.insert({std::reference_wrapper<const std::string>(new_node->key), std::reference_wrapper<lru_node>(*new_node)});
 	_curr_size += node_size;
 }
 
 void SimpleLRU::SetIn(lru_node &node, const std::string &value) {
-	std::size_t diff_size = value.size() - node.value.size();
+	int diff_size = value.size() - node.value.size(); //change size_t on int
 	LRU_move(&node);
 	while (_curr_size + diff_size > _max_size)
 	{
@@ -81,7 +84,8 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value) {
 		return false;
 	}
 	auto node = _lru_index.find(key);
-	if (node ==  _lru_index.end()) // this is no key
+	
+	if (node ==  _lru_index.end()) // there is no key
 	{
 		PutIn(key, value, node_size);
 	}
@@ -100,7 +104,7 @@ bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
 		return false;
 	}
 	auto node = _lru_index.find(key);
-	if (node ==  _lru_index.end()) // this is no key
+	if (node ==  _lru_index.end()) // there is no key
 	{
 		PutIn(key, value, node_size);
 		return true;
@@ -110,7 +114,7 @@ bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
 
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::Set(const std::string &key, const std::string &value) { 
-	std::size_t node_size = key.size() + value.size();
+	int node_size = key.size() + value.size();
 	if (node_size > _max_size) // can't guarantee invariant
 	{
 		return false;

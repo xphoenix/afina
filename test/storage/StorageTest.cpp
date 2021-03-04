@@ -195,3 +195,14 @@ TEST(StorageTest, MaxTest) {
         EXPECT_FALSE(storage.Get(key, res));
     }
 }
+
+TEST(StorageTest, SHORT_NEW_VALUE){
+	SimpleLRU storage(22);
+	std::string result;
+	EXPECT_TRUE(storage.Put("KEY", "VERY_VERY_BIG_VALUE"));
+	EXPECT_TRUE(storage.Put("KEY1", "VALUE"));
+	EXPECT_TRUE(storage.Put("KEY2", "VALUE"));
+	EXPECT_TRUE(storage.Put("KEY", "VALUE"));
+	EXPECT_TRUE(storage.Get("KEY", result));
+	EXPECT_TRUE(storage.Get("KEY2", result));
+}
