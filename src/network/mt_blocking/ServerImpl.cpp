@@ -93,10 +93,6 @@ void ServerImpl::Stop() {
 void ServerImpl::Join() {
     assert(_thread.joinable());
     _thread.join();
-    std::unique_lock<std::mutex> ul(_mutex);
-    while (_cur_workers_cnt != 0) {
-        condvar.wait(ul);
-    }
 }
 
 
@@ -113,7 +109,7 @@ void ServerImpl::Worker(int client_socket) {
 
     try {
         int readed_bytes;
-        char client_buffer[4096];
+        char client_buffer[4096] = "";
         while ( (readed_bytes = read(client_socket, client_buffer, sizeof(client_buffer))) > 0) {
             _logger->debug("Got {} bytes from socket", readed_bytes);
 
@@ -178,7 +174,7 @@ void ServerImpl::Worker(int client_socket) {
         }
 
         // if nothing to read or socket was blocked
-        if (readed_bytes == 0 || EAGAIN || EWOULDBLOCK) {
+        if (readed_bytes == 0) {
             _logger->debug("Connection closed");
         } else {
             throw std::runtime_error(std::string(strerror(errno)));
@@ -191,10 +187,9 @@ void ServerImpl::Worker(int client_socket) {
     close(client_socket);
 
     std::lock_guard<std::mutex> lg(_mutex);
-    _cur_workers_cnt--;
     _client_sockets.erase(client_socket);
-    if (_cur_workers_cnt == 0 && !running.load()) {
-        condvar.notify_one();
+    if (_client_sockets.size() == 0 && !running.load()) {
+        condvar.notify_all();
     }
 }
 
@@ -238,7 +233,9 @@ void ServerImpl::OnRun(size_t tv_sec = 10, size_t tv_usec = 0) {
             setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
         }
 
-        if (_cur_workers_cnt >= _max_workers_cnt) {
+        _mutex.lock();
+        if (_client_sockets.size() >= _max_workers_cnt) {
+            _mutex.unlock();
             static const std::string msg = "Max connections count has reached";
             if (send(client_socket, msg.data(), msg.size(), 0) <= 0) {
                 _logger->error("Failed to write response to client: {}", strerror(errno));
@@ -249,7 +246,6 @@ void ServerImpl::OnRun(size_t tv_sec = 10, size_t tv_usec = 0) {
 
         {
             std::lock_guard<std::mutex> lg(_mutex);
-            _cur_workers_cnt++;
             std::thread worker(&ServerImpl::Worker, this, client_socket);
             _client_sockets.insert(client_socket);
             worker.detach();
@@ -259,7 +255,7 @@ void ServerImpl::OnRun(size_t tv_sec = 10, size_t tv_usec = 0) {
 
     {
         std::unique_lock<std::mutex> ul(_mutex);
-        while (_cur_workers_cnt != 0) {
+        while (_client_sockets.size() != 0) {
             condvar.wait(ul);
         }
     }

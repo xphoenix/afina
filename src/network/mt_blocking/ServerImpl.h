@@ -57,7 +57,6 @@ private:
     // Thread to run network on
     std::thread _thread;
 
-    int _cur_workers_cnt;
     int _max_workers_cnt;
     std::unordered_set<int> _client_sockets;
 

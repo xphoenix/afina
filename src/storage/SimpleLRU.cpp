@@ -63,19 +63,12 @@ namespace Backend {
   {
       size_t node_size = key.size() + value.size();
 
-      // too large node
-      if (_overflow(node_size)) {
-          return false;
-      }
-
       // if we need more space for new node, delete old nodes while too few space
-      if (_overflow(_cur_size + node_size)) {
-          while (_overflow(_cur_size + node_size)) {
-              _lru_index.erase(std::cref(_lru_tail->key));
-              _cur_size  = _cur_size - _lru_tail->key.size() - _lru_tail->value.size();
-              _lru_tail = _lru_tail->prev;
-              _lru_tail->next.reset(nullptr);
-          }
+      while (_overflow(_cur_size + node_size)) {
+          _lru_index.erase(std::cref(_lru_tail->key));
+          _cur_size  = _cur_size - _lru_tail->key.size() - _lru_tail->value.size();
+          _lru_tail = _lru_tail->prev;
+          _lru_tail->next.reset(nullptr);
       }
 
       auto node = std::unique_ptr<lru_node>( new lru_node(key, value) );
@@ -97,32 +90,27 @@ namespace Backend {
   {
       auto node_ref = it_find->second;
       size_t node_value_size = node_ref.get().value.size();
-      size_t node_size = key.size() + value.size();
 
-      // if too large node
-      if (_overflow(node_size)) {
-          return false;
-      }
-
-      node_ref.get().value = value;
-
-      lru_node *cur = &node_ref.get();
-      _get_up(cur);
-
+      _get_up( &node_ref.get() );
       _cur_size = _cur_size - node_value_size + value.size();
-
-      // delete old nodes while too few space.
       while (_overflow(_cur_size)) {
           _lru_index.erase(std::cref(_lru_tail->key));
           _cur_size  = _cur_size - _lru_tail->key.size() - _lru_tail->value.size();
           _lru_tail = _lru_tail->prev;
           _lru_tail->next.reset(nullptr);
       }
+
+      node_ref.get().value = value;
+
       return true;
   }
 
 
   bool SimpleLRU::Put(const std::string &key, const std::string &value) {
+
+      if (_overflow(key.size() + value.size())) {
+          return false;
+      }
       auto it_find = _lru_index.find(std::cref(key));
       if (it_find == _lru_index.end()) {
           return _put_node(key, value);
