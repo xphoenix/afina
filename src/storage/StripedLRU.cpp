@@ -4,6 +4,9 @@
 
 #include "StripedLRU.h"
 
+namespace Afina {
+namespace Backend {
+
 StripedLRU::StripedLRU(std::size_t memory_limit, std::size_t stripe_count)
 {
     size_t stripe_size = memory_limit / stripe_count;
@@ -13,31 +16,34 @@ StripedLRU::StripedLRU(std::size_t memory_limit, std::size_t stripe_count)
 }
 
 // Implements Afina::Storage interface
-bool StripedLRU::Put(const std::string &key, const std::string &value) override
+bool StripedLRU::Put(const std::string &key, const std::string &value)
 {
     return _shards[hash(key) % _shards.size()].Put(key, value);
 }
 
 // Implements Afina::Storage interface
-bool StripedLRU::PutIfAbsent(const std::string &key, const std::string &value) override
+bool StripedLRU::PutIfAbsent(const std::string &key, const std::string &value)
 {
     return _shards[hash(key) % _shards.size()].PutIfAbsent(key, value);
 }
 
 // Implements Afina::Storage interface
-bool StripedLRU::Set(const std::string &key, const std::string &value) override
+bool StripedLRU::Set(const std::string &key, const std::string &value)
 {
     return _shards[hash(key) % _shards.size()].Set(key, value);
 }
 
 // Implements Afina::Storage interface
-bool StripedLRU::Delete(const std::string &key) override
+bool StripedLRU::Delete(const std::string &key)
 {
-    return _shards[hash(key) % _shards.size()].Delete(key, value);
+    return _shards[hash(key) % _shards.size()].Delete(key);
 }
 
 // Implements Afina::Storage interface
-bool StripedLRU::Get(const std::string &key, std::string &value) override
+bool StripedLRU::Get(const std::string &key, std::string &value)
 {
     return _shards[hash(key) % _shards.size()].Get(key, value);
 }
+
+} // namespace Backend
+} // namespace Afina

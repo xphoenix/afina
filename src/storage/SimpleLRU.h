@@ -24,7 +24,7 @@ namespace Backend {
          _lru_tail = _lru_head.get();
      }
 
-     ~SimpleLRU() {
+     ~SimpleLRU() override {
          _lru_index.clear();
          while (_lru_tail != _lru_head.get()) {
              _lru_tail = _lru_tail->prev;

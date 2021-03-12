@@ -10,10 +10,13 @@
 #include <mutex>
 #include <string>
 #include <functional>
+#include <vector>
 
 #include <afina/Storage.h>
 
 #include "SimpleLRU.h"
+
+
 
 namespace Afina {
 namespace Backend {
@@ -30,7 +33,7 @@ public:
         return StripedLRU(stripe_count, memory_limit);
     }
 
-    ~StripedLRU() {}
+    ~StripedLRU() override = default;
 
     // Implements Afina::Storage interface
     bool Put(const std::string &key, const std::string &value) override;
