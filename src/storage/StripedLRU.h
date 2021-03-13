@@ -24,16 +24,19 @@ namespace Backend {
 class StripedLRU : public Afina::Storage {
 public:
 
-    static StripedLRU create_cache(std::size_t stripe_count, std::size_t memory_limit)
+    static std::unique_ptr<StripedLRU> create_cache(std::size_t stripe_count, std::size_t memory_limit)
     {
         constexpr size_t min_memory_size = 1u * 1024 * 1024;
         if (memory_limit / stripe_count < min_memory_size || memory_limit % stripe_count != 0) {
             throw std::runtime_error("Invalid memory limit");
         }
-        return StripedLRU(stripe_count, memory_limit);
+        // return std::move(new StripedLRU(stripe_count, memory_limit));
+        return std::move(std::unique_ptr<StripedLRU>(new StripedLRU(stripe_count, memory_limit)));
     }
 
-    ~StripedLRU() override = default;
+    // StripedLRU(StripedLRU &&) = default;
+
+    ~StripedLRU() { }
 
     // Implements Afina::Storage interface
     bool Put(const std::string &key, const std::string &value) override;
