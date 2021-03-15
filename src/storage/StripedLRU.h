@@ -12,7 +12,7 @@
 namespace Afina {
 namespace Backend {
 
-std::size_t min_size_stripe = 1024UL * 1024;
+constexpr std::size_t min_size_stripe = 1024UL * 1024;
 
 class StripedLRU : public Afina::Storage {
 private:
