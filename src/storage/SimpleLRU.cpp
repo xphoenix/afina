@@ -116,7 +116,7 @@ bool SimpleLRU::_MoveNode(lru_node &node)
         // Change next
         lru_node *ptr = node.next->prev;
         ptr->next->prev = ptr->prev;
-        if (!ptr->prev) {
+        if (!(ptr->prev)) {
             //Change head and head
             this->_lru_tail->next = std::move(this->_lru_head); // Why std::move?
             this->_lru_head = std::move(ptr->next);
@@ -126,7 +126,7 @@ bool SimpleLRU::_MoveNode(lru_node &node)
             ptr->prev->next = std::move(ptr->next);
         }
         ptr->prev = this->_lru_tail;
-        this->_lru_tail = nullptr;
+        this->_lru_tail = ptr;
         ptr->next = nullptr;
     } else {
         /**/
