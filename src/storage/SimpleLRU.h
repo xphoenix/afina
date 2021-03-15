@@ -77,7 +77,7 @@ private:
     bool _Put(const std::string &key, const std::string &value);
     bool _UpdateValue(lru_node &node, const std::string &value);
     void _DeleteNode(lru_node &node);
-    bool _MoveNode(lru_node &node);
+    void _MoveNode(lru_node &node);
 
 };
 
