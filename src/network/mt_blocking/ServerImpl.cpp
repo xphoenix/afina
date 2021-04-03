@@ -20,6 +20,7 @@
 #include <afina/Storage.h>
 #include <afina/execute/Command.h>
 #include <afina/logging/Service.h>
+#include <afina/concurrency/Executor.h>
 
 #include "protocol/Parser.h"
 
@@ -201,6 +202,8 @@ void ServerImpl::OnRun(size_t tv_sec = 10, size_t tv_usec = 0) {
     // - arg_remains: how many bytes to read from stream to get command argument
     // - argument_for_command: buffer stores argument
 
+    Afina::Concurrency::Executor executor("executor", 10, 8, 4 ,1000);
+
     while (running.load()) {
         _logger->debug("waiting for connection...");
 
@@ -233,24 +236,18 @@ void ServerImpl::OnRun(size_t tv_sec = 10, size_t tv_usec = 0) {
             setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
         }
 
-        _mutex.lock();
-        if (_client_sockets.size() >= _max_workers_cnt) {
-            _mutex.unlock();
-            static const std::string msg = "Max connections count has reached";
-            if (send(client_socket, msg.data(), msg.size(), 0) <= 0) {
-                _logger->error("Failed to write response to client: {}", strerror(errno));
-            }
-            close(client_socket);
-            continue;
-        }
-
         {
-            std::lock_guard<std::mutex> lg(_mutex);
-            std::thread worker(&ServerImpl::Worker, this, client_socket);
-            _client_sockets.insert(client_socket);
-            worker.detach();
+            std::lock_guard<std::mutex> lock(_mutex);
+            if (running) {
+                if (executor.Execute(&ServerImpl::Worker, this, client_socket)) {
+                    _client_sockets.insert(client_socket);
+                } else {
+                    close(client_socket);
+                }
+            } else {
+                close(client_socket);
+            }
         }
-
     }
 
     {
@@ -261,6 +258,7 @@ void ServerImpl::OnRun(size_t tv_sec = 10, size_t tv_usec = 0) {
     }
 
     // Cleanup on exit...
+    executor.Stop(true);
     _logger->warn("Network stopped");
 }
 
