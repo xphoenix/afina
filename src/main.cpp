@@ -89,6 +89,8 @@ public:
         log->warn("Start storage");
         storage->Start();
 
+	log->warn("I HATE MULTITHREADING! I HATE TEACHERS! I HATE STUDY!");
+
         // TODO: configure network service
         const uint16_t port = 8080;
         log->warn("Start network on {}", port);
