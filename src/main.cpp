@@ -89,7 +89,7 @@ public:
         log->warn("Start storage");
         storage->Start();
 
-	log->warn("I HATE MULTITHREADING! I HATE TEACHERS! I HATE STUDY!");
+	log->warn("I HATE MULTITHREADING! I HATE STUDY!");
 
         // TODO: configure network service
         const uint16_t port = 8080;
