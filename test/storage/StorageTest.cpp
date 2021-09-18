@@ -195,3 +195,23 @@ TEST(StorageTest, MaxTest) {
         EXPECT_FALSE(storage.Get(key, res));
     }
 }
+
+TEST(StorageTest, OverLimit) {
+    SimpleLRU storage(10);
+
+    auto key = pad_space("Key " + std::to_string(0), 5);
+    auto val = pad_space("Val " + std::to_string(0), 6);
+    EXPECT_FALSE(storage.Put(key, val));
+
+    val.resize(5, ' ');
+    EXPECT_TRUE(storage.Put(key, val));
+    // It is necessary to verify the correct deletion of a single value in the container during overflow
+    EXPECT_TRUE(storage.Set(key, val));
+
+    val.resize(6, ' ');
+    EXPECT_FALSE(storage.Set(key, val));
+
+    key = pad_space("Key2" + std::to_string(0), 5);
+    EXPECT_FALSE(storage.Put(key, val));
+    EXPECT_FALSE(storage.PutIfAbsent(key, val));
+}
