@@ -14,21 +14,9 @@ bool SimpleLRU::is_overflow(const std::string &key, const std::string &value) {
     return false;
 }
 
-
-void SimpleLRU::delete_from_tail() {
-    _size -= _lru_tail->key.size() + _lru_tail->value.size();
-    _lru_index.erase(_lru_tail->key);
-    if (_lru_head.get() != _lru_tail) {
-        _lru_tail = _lru_tail->prev;
-        _lru_tail->next.reset(nullptr);
-    } else {
-        _lru_head.reset(nullptr);
-    }
-}
-
 void SimpleLRU::add_key_value(const std::string &key, const std::string &value) {
     while (_size + key.size() + value.size() > _max_size) {
-        delete_from_tail();
+        erase_last();
     }
     auto *node = new lru_node{key, value, nullptr, nullptr};
     if (_lru_head) {
@@ -40,6 +28,18 @@ void SimpleLRU::add_key_value(const std::string &key, const std::string &value) 
     _lru_head.reset(node);
     _lru_index.insert({std::reference_wrapper<const std::string>(node->key), std::reference_wrapper<lru_node>(*node)});
     _size += key.size() + value.size();
+}
+
+
+void SimpleLRU::erase_last() {
+    _size -= _lru_tail->key.size() + _lru_tail->value.size();
+    _lru_index.erase(_lru_tail->key);
+    if (_lru_head.get() != _lru_tail) {
+        _lru_tail = _lru_tail->prev;
+        _lru_tail->next.reset(nullptr);
+    } else {
+        _lru_head.reset(nullptr);
+    }
 }
 
 void SimpleLRU::update_the_position(lru_node &node) {
@@ -63,11 +63,11 @@ void SimpleLRU::update_the_position(lru_node &node) {
     }
 }
 
-void SimpleLRU::change_value(lru_node &node, const std::string &value) {
+void SimpleLRU::set_existed(lru_node &node, const std::string &value) {
     update_the_position(node);
     if (value.size() > node.value.size()) {
         while (_size + value.size() - node.value.size() > _max_size) {
-            delete_from_tail();
+            erase_last();
         }
     }
     _size += value.size() - node.value.size();
@@ -81,7 +81,7 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value) {
     }
     auto node = _lru_index.find(key);
     if (node != _lru_index.end()) {
-        change_value((node->second).get(), value);
+        set_existed((node->second).get(), value);
     } else {
         add_key_value(key, value);
     }
@@ -107,7 +107,7 @@ bool SimpleLRU::Set(const std::string &key, const std::string &value) {
     }
     auto node = _lru_index.find(key);
     if (node != _lru_index.end()) {
-        change_value((node->second).get(), value);
+        set_existed((node->second).get(), value);
         return true;
     }
     return false;

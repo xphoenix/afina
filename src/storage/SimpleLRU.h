@@ -58,8 +58,8 @@ private:
     };
 
     void add_key_value(const std::string &key, const std::string &value);
-    void delete_from_tail();
-    void change_value(lru_node &node, const std::string &value);
+    void erase_last();
+    void set_existed(lru_node &node, const std::string &value);
     void update_the_position(lru_node &node);
     bool is_overflow(const std::string &key, const std::string &value);
 
