@@ -2,6 +2,7 @@
 #define AFINA_NETWORK_MT_BLOCKING_SERVER_H
 
 #include <atomic>
+#include <condition_variable>
 #include <thread>
 
 #include <afina/network/Server.h>
@@ -52,6 +53,16 @@ private:
 
     // Thread to run network on
     std::thread _thread;
+
+    std::mutex _mutex;
+
+    size_t _max_threads;
+
+    size_t _active_workers;
+
+    std::condition_variable _wait;
+
+    void Worker(const int client_socket);
 };
 
 } // namespace MTblocking
