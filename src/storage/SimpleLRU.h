@@ -77,9 +77,11 @@ private:
     std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<std::string>>
         _lru_index;
 
-    void _put_absent(const std::string &key, const std::string &value);
+    private:
 
-    void _set_existing(lru_node &node, const std::string &value);
+    void _insert_new_node(const std::string &key, const std::string &value);
+
+    void _update_existing_node(lru_node &node, const std::string &value);
 
     void _delete_least_recent();
 };
