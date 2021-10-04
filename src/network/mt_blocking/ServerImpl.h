@@ -3,6 +3,10 @@
 
 #include <atomic>
 #include <thread>
+#include <vector>
+#include <condition_variable>
+#include <set>
+#include <mutex>
 
 #include <afina/network/Server.h>
 
@@ -39,11 +43,13 @@ protected:
     void OnRun();
 
 private:
+    void Connection(int client_socket);
+private:
     // Logger instance
     std::shared_ptr<spdlog::logger> _logger;
 
     // Atomic flag to notify threads when it is time to stop. Note that
-    // flag must be atomic in order to safely publisj changes cross thread
+    // flag must be atomic in order to safely publish changes cross thread
     // bounds
     std::atomic<bool> running;
 
@@ -52,6 +58,11 @@ private:
 
     // Thread to run network on
     std::thread _thread;
+
+    std::mutex locker;
+    std::condition_variable notifier;
+    std::set<int> client_sockets;
+    std::size_t MAX_THREADS;
 };
 
 } // namespace MTblocking
