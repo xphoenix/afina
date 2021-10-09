@@ -58,14 +58,9 @@ private:
     std::thread _thread;
 
     int _max_connections = 5;
-    std::atomic<int> _curr_amt_of_running_threads{0};
-    
-
-    std::set<int> _set_of_client_sockets;
+    std::set<int> _set_of_sockets;
     std::mutex _mutex_for_set;
-
     std::condition_variable _cv_amt_connections;
-    std::mutex _mutex_for_connections;
 
 
 

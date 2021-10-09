@@ -73,30 +73,33 @@ void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
     }
 
     running.store(true);
+
+    {
+        std::lock_guard<std::mutex> myguard(_mutex_for_set);
+        _set_of_sockets.insert(_server_socket);
+    }
+
     _thread = std::thread(&ServerImpl::OnRun, this);
+    _thread.detach();
+
 }
 
 // See Server.h
 void ServerImpl::Stop() {
     running.store(false);
-    shutdown(_server_socket, SHUT_RDWR);
     std::lock_guard<std::mutex> myguard(_mutex_for_set);
-    for (auto s : _set_of_client_sockets) {
+    for (auto s : _set_of_sockets) {
         shutdown(s, SHUT_RD);
     }
 }
 
 // See Server.h
 void ServerImpl::Join() {
-    assert(_thread.joinable());
-
-    std::unique_lock<std::mutex> myguard(_mutex_for_connections);
-    while (_curr_amt_of_running_threads.load() !=0){
-        _cv_amt_connections.wait(myguard);
+    std::unique_lock<std::mutex> myguardSet(_mutex_for_set);
+    while (running.load() || !_set_of_sockets.empty()) {
+        _cv_amt_connections.wait(myguardSet);
     }
 
-    _thread.join();
-    close(_server_socket);
 }
 
 // See Server.h
@@ -147,9 +150,13 @@ void ServerImpl::OnRun() {
             // }
             // close(client_socket);
 
-            
+            std::size_t len_of_set;
+            {
+                std::lock_guard<std::mutex> myguardSet(_mutex_for_set);
+                len_of_set = _set_of_sockets.size();
+            }
 
-            if (_curr_amt_of_running_threads >= _max_connections) {
+            if (len_of_set >= _max_connections) {
                 static const std::string msg = "From server in client console: No place for a new worker_thread\n";
                 int otv;
                 if ( (otv=send(client_socket, msg.data(), msg.size(), 0)) <= 0) {
@@ -161,17 +168,29 @@ void ServerImpl::OnRun() {
             }
 
             {
-                std::lock_guard<std::mutex> myguard(_mutex_for_set);
-                _set_of_client_sockets.insert(client_socket);
+                std::lock_guard<std::mutex> myguardSet(_mutex_for_set);
+                _set_of_sockets.insert(client_socket);
             }
-
-            _curr_amt_of_running_threads++;
-
 
             std::thread worker_thread = std::thread(&ServerImpl::OnWorkerRun, this, client_socket); 
             worker_thread.detach();
         }
     }
+
+    bool notify_require = false;
+
+    {
+        std::lock_guard<std::mutex> myguardSet(_mutex_for_set);
+        _set_of_sockets.erase(_server_socket);
+        notify_require = _set_of_sockets.empty();
+    }
+
+    if (notify_require) {
+        _cv_amt_connections.notify_all(); 
+    }
+
+    close(_server_socket);
+    
 
     // Cleanup on exit...
     _logger->warn("Network stopped");
@@ -284,16 +303,17 @@ void ServerImpl::OnWorkerRun(int client_socket) {
     // We are done with this connection
     close(client_socket);
 
+    bool notify_require = false;
+
     {
-        std::lock_guard<std::mutex> myguard(_mutex_for_set);
-        _set_of_client_sockets.erase(client_socket);
+        std::lock_guard<std::mutex> myguardSet(_mutex_for_set);
+        _set_of_sockets.erase(client_socket);
+        notify_require = _set_of_sockets.empty();
     }
 
-
-    _curr_amt_of_running_threads--;
     
-    if (_curr_amt_of_running_threads.load() == 0) {
-        _cv_amt_connections.notify_one(); //only server thread is waiting for it
+    if (notify_require) {
+        _cv_amt_connections.notify_all(); 
     }
 
 }
