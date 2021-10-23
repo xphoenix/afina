@@ -150,6 +150,7 @@ void ServerImpl::OnRun() {
                 // Depends on what connection wants...
                 if (current_event.events & EPOLLIN) {
                     pc->DoRead();
+                    
                 }
                 if (current_event.events & EPOLLOUT) {
                     pc->DoWrite();

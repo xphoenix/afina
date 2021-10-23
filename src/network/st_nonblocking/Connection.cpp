@@ -8,23 +8,21 @@ namespace STnonblock {
 
 // See Connection.h
 void Connection::Start() { 
-    std::cout << "Start" << std::endl; 
     _event.events = EPOLLIN;
 }
 
 // See Connection.h
 void Connection::OnError() { 
-    std::cout << "OnError" << std::endl;
+    isalive=false;
 }
 
 // See Connection.h
 void Connection::OnClose() { 
-    std::cout << "OnClose" << std::endl;
+    isalive=false;
 }
 
 // See Connection.h
-void Connection::DoRead() { 
-    std::cout << "DoRead" << std::endl; 
+void Connection::DoRead() {  
     try {
         int readed_bytes = -1;
         while ((readed_bytes = read(_socket, client_buffer, sizeof(client_buffer))) > 0) {
@@ -94,23 +92,21 @@ void Connection::DoRead() {
             } // while (readed_bytes)
         }
 
-        if (readed_bytes == 0) {
-            _logger->debug("Connection closed");
-            _event.events &= ~EPOLLIN;
-            
-        } else {
-            throw std::runtime_error(std::string(strerror(errno)));
-        }
+        if (readed_bytes == 0 || (errno != EAGAIN && errno != EWOULDBLOCK)) { isalive = false; }
+
     } 
-    catch (std::runtime_error &ex) {
+    catch (std::runtime_error &ex) { //failed to parse command
         _logger->error("Failed to process connection on descriptor {}: {}", _socket, ex.what());
+        command_to_execute.reset();
+        argument_for_command.resize(0);
+        parser.Reset();
+
     }
 
 }
 
 // See Connection.h
-void Connection::DoWrite() { 
-    std::cout << "DoWrite" << std::endl; 
+void Connection::DoWrite() {  
     while (!_what_to_write_to_client.empty()) {
         std::string tek_elem = _what_to_write_to_client.front();
         int sent_bytes = write(_socket, &tek_elem[offset], tek_elem.size() - offset);

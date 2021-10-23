@@ -28,7 +28,7 @@ public:
         pStorage = my_pstorage;
     }
 
-    inline bool isAlive() const { return _event.events != 0; }
+    inline bool isAlive() const { return isalive; }
 
 
     void Start();
@@ -42,6 +42,7 @@ protected:
 private:
     friend class ServerImpl;
 
+    bool isalive=true;
     int _socket;
     struct epoll_event _event;
 
