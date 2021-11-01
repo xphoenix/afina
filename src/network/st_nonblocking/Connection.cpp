@@ -25,7 +25,7 @@ void Connection::OnClose() {
 void Connection::DoRead() {  
     try {
         int readed_bytes = -1;
-        while ((readed_bytes = read(_socket, client_buffer, sizeof(client_buffer))) > 0) {
+        if ((readed_bytes = read(_socket, client_buffer+read_offset, sizeof(client_buffer))) > 0) {
             _logger->debug("Got {} bytes from socket", readed_bytes);
 
             // Single block of data readed from the socket could trigger inside actions a multiple times,
@@ -50,12 +50,16 @@ void Connection::DoRead() {
                     // Parsed might fails to consume any bytes from input stream. In real life that could happens,
                     // for example, because we are working with UTF-16 chars and only 1 byte left in stream
                     if (parsed == 0) {
+                        read_offset+=readed_bytes;
                         break;
                     } else {
-                        std::memmove(client_buffer, client_buffer + parsed, readed_bytes - parsed);
+                        std::memmove(client_buffer, client_buffer+read_offset + parsed, (read_offset+readed_bytes) - (read_offset+parsed));
+                        read_offset=0;
                         readed_bytes -= parsed;
                     }
                 }
+
+                
 
                 // There is command, but we still wait for argument to arrive...
                 if (command_to_execute && arg_remains > 0) {
@@ -82,6 +86,9 @@ void Connection::DoRead() {
                     // Send response
                     result += "\r\n";
                     _what_to_write_to_client.emplace(result);
+                    if (_what_to_write_to_client.size()==out_queue){
+                        _event.events &= ~EPOLLIN;
+                    }
                     _event.events |= EPOLLOUT;
 
                     // Prepare for the next command
@@ -91,15 +98,16 @@ void Connection::DoRead() {
                 }
             } // while (readed_bytes)
         }
+        else{
+            if (readed_bytes == 0 || (errno != EAGAIN && errno != EWOULDBLOCK)) { isalive = false; }
 
-        if (readed_bytes == 0 || (errno != EAGAIN && errno != EWOULDBLOCK)) { isalive = false; }
+        }
+        
 
     } 
     catch (std::runtime_error &ex) { //failed to parse command
         _logger->error("Failed to process connection on descriptor {}: {}", _socket, ex.what());
-        command_to_execute.reset();
-        argument_for_command.resize(0);
-        parser.Reset();
+        OnClose();
 
     }
 
@@ -109,15 +117,16 @@ void Connection::DoRead() {
 void Connection::DoWrite() {  
     while (!_what_to_write_to_client.empty()) {
         std::string tek_elem = _what_to_write_to_client.front();
-        int sent_bytes = write(_socket, &tek_elem[offset], tek_elem.size() - offset);
+        int sent_bytes = write(_socket, &tek_elem[write_offset], tek_elem.size() - write_offset);
         if (sent_bytes > 0) {
-            offset += sent_bytes;
-            if (offset == tek_elem.size()) {
-                offset = 0;
+            write_offset += sent_bytes;
+            if (write_offset == tek_elem.size()) {
+                write_offset = 0;
                 _what_to_write_to_client.pop();
             }
         }
         else if (sent_bytes == EWOULDBLOCK) { return; }
+        else {OnClose(); return;}
         
     }
     _event.events &= ~EPOLLOUT;

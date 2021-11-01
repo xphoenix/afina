@@ -52,10 +52,14 @@ private:
     std::unique_ptr<Execute::Command> command_to_execute;
 
     std::queue<std::string> _what_to_write_to_client;
-    int offset = 0;
+    int write_offset = 0;
     char client_buffer[4096];
     std::shared_ptr<Afina::Storage> pStorage;
     std::shared_ptr<spdlog::logger> _logger;
+
+    int out_queue=10;
+    int read_offset=0;
+
 
     
 
