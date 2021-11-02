@@ -4,6 +4,9 @@
 #include <atomic>
 #include <memory>
 #include <thread>
+#include <set>
+#include <mutex>
+#include "Connection.h"
 
 namespace spdlog {
 class logger;
@@ -81,6 +84,8 @@ private:
 
     // EPOLL descriptor using for events processing
     int _epoll_fd;
+
+    
 };
 
 } // namespace MTnonblock

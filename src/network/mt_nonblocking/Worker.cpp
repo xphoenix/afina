@@ -69,7 +69,6 @@ void Worker::Join() {
 void Worker::OnRun() {
     assert(_epoll_fd >= 0);
     _logger->trace("OnRun");
-
     // Process connection events
     //
     // Do not forget to use EPOLLEXCLUSIVE flag when register socket
@@ -87,6 +86,7 @@ void Worker::OnRun() {
             // signals us to wakeup to process some state change, ignore it in INNER loop, react
             // on changes in OUTHER loop
             if (current_event.data.ptr == nullptr) {
+                isRunning=false;
                 continue;
             }
 
@@ -129,6 +129,7 @@ void Worker::OnRun() {
             }
         }
         // TODO: Select timeout...
+        
     }
     _logger->warn("Worker stopped");
 }

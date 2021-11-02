@@ -94,6 +94,7 @@ void ServerImpl::Start(uint16_t port, uint32_t n_acceptors, uint32_t n_workers) 
         throw std::runtime_error("Failed to add eventfd descriptor to epoll");
     }
 
+    
     _workers.reserve(n_workers);
     for (int i = 0; i < n_workers; i++) {
         _workers.emplace_back(pStorage, pLogging);
@@ -116,8 +117,10 @@ void ServerImpl::Stop() {
     }
 
     // Wakeup threads that are sleep on epoll_wait
-    if (eventfd_write(_event_fd, 1)) {
-        throw std::runtime_error("Failed to wakeup workers");
+    for (int i=0; i<_workers.size(); i=i+1){
+        if (eventfd_write(_event_fd, 1)) {
+            throw std::runtime_error("Failed to wakeup workers");
+        }
     }
 }
 
@@ -193,7 +196,7 @@ void ServerImpl::OnRun() {
                 }
 
                 // Register the new FD to be monitored by epoll.
-                Connection *pc = new Connection(infd);
+                Connection *pc = new Connection(infd, _logger, pStorage);
                 if (pc == nullptr) {
                     throw std::runtime_error("Failed to allocate connection");
                 }

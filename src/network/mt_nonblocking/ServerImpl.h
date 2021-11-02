@@ -3,8 +3,11 @@
 
 #include <thread>
 #include <vector>
+#include <set>
+#include <mutex>
 
 #include <afina/network/Server.h>
+#include "Connection.h"
 
 namespace spdlog {
 class logger;
@@ -63,6 +66,11 @@ private:
 
     // threads serving read/write requests
     std::vector<Worker> _workers;
+
+    
+    
+
+    
 };
 
 } // namespace MTnonblock
