@@ -150,6 +150,3 @@ void Connection::DoWrite() {
 } // namespace STnonblock
 } // namespace Network
 } // namespace Afina
-© 2021 GitHub, Inc.
-Terms
-
