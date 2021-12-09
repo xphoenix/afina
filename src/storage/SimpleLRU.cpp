@@ -9,14 +9,16 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value) {
         return false;
     }
     auto in_cache = _lru_index.find(key);
+
     if (in_cache == _lru_index.end()) {
-        _put_absent(key, value);
-        return true;
-    } else {
-        lru_node &node = in_cache->second.get();
-        _set_existing(node, value);
+        _insert_new_node(key, value);
         return true;
     }
+
+    lru_node &node = in_cache->second.get();
+    _update_existing_node(node, value);
+    return true;
+    
 }
 
 // See MapBasedGlobalLockImpl.h
@@ -25,11 +27,11 @@ bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
         return false;
     }
     auto in_cache = _lru_index.find(key);
-    if (in_cache == _lru_index.end()) {
-        _put_absent(key, value);
-        return true;
+    if (in_cache != _lru_index.end()) {
+        return false;
     }
-    return false;
+    _insert_new_node(key, value);
+    return true;
 }
 
 // See MapBasedGlobalLockImpl.h
@@ -38,45 +40,46 @@ bool SimpleLRU::Set(const std::string &key, const std::string &value) {
         return false;
     }
     auto in_cache = _lru_index.find(key);
-    if (in_cache != _lru_index.end()) {
-        lru_node &node = in_cache->second.get();
-        _set_existing(node, value);
-        return true;
+    if (in_cache == _lru_index.end()) {
+	return false;
     }
-    return false;
+    lru_node &node = in_cache->second.get();
+    _update_existing_node(node, value);
+    return true;
 }
 
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::Delete(const std::string &key) {
     auto in_cache = _lru_index.find(key);
-    if (in_cache != _lru_index.end()) {
-        lru_node &node = in_cache->second.get();
-        _cache_size -= node.key.size() + node.value.size();
-        _lru_index.erase(key);
-        std::swap(node.prev, node.next->prev);
-        std::swap(node.next, node.next->prev->next);
-        node.next.reset();
-        return true;
+    if (in_cache == _lru_index.end()) {
+	return false;
     }
-    return false;
+
+    lru_node &node = in_cache->second.get();
+    _cache_size -= node.key.size() + node.value.size();
+    _lru_index.erase(key);
+    std::swap(node.prev, node.next->prev);
+    std::swap(node.next, node.next->prev->next);
+    node.next.reset();
+    return true;
 }
 
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::Get(const std::string &key, std::string &value) {
     auto in_cache = _lru_index.find(key);
-    if (in_cache != _lru_index.end()) {
-        value = in_cache->second.get().value;
-        lru_node &node = in_cache->second.get();
-        std::swap(node.prev, node.next->prev);
-        std::swap(node.next, node.next->prev->next);
-        std::swap(node.prev, _lru_head->next->prev);
-        std::swap(node.next, _lru_head->next);
-        return true;
+    if (in_cache == _lru_index.end()) {
+        return false;
     }
-    return false;
+    value = in_cache->second.get().value;
+    lru_node &node = in_cache->second.get();
+    std::swap(node.prev, node.next->prev);
+    std::swap(node.next, node.next->prev->next);
+    std::swap(node.prev, _lru_head->next->prev);
+    std::swap(node.next, _lru_head->next);
+    return true;
 }
 
-void SimpleLRU::_put_absent(const std::string &key, const std::string &value) {
+void SimpleLRU::_insert_new_node(const std::string &key, const std::string &value) {
     while (_max_size - _cache_size < key.size() + value.size()) {
         _delete_least_recent();
     }
@@ -88,7 +91,7 @@ void SimpleLRU::_put_absent(const std::string &key, const std::string &value) {
     std::swap(node->next, _lru_head->next);
     _lru_index.emplace(std::reference_wrapper<const std::string>(node->key), std::reference_wrapper<lru_node>(*node));
 }
-void SimpleLRU::_set_existing(SimpleLRU::lru_node &node, const std::string &value) {
+void SimpleLRU::_update_existing_node(SimpleLRU::lru_node &node, const std::string &value) {
     std::swap(node.prev, node.next->prev);
     std::swap(node.next, node.next->prev->next);
     std::swap(node.prev, _lru_head->next->prev);
