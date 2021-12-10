@@ -241,7 +241,8 @@ void ServerImpl::OnRun() {
             } else {
                 throw std::runtime_error(std::string(strerror(errno)));
             }
-        } catch (std::runtime_error &ex) {
+        } 
+        catch (std::runtime_error &ex) {
             _logger->error("Failed to process connection on descriptor {}: {}", client_socket, ex.what());
         }
 
