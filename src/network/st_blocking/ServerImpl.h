@@ -52,9 +52,6 @@ private:
 
     // Thread to run network on
     std::thread _thread;
-
-    
-
 };
 
 } // namespace STblocking
