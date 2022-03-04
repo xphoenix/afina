@@ -68,6 +68,7 @@ bool SimpleLRU::Get(const std::string &key, std::string &value) {
     auto key_node = _lru_index.find(key);
     if (key_node != _lru_index.end()) {
         value = key_node->second.get().value;
+        MoveToTail(&key_node->second.get());
     } else {
         return false;
     }
