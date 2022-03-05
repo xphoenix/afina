@@ -98,6 +98,7 @@ void SimpleLRU::MoveToTail(lru_node *node) {
         _lru_head->prev = nullptr;
     }
     _lru_tail->next = std::move(temp);
+    _lru_tail->next->prev = _lru_tail;
     _lru_tail = _lru_tail->next.get();
     _lru_tail->next = nullptr;
 }
@@ -113,7 +114,7 @@ void SimpleLRU::AddToTail(const std::string &key, const std::string &value) {
         _lru_head = std::move(temp);
         _lru_tail = _lru_head.get();
     }
-    _lru_index.emplace(_lru_tail->key, *_lru_tail);
+    _lru_index.emplace(std::ref(_lru_tail->key), std::ref(*_lru_tail));
 }
 
 void SimpleLRU::RemoveNode(lru_node *node) {
