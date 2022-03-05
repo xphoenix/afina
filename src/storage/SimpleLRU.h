@@ -21,7 +21,7 @@ public:
 
     ~SimpleLRU() {
         _lru_index.clear();
-        while(_lru_head){
+        while (_lru_head) {
             _lru_head = std::move(_lru_head->next);
         }
     }
@@ -52,6 +52,11 @@ private:
         std::unique_ptr<lru_node> next;
     };
 
+    void ReleaseSpace(size_t needed_free_size);
+    void MoveToTail(lru_node *node);
+    void AddToTail(const std::string &key, const std::string &value);
+    void RemoveNode(lru_node *node);
+
     // Maximum number of bytes could be stored in this cache.
     // i.e. all (keys+values) must be not greater than the _max_size
     std::size_t _max_size;
@@ -68,11 +73,6 @@ private:
     // Index of nodes from list above, allows fast random access to elements by lru_node#key
     std::map<std::reference_wrapper<const std::string>, std::reference_wrapper<lru_node>, std::less<std::string>>
         _lru_index;
-
-    void ReleaseSpace(size_t needed_free_size);
-    void MoveToTail(lru_node *node);
-    void AddToTail(const std::string &key, const std::string &value);
-    void RemoveNode(lru_node *node);
 };
 
 } // namespace Backend
