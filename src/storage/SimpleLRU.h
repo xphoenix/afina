@@ -13,7 +13,7 @@ namespace Backend {
 
 /**
  * # Map based implementation
- * That is NOT thread safe implementaiton!!
+ * That is NOT thread safe implementation!!
  */
 class SimpleLRU : public Afina::Storage {
 public:
@@ -49,7 +49,7 @@ private:
     };
 
     // Maximum number of bytes could be stored in this cache.
-    // i.e all (keys+values) must be not greater than the _max_size
+    // i.e. all (keys+values) must be not greater than the _max_size
     std::size_t _max_size;
 
     // Main storage of lru_nodes, elements in this list ordered descending by "freshness": in the head
