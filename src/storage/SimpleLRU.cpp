@@ -11,9 +11,9 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value) {
     }
     auto key_node = _lru_index.find(key);
     if (key_node != _lru_index.end()) {
-        ReleaseSpace(std::max((size_t)0, value.size() - key_node->second.get().value.size()));
-        key_node->second.get().value = value;
         MoveToTail(&key_node->second.get());
+        ReleaseSpace(std::max(value.size(), key_node->second.get().value.size()) - key_node->second.get().value.size());
+        _lru_tail->value = value;
     } else {
         ReleaseSpace(key.size() + value.size());
         AddToTail(key, value);
@@ -29,10 +29,9 @@ bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
     auto key_node = _lru_index.find(key);
     if (key_node != _lru_index.end()) {
         return false;
-    } else {
-        ReleaseSpace(key.size() + value.size());
-        AddToTail(key, value);
     }
+    ReleaseSpace(key.size() + value.size());
+    AddToTail(key, value);
     return true;
 }
 
@@ -42,36 +41,34 @@ bool SimpleLRU::Set(const std::string &key, const std::string &value) {
         return false;
     }
     auto key_node = _lru_index.find(key);
-    if (key_node != _lru_index.end()) {
-        ReleaseSpace(value.size() - key_node->second.get().value.size());
-        key_node->second.get().value = value;
-        MoveToTail(&key_node->second.get());
-    } else {
+    if (key_node == _lru_index.end()) {
         return false;
     }
+    MoveToTail(&key_node->second.get());
+    ReleaseSpace(std::max(value.size(), key_node->second.get().value.size()) - key_node->second.get().value.size());
+    _lru_tail->value = value;
+
     return true;
 }
 
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::Delete(const std::string &key) {
     auto key_node = _lru_index.find(key);
-    if (key_node != _lru_index.end()) {
-        RemoveNode(&key_node->second.get());
-    } else {
+    if (key_node == _lru_index.end()) {
         return false;
     }
+    RemoveNode(&key_node->second.get());
     return true;
 }
 
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::Get(const std::string &key, std::string &value) {
     auto key_node = _lru_index.find(key);
-    if (key_node != _lru_index.end()) {
-        value = key_node->second.get().value;
-        MoveToTail(&key_node->second.get());
-    } else {
+    if (key_node == _lru_index.end()) {
         return false;
     }
+    value = key_node->second.get().value;
+    MoveToTail(&key_node->second.get());
     return true;
 }
 
