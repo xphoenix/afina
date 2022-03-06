@@ -33,6 +33,31 @@ TEST(StorageTest, PutGet) {
     EXPECT_TRUE(value == "val2");
 }
 
+TEST(StorageTest, PutSetDiffSizeValues) {
+    SimpleLRU storage;
+
+    EXPECT_TRUE(storage.Put("KEY1", "val1"));
+    EXPECT_TRUE(storage.Put("KEY1", "v1"));
+
+    EXPECT_TRUE(storage.Put("KEY2", "v2"));
+    EXPECT_TRUE(storage.Put("KEY2", "val2"));
+
+    EXPECT_TRUE(storage.Set("KEY1", "val1"));
+    EXPECT_TRUE(storage.Set("KEY2", "v2"));
+}
+
+TEST(StorageTest, PutSetStorageCleanTest) {
+    SimpleLRU storage(16);
+
+    EXPECT_TRUE(storage.Put("KEY1", "val1"));
+    EXPECT_TRUE(storage.Put("KEY2", "val2"));
+    EXPECT_TRUE(storage.Put("KEY1", "value1"));
+
+    EXPECT_TRUE(storage.Put("KEY1", "val1"));
+    EXPECT_TRUE(storage.Put("KEY2", "val2"));
+    EXPECT_TRUE(storage.Set("KEY1", "value1"));
+}
+
 TEST(StorageTest, PutOverwrite) {
     SimpleLRU storage;
 

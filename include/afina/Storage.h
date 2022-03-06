@@ -34,9 +34,9 @@ public:
      * Stores association between given key/value pair if key isn't present in
      * storage.
      *
-     * If given key is already present in the storage then method resturns false
+     * If given key is already present in the storage then method returns false
      * and doesn't change anything inside. Otherwise new association key->value
-     * created and if successfull then true returns.
+     * created and if successful then true returns.
      *
      * @param key to be associated with value
      * @param value to be assigned for the key
@@ -65,7 +65,7 @@ public:
      * returns true.
      *
      * Once method returns true any subsequent call to the storage must not
-     * see deleted association until it created again by Put or PutIfAdsent
+     * see deleted association until it created again by Put or PutIfAbsent
      * calls
      *
      * @param key to be removed
@@ -73,14 +73,14 @@ public:
     virtual bool Delete(const std::string &key) = 0;
 
     /**
-     * Retrive key for the given value
+     * Retrieve key for the given value
      * If there is an association for the given key then method copies value
      * into given output parameter (possibly extends its size) and return true
      *
      * In case if given key not found method returns false and doesn't perform
      * any changes on the output parameter
      *
-     * @param key to retrive1 value for
+     * @param key to retrieve value for
      * @param value output parameter to copy value to
      */
     virtual bool Get(const std::string &key, std::string &value) = 0;
