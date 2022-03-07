@@ -2,9 +2,14 @@
 #define AFINA_NETWORK_MT_BLOCKING_SERVER_H
 
 #include <atomic>
+#include <condition_variable>
+#include <map>
+#include <mutex>
 #include <thread>
 
 #include <afina/network/Server.h>
+
+#define TOTAL_WORKERS_NUM 2
 
 namespace spdlog {
 class logger;
@@ -38,6 +43,8 @@ protected:
      */
     void OnRun();
 
+    void ProcessClient(int client_socket) noexcept;
+
 private:
     // Logger instance
     std::shared_ptr<spdlog::logger> _logger;
@@ -52,6 +59,14 @@ private:
 
     // Thread to run network on
     std::thread _thread;
+
+    size_t _total_workers_num = TOTAL_WORKERS_NUM;
+
+    std::mutex _workers_mutex;
+
+    std::map<std::thread::id, int> thread_pool;
+
+    std::condition_variable cv;
 };
 
 } // namespace MTblocking
