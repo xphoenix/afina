@@ -220,3 +220,26 @@ TEST(StorageTest, MaxTest) {
         EXPECT_FALSE(storage.Get(key, res));
     }
 }
+
+TEST(StorageTest, NodeMoveOnGet) {
+    SimpleLRU storage(16);
+
+    storage.Put("KEY1", "val1");
+    storage.Put("KEY2", "val2");
+
+    std::string value;
+    storage.Get("KEY1", value);
+    storage.Put("KEY3", "val3");
+    EXPECT_TRUE(storage.Get("KEY1", value));
+    EXPECT_TRUE(value == "val1");
+}
+
+TEST(StorageTest, ProperCleanupOnSet) {
+    SimpleLRU storage(12);
+
+    storage.Put("KEY1", "val1");
+    storage.Put("KEY1", "longval1");
+    std::string value;
+    EXPECT_TRUE(storage.Get("KEY1", value));
+    EXPECT_TRUE(value == "longval1");
+}
