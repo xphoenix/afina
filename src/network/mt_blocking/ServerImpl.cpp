@@ -80,8 +80,11 @@ void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
 void ServerImpl::Stop() {
     running.store(false);
     shutdown(_server_socket, SHUT_RDWR);
-    for (auto &thread : thread_pool) {
-        shutdown(thread.second, SHUT_RD);
+    {
+        std::lock_guard<std::mutex> lock(_workers_mutex);
+        for (auto &thread : thread_pool) {
+            shutdown(thread.second, SHUT_RD);
+        }
     }
 }
 
@@ -112,7 +115,6 @@ void ServerImpl::ProcessClient(int client_socket) noexcept {
         int readed_bytes = -1;
         char client_buffer[4096];
         while ((readed_bytes = read(client_socket, client_buffer, sizeof(client_buffer))) > 0) {
-            std::this_thread::sleep_for(std::chrono::seconds(10));
             _logger->debug("Got {} bytes from socket {}", readed_bytes, client_socket);
 
             // Single block of data readed from the socket could trigger inside actions a multiple times,
@@ -191,9 +193,9 @@ void ServerImpl::ProcessClient(int client_socket) noexcept {
     {
         std::lock_guard<std::mutex> lock(_workers_mutex);
         thread_pool.erase(std::this_thread::get_id());
+        close(client_socket);
         cv.notify_all();
     }
-    close(client_socket);
 }
 
 // See Server.h
@@ -233,11 +235,15 @@ void ServerImpl::OnRun() {
 
         {
             std::lock_guard<std::mutex> lock(_workers_mutex);
-            if (thread_pool.size() < _total_workers_num) {
+            if (thread_pool.size() < _total_workers_num && running.load()) {
                 client_thr = std::thread(&ServerImpl::ProcessClient, this, client_socket);
                 client_thr.detach();
             } else {
-                _logger->error("Clients limit is exceeded");
+                if (thread_pool.size() >= _total_workers_num) {
+                    _logger->error("Clients limit is exceeded");
+                }else{
+                    _logger->error("Application is stopped");
+                }
                 close(client_socket);
             }
         }
