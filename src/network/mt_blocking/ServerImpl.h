@@ -9,7 +9,7 @@
 
 #include <afina/network/Server.h>
 
-#define TOTAL_WORKERS_NUM 2
+#define TOTAL_WORKERS_NUM 6
 
 namespace spdlog {
 class logger;
@@ -57,14 +57,11 @@ private:
     // Server socket to accept connections on
     int _server_socket;
 
-    // Thread to run network on
-    std::thread _thread;
-
     size_t _total_workers_num = TOTAL_WORKERS_NUM;
 
     std::mutex _workers_mutex;
 
-    std::map<std::thread::id, int> thread_pool;
+    std::map<std::thread::id, int> _workers_map;
 
     std::condition_variable cv;
 };

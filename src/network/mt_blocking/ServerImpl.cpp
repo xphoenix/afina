@@ -73,16 +73,16 @@ void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
     }
 
     running.store(true);
-    _thread = std::thread(&ServerImpl::OnRun, this);
+    std::thread thread = std::thread(&ServerImpl::OnRun, this);
+    thread.detach();
 }
 
 // See Server.h
 void ServerImpl::Stop() {
     running.store(false);
-    shutdown(_server_socket, SHUT_RDWR);
     {
         std::lock_guard<std::mutex> lock(_workers_mutex);
-        for (auto &thread : thread_pool) {
+        for (auto &thread : _workers_map) {
             shutdown(thread.second, SHUT_RD);
         }
     }
@@ -92,19 +92,16 @@ void ServerImpl::Stop() {
 void ServerImpl::Join() {
     {
         std::unique_lock<std::mutex> lock(_workers_mutex);
-        while (!thread_pool.empty()) {
+        while (running.load() || !_workers_map.empty()) {
             cv.wait(lock);
         }
     }
-    assert(_thread.joinable());
-    _thread.join();
-    close(_server_socket);
 }
 
 void ServerImpl::ProcessClient(int client_socket) noexcept {
     {
         std::lock_guard<std::mutex> lock(_workers_mutex);
-        thread_pool.emplace(std::this_thread::get_id(), client_socket);
+        _workers_map.emplace(std::this_thread::get_id(), client_socket);
     }
     std::size_t arg_remains;
     Protocol::Parser parser;
@@ -116,7 +113,6 @@ void ServerImpl::ProcessClient(int client_socket) noexcept {
         char client_buffer[4096];
         while ((readed_bytes = read(client_socket, client_buffer, sizeof(client_buffer))) > 0) {
             _logger->debug("Got {} bytes from socket {}", readed_bytes, client_socket);
-
             // Single block of data readed from the socket could trigger inside actions a multiple times,
             // for example:
             // - read#0: [<command1 start>]
@@ -192,15 +188,17 @@ void ServerImpl::ProcessClient(int client_socket) noexcept {
     }
     {
         std::lock_guard<std::mutex> lock(_workers_mutex);
-        thread_pool.erase(std::this_thread::get_id());
+        _workers_map.erase(std::this_thread::get_id());
         close(client_socket);
-        cv.notify_all();
+        if (_workers_map.empty()){
+            cv.notify_all();
+        }
     }
 }
 
 // See Server.h
 void ServerImpl::OnRun() {
-    std::thread client_thr;
+    _workers_map.emplace(std::this_thread::get_id(), _server_socket);
     while (running.load()) {
         _logger->debug("waiting for connection...");
 
@@ -235,11 +233,11 @@ void ServerImpl::OnRun() {
 
         {
             std::lock_guard<std::mutex> lock(_workers_mutex);
-            if (thread_pool.size() < _total_workers_num && running.load()) {
-                client_thr = std::thread(&ServerImpl::ProcessClient, this, client_socket);
+            if (_workers_map.size() < _total_workers_num && running.load()) {
+                std::thread client_thr = std::thread(&ServerImpl::ProcessClient, this, client_socket);
                 client_thr.detach();
             } else {
-                if (thread_pool.size() >= _total_workers_num) {
+                if (_workers_map.size() >= _total_workers_num) {
                     _logger->error("Clients limit is exceeded");
                 }else{
                     _logger->error("Application is stopped");
@@ -248,7 +246,14 @@ void ServerImpl::OnRun() {
             }
         }
     }
-    // Cleanup on exit...
+    {
+        std::lock_guard<std::mutex> lock(_workers_mutex);
+        _workers_map.erase(std::this_thread::get_id());
+        close(_server_socket);
+        if (_workers_map.empty()){
+            cv.notify_all();
+        }
+    }
     _logger->warn("Network stopped");
 }
 
