@@ -73,8 +73,12 @@ void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
     }
 
     running.store(true);
-    std::thread thread = std::thread(&ServerImpl::OnRun, this);
-    thread.detach();
+    {
+        std::lock_guard<std::mutex> lock(_workers_mutex);
+        std::thread thread = std::thread(&ServerImpl::OnRun, this);
+        _workers_map.emplace(thread.get_id(), _server_socket);
+        thread.detach();
+    }
 }
 
 // See Server.h
@@ -99,10 +103,6 @@ void ServerImpl::Join() {
 }
 
 void ServerImpl::ProcessClient(int client_socket) noexcept {
-    {
-        std::lock_guard<std::mutex> lock(_workers_mutex);
-        _workers_map.emplace(std::this_thread::get_id(), client_socket);
-    }
     std::size_t arg_remains;
     Protocol::Parser parser;
     std::string argument_for_command;
@@ -198,7 +198,6 @@ void ServerImpl::ProcessClient(int client_socket) noexcept {
 
 // See Server.h
 void ServerImpl::OnRun() {
-    _workers_map.emplace(std::this_thread::get_id(), _server_socket);
     while (running.load()) {
         _logger->debug("waiting for connection...");
 
@@ -235,6 +234,7 @@ void ServerImpl::OnRun() {
             std::lock_guard<std::mutex> lock(_workers_mutex);
             if (_workers_map.size() < _total_workers_num && running.load()) {
                 std::thread client_thr = std::thread(&ServerImpl::ProcessClient, this, client_socket);
+                _workers_map.emplace(client_thr.get_id(), client_socket);
                 client_thr.detach();
             } else {
                 if (_workers_map.size() >= _total_workers_num) {
