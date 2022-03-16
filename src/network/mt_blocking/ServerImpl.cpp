@@ -31,7 +31,10 @@ namespace MTblocking {
 ServerImpl::ServerImpl(std::shared_ptr<Afina::Storage> ps, std::shared_ptr<Logging::Service> pl) : Server(ps, pl) {}
 
 // See Server.h
-ServerImpl::~ServerImpl() {}
+ServerImpl::~ServerImpl() {
+    Stop();
+    Join();
+}
 
 // See Server.h
 void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
@@ -103,14 +106,14 @@ void ServerImpl::Join() {
 }
 
 void ServerImpl::ProcessClient(int client_socket) noexcept {
-    std::size_t arg_remains;
+    std::size_t arg_remains = 0;
     Protocol::Parser parser;
     std::string argument_for_command;
     std::unique_ptr<Execute::Command> command_to_execute;
 
     try {
         int readed_bytes = -1;
-        char client_buffer[4096];
+        char client_buffer[4096] = "";
         while ((readed_bytes = read(client_socket, client_buffer, sizeof(client_buffer))) > 0) {
             _logger->debug("Got {} bytes from socket {}", readed_bytes, client_socket);
             // Single block of data readed from the socket could trigger inside actions a multiple times,
@@ -132,14 +135,10 @@ void ServerImpl::ProcessClient(int client_socket) noexcept {
                         }
                     }
 
-                    // Parsed might fails to consume any bytes from input stream. In real life that could happens,
-                    // for example, because we are working with UTF-16 chars and only 1 byte left in stream
-                    if (parsed == 0) {
-                        break;
-                    } else {
-                        std::memmove(client_buffer, client_buffer + parsed, readed_bytes - parsed);
-                        readed_bytes -= parsed;
-                    }
+                    assert(parsed != 0);
+                    std::memmove(client_buffer, client_buffer + parsed, readed_bytes - parsed);
+                    readed_bytes -= parsed;
+
                 }
 
                 // There is command, but we still wait for argument to arrive...
