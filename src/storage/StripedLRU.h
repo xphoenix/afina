@@ -12,7 +12,7 @@ namespace Backend {
 
 class StripedLRU : public Afina::Storage {
 public:
-    explicit StripedLRU(size_t max_size = 1024, size_t strip_count = 1);
+    explicit StripedLRU(size_t max_size = 2048, size_t strip_count = 2);
     ~StripedLRU();
 
     bool Put(const std::string &key, const std::string &value) override;
@@ -26,7 +26,7 @@ public:
     bool Get(const std::string &key, std::string &value) override;
 
 private:
-    std::vector<ThreadSafeSimplLRU> shards;
+    std::vector<std::shared_ptr<ThreadSafeSimplLRU>> shards;
     size_t strip_count;
     std::hash<std::string> hasher;
 };
